@@ -46,7 +46,7 @@ interface NewMessageProps {
   hideButton?: boolean
   isFromTo?: boolean
 }
-const maxSize = 25 * 1024 * 1024 // 25 MB in bytes
+const maxSize = 40 * 1024 * 1024 // 40 MB in bytes
 export const NewMessage = ({
   setReplyTo,
   replyTo,
@@ -123,7 +123,7 @@ export const NewMessage = ({
     onDropRejected: (rejectedFiles) => {
       dispatch(
         setNotification({
-          msg: 'One of your files is over the 25mb limit',
+          msg: 'One of your files is over the 40mb limit',
           alertType: 'error'
         })
       )
