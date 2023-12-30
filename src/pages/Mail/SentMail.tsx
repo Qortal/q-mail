@@ -19,7 +19,6 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import { useFetchMail } from '../../hooks/useFetchMail'
 import { ShowMessage } from './ShowMessage'
-import { fetchAndEvaluateMail } from '../../utils/fetchMail'
 import { addToHashMapMail } from '../../state/features/mailSlice'
 import {
   setIsLoadingGlobal,
@@ -29,9 +28,13 @@ import SimpleTable from './MailTable'
 import { MAIL_SERVICE_TYPE } from '../../constants/mail'
 import { BlogPost } from '../../state/features/blogSlice'
 import { setNotification } from '../../state/features/notificationsSlice'
+import { useModal } from '../../components/common/useModal'
+import { OpenMail } from './OpenMail'
 
 interface SentMailProps {}
 export const SentMail = ({}: SentMailProps) => {
+  const {isShow, onCancel, onOk, show} = useModal()
+
   const theme = useTheme()
   const { user } = useSelector((state: RootState) => state.auth)
   const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -40,6 +43,7 @@ export const SentMail = ({}: SentMailProps) => {
   const [valueTab, setValueTab] = React.useState(0)
   const [aliasValue, setAliasValue] = useState('')
   const [alias, setAlias] = useState<string[]>([])
+  const [mailInfo, setMailInfo] = useState<any>(null)
   const hashMapPosts = useSelector(
     (state: RootState) => state.blog.hashMapPosts
   )
@@ -274,24 +278,25 @@ export const SentMail = ({}: SentMailProps) => {
     content: any
   ) => {
     try {
-      const existingMessage = hashMapMailMessages[messageIdentifier]
-      if (existingMessage) {
+      const existingMessage: any = hashMapMailMessages[messageIdentifier]
+      if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
         setMessage(existingMessage)
         setIsOpen(true)
         return
       }
-      dispatch(setIsLoadingGlobal(true))
-      // const findUser = await findUserFunc(messageIdentifier)
-      // if (!findUser) throw new Error('cannot find user')
-      const res = await fetchAndEvaluateMail({
-        user,
-        messageIdentifier,
-        content,
-        otherUser: user
+      setMailInfo({
+        identifier: messageIdentifier,
+        name: user,
+        service: MAIL_SERVICE_TYPE
       })
-      setMessage(res)
-      dispatch(addToHashMapMail(res))
-      setIsOpen(true)
+      const res: any = await show()
+      setMailInfo(null)
+      const existingMessageAgain = hashMapMailMessages[messageIdentifier]
+      if (res && res.isValid && !res.unableToDecrypt) {
+        setMessage(res)
+        setIsOpen(true)
+        return
+      }
     } catch (error) {
       dispatch(
         setNotification({
@@ -300,12 +305,14 @@ export const SentMail = ({}: SentMailProps) => {
         })
       )
     } finally {
-      dispatch(setIsLoadingGlobal(false))
     }
   }
 
   return (
     <>
+     {mailInfo && isShow && (
+              <OpenMail open={isShow} handleClose={onOk} fileInfo={mailInfo}/>
+      )}
       <NewMessage replyTo={replyTo} setReplyTo={setReplyTo} hideButton />
       <ShowMessage
         isOpen={isOpen}

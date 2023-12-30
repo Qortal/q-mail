@@ -1,342 +1,313 @@
-import * as React from 'react'
-import { styled, useTheme } from '@mui/material/styles'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import AudiotrackIcon from '@mui/icons-material/Audiotrack'
-import { MyContext } from '../wrappers/DownloadWrapper'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from '../state/store'
-import { CircularProgress } from '@mui/material'
-import AttachFileIcon from '@mui/icons-material/AttachFile'
-import {
-  setCurrAudio,
-  setShowingAudioPlayer
-} from '../state/features/globalSlice'
-import {
-  base64ToUint8Array,
-  objectToUint8ArrayFromResponse
-} from '../utils/toBase64'
-import { setNotification } from '../state/features/notificationsSlice'
+import * as React from "react";
+import { styled, useTheme } from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import { useDispatch, useSelector } from "react-redux";
+import { CircularProgress } from "@mui/material";
+import { MyContext } from "../wrappers/DownloadWrapper";
+import { RootState } from "../state/store";
+import { setNotification } from "../state/features/notificationsSlice";
+import { base64ToUint8Array } from "../utils/toBase64";
 
-const Widget = styled('div')(({ theme }) => ({
+
+const Widget = styled("div")(({ theme }) => ({
   padding: 8,
   borderRadius: 10,
   maxWidth: 350,
-  position: 'relative',
+  position: "relative",
   zIndex: 1,
-  //   backgroundColor:
-  //     theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.4)',
-  backdropFilter: 'blur(40px)',
-  background: 'skyblue',
-  transition: '0.2s all',
-  '&:hover': {
-    opacity: 0.75
-  }
-}))
+  backdropFilter: "blur(40px)",
+  background: "skyblue",
+  transition: "0.2s all",
+  "&:hover": {
+    opacity: 0.75,
+  },
+}));
 
-const CoverImage = styled('div')({
+const CoverImage = styled("div")({
   width: 40,
   height: 40,
-  objectFit: 'cover',
-  overflow: 'hidden',
+  objectFit: "cover",
+  overflow: "hidden",
   flexShrink: 0,
   borderRadius: 8,
-  backgroundColor: 'rgba(0,0,0,0.08)',
-  '& > img': {
-    width: '100%'
-  }
-})
-
-const TinyText = styled(Typography)({
-  fontSize: '0.75rem',
-  opacity: 0.38,
-  fontWeight: 500,
-  letterSpacing: 0.2
-})
+  backgroundColor: "rgba(0,0,0,0.08)",
+  "& > img": {
+    width: "100%",
+  },
+});
 
 interface IAudioElement {
-  title: string
-  description?: string
-  author?: string
-  fileInfo?: any
-  postId?: string
-  user?: string
-  children?: React.ReactNode
-  mimeType?: string
-  disable?: boolean
-  mode?: string
-  otherUser?: string
+  title: string;
+  description?: string;
+  author?: string;
+  fileInfo?: any;
+  postId?: string;
+  user?: string;
+  children?: React.ReactNode;
+  mimeTypeSaved?: string;
+  disable?: boolean;
+  mode?: string;
+  otherUser?: string;
+  customStyles?: any;
 }
 
 interface CustomWindow extends Window {
-  showSaveFilePicker: any // Replace 'any' with the appropriate type if you know it
+  showSaveFilePicker: any; // Replace 'any' with the appropriate type if you know it
 }
 
-const customWindow = window as unknown as CustomWindow
+const customWindow = window as unknown as CustomWindow;
 
 export default function FileElement({
   title,
   description,
   author,
   fileInfo,
-  postId = '',
-  user,
   children,
-  mimeType,
+  mimeTypeSaved,
   disable,
-  mode,
-  otherUser
+  customStyles,
 }: IAudioElement) {
-  const { downloadVideo } = React.useContext(MyContext)
-  const [isLoading, setIsLoading] = React.useState<boolean>(false)
-  const [fileProperties, setFileProperties] = React.useState<any>(null)
-  const [downloadLoader, setDownloadLoader] = React.useState<any>(false)
+  const { downloadVideo } = React.useContext(MyContext);
+  const [startedDownload, setStartedDownload] = React.useState<boolean>(false)
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [downloadLoader, setDownloadLoader] = React.useState<any>(false);
+  const downloads  = useSelector((state: RootState) => state.global?.downloads);
+  const hasCommencedDownload = React.useRef(false);
+  const dispatch = useDispatch();
+  const reDownload = React.useRef<boolean>(false)
+  const status = React.useRef<null | string>(null)
 
-  const [pdfSrc, setPdfSrc] = React.useState('')
-  const { downloads } = useSelector((state: RootState) => state.global)
-  const { user: username } = useSelector((state: RootState) => state.auth)
-  const hasCommencedDownload = React.useRef(false)
-  const dispatch = useDispatch()
+  const isFetchingProperties = React.useRef<boolean>(false)
   const download = React.useMemo(() => {
-    if (!downloads || !fileInfo?.identifier) return {}
-    const findDownload = downloads[fileInfo?.identifier]
+    if (!downloads || !fileInfo?.identifier) return {};
+    const findDownload = downloads[fileInfo?.identifier];
 
-    if (!findDownload) return {}
-    return findDownload
-  }, [downloads, fileInfo])
+    if (!findDownload) return {};
+    return findDownload;
+  }, [downloads, fileInfo]);
 
   const resourceStatus = React.useMemo(() => {
-    return download?.status || {}
-  }, [download])
-  const saveFileToDisk = async (blob: any, fileName: any) => {
-    try {
-      const fileHandle = await customWindow.showSaveFilePicker({
-        suggestedName: fileName,
-        types: [
-          {
-            description: 'File'
-          }
-        ]
-      })
-      const writeFile = async (fileHandle: any, contents: any) => {
-        const writable = await fileHandle.createWritable()
-        await writable.write(contents)
-        await writable.close()
-      }
-      writeFile(fileHandle, blob).then(() => console.log('FILE SAVED'))
-    } catch (error) {
-      console.log(error)
-    }
-  }
+    return download?.status || {};
+  }, [download]);
+console.log({download})
+
   const handlePlay = async () => {
-    if (disable) return
-    hasCommencedDownload.current = true
+    if (disable) return;
+    hasCommencedDownload.current = true;
+    setStartedDownload(true)
     if (
-      resourceStatus?.status === 'READY' &&
-      download?.url &&
-      download?.blogPost?.filename
+      resourceStatus?.status === "READY"
     ) {
-      if (downloadLoader) return
-      dispatch(
-        setNotification({
-          msg: 'Saving file... please wait',
-          alertType: 'info'
-        })
-      )
-      setDownloadLoader(true)
+      if (downloadLoader) return;
+     
+      setDownloadLoader(true);
+      let filename = download?.properties?.filename
+      let mimeType = download?.properties?.type
+
       try {
-        const { name, service, identifier } = fileInfo
-        if (mode === 'mail') {
-          let res = await qortalRequest({
+        const { name, service, identifier } = fileInfo;
+
+        const res = await qortalRequest({
+          action: "GET_QDN_RESOURCE_PROPERTIES",
+          name: name,
+          service: service,
+          identifier: identifier,
+        });
+        filename = res?.filename || filename;
+        mimeType = res?.mimeType || mimeType || mimeTypeSaved;
+      } catch (error) {
+        
+      }
+      try {
+        const { name, service, identifier } = fileInfo;
+  
+          let resData = await qortalRequest({
             action: 'FETCH_QDN_RESOURCE',
             name: name,
             service: service,
             identifier: identifier,
             encoding: 'base64'
           })
-          // const toUnit8Array = base64ToUint8Array(res)
-          const resName = await qortalRequest({
-            action: 'GET_NAME_DATA',
-            // change this
-            name: otherUser
-          })
-          if (!resName?.owner)
-            throw new Error('Unable to locate details to decrypt file')
-
-          const recipientAddress = resName.owner
-          const resAddress = await qortalRequest({
-            action: 'GET_ACCOUNT_DATA',
-            address: recipientAddress
-          })
-          if (!resAddress?.publicKey)
-            throw new Error('Unable to locate details to decrypt file')
-          const recipientPublicKey = resAddress.publicKey
+        
           let requestEncryptBody: any = {
             action: 'DECRYPT_DATA',
-            encryptedData: res,
-            publicKey: recipientPublicKey
-          }
+            encryptedData: resData          }
           const resDecrypt = await qortalRequest(requestEncryptBody)
 
           if (!resDecrypt) throw new Error('Unable to decrypt file')
           const decryptToUnit8Array = base64ToUint8Array(resDecrypt)
           let blob = null
-          if (download?.blogPost?.mimeType) {
+          if (mimeType) {
             blob = new Blob([decryptToUnit8Array], {
-              type: download?.blogPost?.mimeType
+              type: mimeType
             })
           } else {
             blob = new Blob([decryptToUnit8Array])
           }
 
-          if (!blob) throw new Error('Unable build file into blob')
+          if (!blob) throw new Error('Unable to build file into blob')
           await qortalRequest({
             action: 'SAVE_FILE',
             blob,
             filename:
-              download?.blogPost?.originalFilename ||
-              download?.blogPost?.filename,
-            mimeType: download?.blogPost?.mimeType || ''
+              download?.properties?.originalFilename ||
+              filename,
+            mimeType
           })
 
-          return
-        }
-        const url = `/arbitrary/${service}/${name}/${identifier}`
-        fetch(url)
-          .then((response) => response.blob())
-          .then(async (blob) => {
-            await qortalRequest({
-              action: 'SAVE_FILE',
-              blob,
-              filename: download?.blogPost?.filename,
-              mimeType: download?.blogPost?.mimeType || ''
-            })
-            // saveAs(blob, download?.blogPost?.filename)
-          })
-          .catch((error) => {
-            console.error('Error fetching the video:', error)
-            // clearInterval(intervalId)
-          })
+       //old
+          
+        // const url = `/arbitrary/${service}/${name}/${identifier}`;
+        // fetch(url)
+        //   .then(response => response.blob())
+        //   .then(async blob => {
+
+        //     await qortalRequest({
+        //       action: "SAVE_FILE",
+        //       blob,
+        //       filename: filename,
+        //       mimeType,
+        //     });
+        //   })
+        //   .catch(error => {
+        //     console.error("Error fetching the video:", error);
+        //   });
       } catch (error: any) {
-        let notificationObj = null
-        if (typeof error === 'string') {
+        let notificationObj: any = null;
+        if (typeof error === "string") {
           notificationObj = {
-            msg: error || 'Failed to send message',
-            alertType: 'error'
-          }
-        } else if (typeof error?.error === 'string') {
+            msg: error || "Failed to send message",
+            alertType: "error",
+          };
+        } else if (typeof error?.error === "string") {
           notificationObj = {
-            msg: error?.error || 'Failed to send message',
-            alertType: 'error'
-          }
+            msg: error?.error || "Failed to send message",
+            alertType: "error",
+          };
         } else {
           notificationObj = {
-            msg: error?.message || 'Failed to send message',
-            alertType: 'error'
-          }
+            msg: error?.message || "Failed to send message",
+            alertType: "error",
+          };
         }
-        if (!notificationObj) return
-        dispatch(setNotification(notificationObj))
+        if (!notificationObj) return;
+        dispatch(setNotification(notificationObj));
       } finally {
-        setDownloadLoader(false)
+        setDownloadLoader(false);
       }
-      return
+      return;
     }
-    if (!postId && mode !== 'mail') return
-    const { name, service, identifier } = fileInfo
-    let filename = fileProperties?.filename
-    let mimeType = fileProperties?.mimeType
-    if (!fileProperties) {
-      try {
-        dispatch(
-          setNotification({
-            msg: 'Downloading file... please wait',
-            alertType: 'info'
-          })
-        )
-        let res = await qortalRequest({
-          action: 'GET_QDN_RESOURCE_PROPERTIES',
-          name: name,
-          service: service,
-          identifier: identifier
-        })
-        setFileProperties(res)
-        filename = res?.filename
-        mimeType = res?.mimeType
-      } catch (error: any) {
-        console.log({ error })
-        dispatch(
-          setNotification({
-            msg: error?.message || 'Error with download. Please try again',
-            alertType: 'error'
-          })
-        )
-      }
-    }
-    if (!filename) return
 
+    const { name, service, identifier } = fileInfo;
+   
+    setIsLoading(true);
     downloadVideo({
       name,
       service,
       identifier,
-      blogPost: {
-        postId,
-        user,
-        audioTitle: title,
-        audioDescription: description,
-        audioAuthor: author,
-        filename,
-        mimeType,
-        originalFilename: fileInfo?.originalFilename
-      }
-    })
+      properties: {
+        ...fileInfo,
+      },
+    });
+  };
+
+  const refetch = React.useCallback(async () => {
+    if (!fileInfo) return
+    try {
+      const { name, service, identifier } = fileInfo;
+      isFetchingProperties.current = true
+      await qortalRequest({
+        action: 'GET_QDN_RESOURCE_PROPERTIES',
+        name,
+        service,
+        identifier
+      })
+      
+    } catch (error) {
+      
+    } finally {
+      isFetchingProperties.current = false
+    }
+   
+  }, [fileInfo])
+
+  const refetchInInterval = ()=> {
+    try {
+      const interval = setInterval(()=> {
+          if(status?.current === 'DOWNLOADED'){
+            refetch()
+          }
+          if(status?.current === 'READY'){
+            clearInterval(interval);
+          }
+         
+        }, 7500)
+    } catch (error) {
+      
+    }
   }
 
   React.useEffect(() => {
+    if(resourceStatus?.status){
+      status.current = resourceStatus?.status
+    }
     if (
-      resourceStatus?.status === 'READY' &&
+      resourceStatus?.status === "READY" &&
       download?.url &&
-      download?.blogPost?.filename &&
+      download?.properties?.filename &&
       hasCommencedDownload.current
     ) {
-      setIsLoading(false)
+      setIsLoading(false);
       dispatch(
         setNotification({
-          msg: 'Download completed. Click to save file',
-          alertType: 'info'
+          msg: "Download completed. Click to save file",
+          alertType: "info",
         })
-      )
+      );
+    } else  if (
+      resourceStatus?.status === 'DOWNLOADED' &&
+      reDownload?.current === false
+    ) {
+      refetchInInterval()
+      reDownload.current = true
     }
-  }, [resourceStatus, download])
+  }, [resourceStatus, download]);
 
   return (
     <Box
       onClick={handlePlay}
       sx={{
-        width: '100%',
-        overflow: 'hidden',
-        position: 'relative',
-        cursor: 'pointer'
+        width: "100%",
+        overflow: "hidden",
+        position: "relative",
+        cursor: "pointer",
+        ...(customStyles || {}),
       }}
     >
       {children && (
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            position: 'relative',
-            gap: '7px'
+            display: "flex",
+            alignItems: "center",
+            position: "relative",
+            gap: "7px",
           }}
         >
-          {children}{' '}
-          {(resourceStatus.status && resourceStatus?.status !== 'READY') ||
-          isLoading ? (
-            <CircularProgress color="secondary" size={14} />
-          ) : resourceStatus?.status === 'READY' ? (
+          {children}{" "}
+          {((resourceStatus.status && resourceStatus?.status !== "READY") ||
+          isLoading) && startedDownload ? (
+            <>
+              <CircularProgress color="secondary" size={14} />
+              <Typography variant="body2">{`${Math.round(
+                resourceStatus?.percentLoaded || 0
+              ).toFixed(0)}% loaded`}</Typography>
+            </>
+          ) : resourceStatus?.status === "READY" ? (
             <>
               <Typography
                 sx={{
-                  fontSize: '14px'
+                  fontSize: "14px",
                 }}
               >
                 Ready to save: click here
@@ -348,156 +319,6 @@ export default function FileElement({
           ) : null}
         </Box>
       )}
-      {!children && (
-        <Widget>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <CoverImage>
-              <AttachFileIcon
-                sx={{
-                  width: '90%',
-                  height: 'auto'
-                }}
-              />
-            </CoverImage>
-            <Box sx={{ ml: 1.5, minWidth: 0 }}>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                fontWeight={500}
-              >
-                {author}
-              </Typography>
-              <Typography
-                noWrap
-                sx={{
-                  fontSize: '16px'
-                }}
-              >
-                <b>{title}</b>
-              </Typography>
-              <Typography
-                noWrap
-                letterSpacing={-0.25}
-                sx={{
-                  fontSize: '14px'
-                }}
-              >
-                {description}
-              </Typography>
-              {mimeType && (
-                <Typography
-                  noWrap
-                  letterSpacing={-0.25}
-                  sx={{
-                    fontSize: '12px'
-                  }}
-                >
-                  {mimeType}
-                </Typography>
-              )}
-            </Box>
-          </Box>
-          {((resourceStatus.status && resourceStatus?.status !== 'READY') ||
-            isLoading) && (
-            <Box
-              position="absolute"
-              top={0}
-              left={0}
-              right={0}
-              bottom={0}
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              zIndex={4999}
-              bgcolor="rgba(0, 0, 0, 0.6)"
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                padding: '8px',
-                borderRadius: '10px'
-              }}
-            >
-              <CircularProgress color="secondary" />
-              {resourceStatus && (
-                <Typography
-                  variant="subtitle2"
-                  component="div"
-                  sx={{
-                    color: 'white',
-                    fontSize: '14px'
-                  }}
-                >
-                  {resourceStatus?.status === 'REFETCHING' ? (
-                    <>
-                      <>
-                        {(
-                          (resourceStatus?.localChunkCount /
-                            resourceStatus?.totalChunkCount) *
-                          100
-                        )?.toFixed(0)}
-                        %
-                      </>
-
-                      <> Refetching in 2 minutes</>
-                    </>
-                  ) : resourceStatus?.status === 'DOWNLOADED' ? (
-                    <>Download Completed: building file...</>
-                  ) : resourceStatus?.status !== 'READY' ? (
-                    <>
-                      {(
-                        (resourceStatus?.localChunkCount /
-                          resourceStatus?.totalChunkCount) *
-                        100
-                      )?.toFixed(0)}
-                      %
-                    </>
-                  ) : (
-                    <>Download Completed: fetching file...</>
-                  )}
-                </Typography>
-              )}
-            </Box>
-          )}
-          {resourceStatus?.status === 'READY' &&
-            download?.url &&
-            download?.blogPost?.filename && (
-              <Box
-                position="absolute"
-                top={0}
-                left={0}
-                right={0}
-                bottom={0}
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                zIndex={4999}
-                bgcolor="rgba(0, 0, 0, 0.6)"
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: '10px',
-                  padding: '8px',
-                  borderRadius: '10px'
-                }}
-              >
-                <Typography
-                  variant="subtitle2"
-                  component="div"
-                  sx={{
-                    color: 'white',
-                    fontSize: '14px'
-                  }}
-                >
-                  Ready to save: click here
-                </Typography>
-                {downloadLoader && (
-                  <CircularProgress color="secondary" size={14} />
-                )}
-              </Box>
-            )}
-        </Widget>
-      )}
     </Box>
-  )
+  );
 }

@@ -19,7 +19,6 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import { useFetchMail } from '../../hooks/useFetchMail'
 import { ShowMessage } from './ShowMessage'
-import { fetchAndEvaluateMail } from '../../utils/fetchMail'
 import { addToHashMapMail } from '../../state/features/mailSlice'
 import MailIcon from '@mui/icons-material/Mail'
 import {

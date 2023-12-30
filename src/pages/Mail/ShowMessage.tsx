@@ -63,6 +63,7 @@ export const ShowMessage = ({
    cleanHTML = DOMPurify.sanitize(message.htmlContent);
  }
 
+ console.log({message})
   return (
     <Box
       sx={{
@@ -216,7 +217,7 @@ export const ShowMessage = ({
                       }}
                     >
                       <FileElement
-                        fileInfo={file}
+                        fileInfo={{...file, mimeTypeSaved: file?.type}}
                         title={file?.filename}
                         mode="mail"
                         otherUser={message?.user}

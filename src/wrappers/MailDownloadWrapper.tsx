@@ -7,7 +7,6 @@ import {
   updateDownloads
 } from '../state/features/globalSlice'
 
-import { DownloadTaskManager } from '../components/common/DownloadTaskManager'
 import { RootState } from '../state/store'
 
 interface Props {
@@ -34,7 +33,7 @@ interface MyContextInterface {
 }
 export const MyContext = React.createContext<MyContextInterface>(defaultValues)
 
-const DownloadWrapper: React.FC<Props> = ({ children }) => {
+export const MailDownloadWrapper: React.FC<Props> = ({ children }) => {
   const dispatch = useDispatch()
   const downloads  = useSelector((state: RootState) => state.global?.downloads);
 
@@ -78,7 +77,7 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
     identifier,
     properties
   }: IDownloadVideoParams) => {
-    if(downloads[identifier]) return
+    if(downloads[identifier]) return;
     dispatch(
       setAddToDownloads({
         name,
@@ -186,8 +185,6 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
     properties
   }: IDownloadVideoParams) => {
     try {
-
-
       performDownload({
         name,
         service,
@@ -203,11 +200,9 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
   return (
     <>
       <MyContext.Provider value={{ downloadVideo }}>
-        {/* <DownloadTaskManager /> */}
         {children}
       </MyContext.Provider>
     </>
   )
 }
 
-export default DownloadWrapper

@@ -14,6 +14,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import CreateIcon from '@mui/icons-material/Create'
 import { setNotification } from '../../state/features/notificationsSlice'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
+import mime from 'mime';
 
 import {
   objectToBase64,
@@ -29,6 +30,7 @@ import {
 } from '../../constants/mail'
 import ConfirmationModal from '../../components/common/ConfirmationModal'
 import useConfirmationModal from '../../hooks/useConfirmModal'
+import { MultiplePublish } from '../../components/common/MultiplePublish/MultiplePublish'
 const initialValue: Descendant[] = [
   {
     type: 'paragraph',
@@ -53,6 +55,8 @@ export const NewMessage = ({
   isFromTo
 }: NewMessageProps) => {
   const { name } = useParams()
+  const [publishes, setPublishes] = useState<any>(null);
+  const [isOpenMultiplePublish, setIsOpenMultiplePublish] = useState(false);
   const [isFromToName, setIsFromToName] = useState<null | string>(null)
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const [value, setValue] = useState(initialValue)
@@ -76,8 +80,45 @@ export const NewMessage = ({
   const location = useLocation()
   const { getRootProps, getInputProps } = useDropzone({
     maxSize,
-    onDrop: (acceptedFiles) => {
-      setAttachments((prev) => [...prev, ...acceptedFiles])
+    onDrop: async (acceptedFiles) => {
+
+      let files: any[] = []
+      try {
+        acceptedFiles.forEach((item)=> {
+          const type = item?.type
+          if(!type){
+            files.push({
+              file: item,
+              mimetype: null,
+              extension: null
+            })
+          } else {
+            const extension = mime.getExtension(type); 
+            if(!extension){
+              files.push({
+                file: item,
+                mimetype: type,
+                extension: null
+              })
+            } else {
+              files.push({
+                file: item,
+                mimetype: type,
+                extension: extension
+              })
+            }
+            
+          }
+        })
+      } catch (error) {
+        dispatch(
+          setNotification({
+            msg: 'One of your files is corrupted',
+            alertType: 'error'
+          })
+        )
+      }
+      setAttachments((prev) => [...prev, ...files])
     },
     onDropRejected: (rejectedFiles) => {
       dispatch(
@@ -88,6 +129,8 @@ export const NewMessage = ({
       )
     }
   })
+
+  console.log({attachments})
 
   const openModal = () => {
     setIsOpen(true)
@@ -181,7 +224,11 @@ export const NewMessage = ({
     if (alias && alias === aliasValue) {
       errorMsg = "The recipient's alias cannot be the same as yours"
     }
-
+    const noExtension = attachments.filter(item=> !item.extension)
+    if(noExtension.length > 0){
+      errorMsg = "One of your attachments does not have an extension (example: .png, .pdf, ect...)"
+    }
+    
     if (errorMsg) {
       dispatch(
         setNotification({
@@ -191,7 +238,7 @@ export const NewMessage = ({
       )
       throw new Error(errorMsg)
     }
-
+    
     if (aliasValue && !alias) {
       const userConfirmed = await showModal()
       if (userConfirmed === false) return
@@ -244,7 +291,8 @@ export const NewMessage = ({
       // START OF ATTACHMENT LOGIC
 
       const attachmentArray = []
-      for (const attachment of attachments) {
+      for (const singleAttachment of attachments) {
+        const attachment = singleAttachment.file
         const fileBase64 = await toBase64(attachment)
         if (typeof fileBase64 !== 'string' || !fileBase64)
           throw new Error('Could not convert file to base64')
@@ -253,9 +301,9 @@ export const NewMessage = ({
         const id = uid()
         const id2 = uid()
         const identifier = `attachments_qmail_${id}_${id2}`
-        const fileExtension = attachment?.name?.split('.')?.pop()
+        let fileExtension = attachment?.name?.split('.')?.pop()
         if (!fileExtension) {
-          throw new Error('One of your attachments does not have an extension')
+          fileExtension = singleAttachment.extension
         }
         const obj = {
           name: name,
@@ -263,12 +311,14 @@ export const NewMessage = ({
           filename: `${id}.${fileExtension}`,
           originalFilename: attachment?.name || '',
           identifier,
-          data64: base64String
+          data64: base64String,
+          type: attachment?.type
         }
 
         attachmentArray.push(obj)
       }
 
+      const listOfPublishes = [...attachmentArray]
       if (attachmentArray?.length > 0) {
         mailObject.attachments = attachmentArray.map((item) => {
           return {
@@ -276,17 +326,18 @@ export const NewMessage = ({
             name,
             service: MAIL_ATTACHMENT_SERVICE_TYPE,
             filename: item.filename,
-            originalFilename: item.originalFilename
+            originalFilename: item.originalFilename,
+            type: item?.type
           }
         })
 
-        const multiplePublish = {
-          action: 'PUBLISH_MULTIPLE_QDN_RESOURCES',
-          resources: [...attachmentArray],
-          encrypt: true,
-          publicKeys: [recipientPublicKey]
-        }
-        await qortalRequest(multiplePublish)
+        // const multiplePublish = {
+        //   action: 'PUBLISH_MULTIPLE_QDN_RESOURCES',
+        //   resources: [...attachmentArray],
+        //   encrypt: true,
+        //   publicKeys: [recipientPublicKey]
+        // }
+        // await qortalRequest(multiplePublish)
       }
 
       //END OF ATTACHMENT LOGIC
@@ -313,15 +364,23 @@ export const NewMessage = ({
         publicKeys: [recipientPublicKey]
       }
 
-      await qortalRequest(requestBody)
-      dispatch(
-        setNotification({
-          msg: 'Message sent',
-          alertType: 'success'
-        })
-      )
+      // await qortalRequest(requestBody)
+      const multiplePublish = {
+        action: 'PUBLISH_MULTIPLE_QDN_RESOURCES',
+        resources: [...listOfPublishes, requestBody],
+        encrypt: true,
+        publicKeys: [recipientPublicKey]
+      };
+      setPublishes(multiplePublish);
+      setIsOpenMultiplePublish(true);
+      // dispatch(
+      //   setNotification({
+      //     msg: 'Message sent',
+      //     alertType: 'success'
+      //   })
+      // )
 
-      closeModal()
+      // closeModal()
     } catch (error: any) {
       let notificationObj = null
       if (typeof error === 'string') {
@@ -490,7 +549,7 @@ export const NewMessage = ({
               ></AttachFileIcon>
             </Box>
             <Box>
-              {attachments.map((file, index) => {
+              {attachments.map(({file, extension}, index) => {
                 return (
                   <Box
                     sx={{
@@ -501,7 +560,8 @@ export const NewMessage = ({
                   >
                     <Typography
                       sx={{
-                        fontSize: '16px'
+                        fontSize: '16px',
+                        color: !extension ? 'red' : 'unset'
                       }}
                     >
                       {file?.name}
@@ -518,6 +578,18 @@ export const NewMessage = ({
                         cursor: 'pointer'
                       }}
                     />
+                    {!extension && (
+                        <Typography
+                        sx={{
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          color: 'red'
+                        }}
+                      >
+                        This file has no extension
+                      </Typography>
+                    )}
+                  
                   </Box>
                 )
               })}
@@ -537,6 +609,23 @@ export const NewMessage = ({
         <BuilderButton onClick={closeModal}>Close</BuilderButton>
       </ReusableModal>
       <Modal />
+      {isOpenMultiplePublish && (
+        <MultiplePublish
+          isOpen={isOpenMultiplePublish}
+          onSubmit={() => {
+            dispatch(
+              setNotification({
+                msg: 'Message sent',
+                alertType: 'success'
+              })
+            )
+            setIsOpenMultiplePublish(false);
+            setPublishes(null)
+            closeModal()
+          }}
+          publishes={publishes}
+        />
+      )}
     </Box>
   )
 }

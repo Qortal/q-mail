@@ -226,7 +226,7 @@ export default function MailThread({
                             }}
                           >
                             <FileElement
-                              fileInfo={file}
+                            fileInfo={{...file, mimeTypeSaved: file?.type}}
                               title={file?.filename}
                               mode="mail"
                               otherUser={otherUser}

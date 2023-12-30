@@ -38,7 +38,6 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import { useFetchMail } from '../../hooks/useFetchMail'
 import { ShowMessage } from './ShowMessage'
-import { fetchAndEvaluateMail } from '../../utils/fetchMail'
 import { addToHashMapMail } from '../../state/features/mailSlice'
 import { setIsLoadingGlobal } from '../../state/features/globalSlice'
 import SimpleTable from './MailTable'
@@ -46,6 +45,9 @@ import { AliasMail } from './AliasMail'
 import { SentMail } from './SentMail'
 import { NewThread } from './NewThread'
 import { GroupMail } from './GroupMail'
+import { useModal } from '../../components/common/useModal'
+import { OpenMail } from './OpenMail'
+import { MAIL_SERVICE_TYPE } from '../../constants/mail'
 
 const steps: Step[] = [
   {
@@ -151,6 +153,7 @@ interface MailProps {
 }
 
 export const Mail = ({ isFromTo }: MailProps) => {
+  const {isShow, onCancel, onOk, show} = useModal()
   const theme = useTheme()
   const { user } = useSelector((state: RootState) => state.auth)
   const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -167,6 +170,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const privateGroups = useSelector(
     (state: RootState) => state.global.privateGroups
   )
+  const [mailInfo, setMailInfo] = useState<any>(null)
   const hasFetchedPrivateGroups = useSelector(
     (state: RootState) => state.global.hasFetchedPrivateGroups
   )
@@ -238,25 +242,27 @@ export const Mail = ({ isFromTo }: MailProps) => {
     content: any
   ) => {
     try {
-      const existingMessage = hashMapMailMessages[messageIdentifier]
-      if (existingMessage) {
+      const existingMessage: any = hashMapMailMessages[messageIdentifier]
+      if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
         setMessage(existingMessage)
         setIsOpen(true)
         return
       }
-      dispatch(setIsLoadingGlobal(true))
-      const res = await fetchAndEvaluateMail({
-        user,
-        messageIdentifier,
-        content,
-        otherUser: user
+      setMailInfo({
+        identifier: messageIdentifier,
+        name: user,
+        service: MAIL_SERVICE_TYPE
       })
-      setMessage(res)
-      dispatch(addToHashMapMail(res))
-      setIsOpen(true)
+      const res: any = await show()
+      setMailInfo(null)
+      const existingMessageAgain = hashMapMailMessages[messageIdentifier]
+      if (res && res.isValid && !res.unableToDecrypt) {
+        setMessage(res)
+        setIsOpen(true)
+        return
+      }
     } catch (error) {
     } finally {
-      dispatch(setIsLoadingGlobal(false))
     }
   }
 
@@ -689,6 +695,9 @@ export const Mail = ({ isFromTo }: MailProps) => {
         showProgress={true}
         showSkipButton={true}
       />
+      {mailInfo && isShow && (
+              <OpenMail open={isShow} handleClose={onOk} fileInfo={mailInfo}/>
+      )}
     </Box>
   )
 }

@@ -14,6 +14,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import CreateIcon from '@mui/icons-material/Create'
 import { setNotification } from '../../state/features/notificationsSlice'
 import { useNavigate, useLocation } from 'react-router-dom'
+import mime from 'mime';
 
 import {
   objectToBase64,
@@ -71,7 +72,43 @@ export const NewThread = ({
   const { getRootProps, getInputProps } = useDropzone({
     maxSize,
     onDrop: (acceptedFiles) => {
-      setAttachments((prev) => [...prev, ...acceptedFiles])
+      let files: any[] = []
+      try {
+        acceptedFiles.forEach((item)=> {
+          const type = item?.type
+          if(!type){
+            files.push({
+              file: item,
+              mimetype: null,
+              extension: null
+            })
+          } else {
+            const extension = mime.getExtension(type); 
+            if(!extension){
+              files.push({
+                file: item,
+                mimetype: type,
+                extension: null
+              })
+            } else {
+              files.push({
+                file: item,
+                mimetype: type,
+                extension: extension
+              })
+            }
+            
+          }
+        })
+      } catch (error) {
+        dispatch(
+          setNotification({
+            msg: 'One of your files is corrupted',
+            alertType: 'error'
+          })
+        )
+      }
+      setAttachments((prev) => [...prev, ...files])
     },
     onDropRejected: (rejectedFiles) => {
       dispatch(
@@ -119,6 +156,10 @@ export const NewThread = ({
       const errMsg = `Missing: ${missingFieldsString}`
       errorMsg = errMsg
     }
+    const noExtension = attachments.filter(item=> !item.extension)
+    if(noExtension.length > 0){
+      errorMsg = "One of your attachments does not have an extension (example: .png, .pdf, ect...)"
+    }
 
     if (errorMsg) {
       dispatch(
@@ -151,7 +192,9 @@ export const NewThread = ({
       // START OF ATTACHMENT LOGIC
 
       const attachmentArray: any[] = []
-      for (const attachment of attachments) {
+      for (const singleAttachment of attachments) {
+        const attachment = singleAttachment.file
+
         const fileBase64 = await toBase64(attachment)
         if (typeof fileBase64 !== 'string' || !fileBase64)
           throw new Error('Could not convert file to base64')
@@ -160,9 +203,9 @@ export const NewThread = ({
         const id = uid()
         const id2 = uid()
         const identifier = `attachments_qmail_${id}_${id2}`
-        const fileExtension = attachment?.name?.split('.')?.pop()
+        let fileExtension = attachment?.name?.split('.')?.pop()
         if (!fileExtension) {
-          throw new Error('One of your attachments does not have an extension')
+          fileExtension = singleAttachment.extension
         }
         const obj = {
           name: name,
@@ -170,7 +213,8 @@ export const NewThread = ({
           filename: `${id}.${fileExtension}`,
           originalFilename: attachment?.name || '',
           identifier,
-          data64: base64String
+          data64: base64String,
+          type: attachment?.type
         }
 
         attachmentArray.push(obj)
@@ -183,7 +227,8 @@ export const NewThread = ({
             name,
             service: MAIL_ATTACHMENT_SERVICE_TYPE,
             filename: item.filename,
-            originalFilename: item.originalFilename
+            originalFilename: item.originalFilename,
+            type: item?.type
           }
         })
 
@@ -404,7 +449,7 @@ export const NewThread = ({
               ></AttachFileIcon>
             </Box>
             <Box>
-              {attachments.map((file, index) => {
+              {attachments.map(({file, extension}, index) => {
                 return (
                   <Box
                     sx={{
@@ -415,7 +460,8 @@ export const NewThread = ({
                   >
                     <Typography
                       sx={{
-                        fontSize: '16px'
+                        fontSize: '16px',
+                        color: !extension ? 'red' : 'unset'
                       }}
                     >
                       {file?.name}
@@ -432,6 +478,17 @@ export const NewThread = ({
                         cursor: 'pointer'
                       }}
                     />
+                       {!extension && (
+                        <Typography
+                        sx={{
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          color: 'red'
+                        }}
+                      >
+                        This file has no extension
+                      </Typography>
+                    )}
                   </Box>
                 )
               })}

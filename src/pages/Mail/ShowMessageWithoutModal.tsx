@@ -136,7 +136,7 @@ export const ShowMessage = ({ message }: any) => {
                     }}
                   >
                     <FileElement
-                      fileInfo={file}
+                      fileInfo={{...file, mimeTypeSaved: file?.type}}
                       title={file?.filename}
                       mode="mail"
                       otherUser={message?.name}

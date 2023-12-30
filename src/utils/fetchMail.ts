@@ -7,7 +7,7 @@ import {
   uint8ArrayToObject
 } from './toBase64'
 
-export const fetchAndEvaluateMail = async (data: any) => {
+export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> void) => {
   const getBlogPost = async () => {
     const { user, messageIdentifier, content, otherUser } = data
     let obj: any = {
@@ -45,12 +45,30 @@ export const fetchAndEvaluateMail = async (data: any) => {
         encryptedData: base64,
         publicKey: recipientPublicKey
       }
-      const resDecrypt = await qortalRequest(requestEncryptBody)
-
-      if (!resDecrypt) return obj
+      let unableToDecrypt = true
+      let resDecrypt = null
+      try {
+         resDecrypt = await qortalRequest(requestEncryptBody)
+         unableToDecrypt = false
+      } catch (error) {
+        
+      }
+      console.log({resDecrypt})
+      if (!resDecrypt){
+        obj = {
+          ...obj,
+          unableToDecrypt: true,
+            id: messageIdentifier,
+            user
+        }
+        if(saveToHash){
+          saveToHash(obj)
+        }
+        return obj
+      }
       const decryptToUnit8Array = base64ToUint8Array(resDecrypt)
       const responseData = uint8ArrayToObject(decryptToUnit8Array)
-
+      console.log({responseData}, checkStructureMailMessages(responseData))
       if (checkStructureMailMessages(responseData)) {
         obj = {
           ...content,
@@ -61,6 +79,9 @@ export const fetchAndEvaluateMail = async (data: any) => {
           id: messageIdentifier,
           isValid: true
         }
+      }
+      if(saveToHash){
+        saveToHash(obj)
       }
       return obj
     } catch (error) {
