@@ -22,6 +22,8 @@ import MailThread from './MailThread'
 import { AvatarWrapper } from './MailTable'
 import { formatTimestamp } from '../../utils/time'
 import FileElement from '../../components/FileElement'
+import MailThreadWithoutCalling from './MailThreadWithoutCalling'
+import { DisplayHtml } from '../../components/common/TextEditor/DisplayHtml'
 const initialValue: Descendant[] = [
   {
     type: 'paragraph',
@@ -142,6 +144,13 @@ export const ShowMessage = ({
                 otherUser={message?.user}
               />
             )}
+
+            {message?.generalData?.threadV2 && (
+              <MailThreadWithoutCalling
+              thread={message?.generalData?.threadV2}
+              
+            />
+            )}
           <Box
             sx={{
               display: 'flex',
@@ -245,6 +254,9 @@ export const ShowMessage = ({
 
           {message?.textContent && (
             <ReadOnlySlate content={message.textContent} mode="mail" />
+          )}
+          {message?.textContentV2 && (
+              <DisplayHtml html={message?.textContentV2} />
           )}
           {message?.htmlContent && (
             <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />

@@ -21,8 +21,9 @@ interface MultiplePublishProps {
     publishes: Publish;
     isOpen: boolean;
     onSubmit: ()=> void
+    onError: (message?: string)=> void
 }
-  export const MultiplePublish = ({ publishes, isOpen,  onSubmit}: MultiplePublishProps) => {
+  export const MultiplePublish = ({ publishes, isOpen,  onSubmit, onError}: MultiplePublishProps) => {
     const theme = useTheme();
     const listOfSuccessfulPublishesRef = useRef([])
     const [listOfSuccessfulPublishes, setListOfSuccessfulPublishes] = useState<
@@ -52,6 +53,16 @@ interface MultiplePublishProps {
          
         } catch (error: any) {
           const unsuccessfulPublishes = error?.error?.unsuccessfulPublishes || []
+          if(error?.error === 'User declined request'){
+            onError()
+            return
+          }
+
+          if(error?.error === 'The request timed out'){
+            onError("The request timed out")
+
+            return
+          }
           console.log({ error });
           
           

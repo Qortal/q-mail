@@ -31,6 +31,8 @@ import {
 import ConfirmationModal from '../../components/common/ConfirmationModal'
 import useConfirmationModal from '../../hooks/useConfirmModal'
 import { MultiplePublish } from '../../components/common/MultiplePublish/MultiplePublish'
+import { ChipInputComponent, NameChip } from '../../components/common/ChipInputComponent/ChipInputComponent'
+import { TextEditor } from '../../components/common/TextEditor/TextEditor'
 const initialValue: Descendant[] = [
   {
     type: 'paragraph',
@@ -59,7 +61,7 @@ export const NewMessage = ({
   const [isOpenMultiplePublish, setIsOpenMultiplePublish] = useState(false);
   const [isFromToName, setIsFromToName] = useState<null | string>(null)
   const [isOpen, setIsOpen] = useState<boolean>(false)
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState("")
   const [title, setTitle] = useState<string>('')
   const [attachments, setAttachments] = useState<any[]>([])
   const [description, setDescription] = useState<string>('')
@@ -69,6 +71,7 @@ export const NewMessage = ({
   const { user } = useSelector((state: RootState) => state.auth)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [showAlias, setShowAlias] = useState<boolean>(false)
+  const [bccNames, setBccNames] = useState<NameChip[]>([])
   const theme = useTheme()
   const { Modal, showModal } = useConfirmationModal({
     title: 'Important',
@@ -141,8 +144,9 @@ export const NewMessage = ({
     setAttachments([])
     setSubject('')
     setDestinationName('')
+    setBccNames([])
     setShowAlias(false)
-    setValue(initialValue)
+    setValue("")
     setReplyTo(null)
     setIsOpen(false)
     setAliasValue('')
@@ -168,31 +172,7 @@ export const NewMessage = ({
     }
   }, [replyTo])
 
-  const waitForUserAction = async () => {
-    return new Promise<void>((resolve, reject) => {
-      setIsModalOpen(true)
-
-      const handleConfirm = () => {
-        setIsModalOpen(false)
-        resolve()
-      }
-
-      const handleCancel = () => {
-        setIsModalOpen(false)
-        reject(new Error('User canceled'))
-      }
-
-      const modalProps = {
-        open: isModalOpen,
-        title: 'Confirmation',
-        message: 'Are you sure?',
-        handleConfirm,
-        handleCancel
-      }
-
-      return <ConfirmationModal {...modalProps} />
-    })
-  }
+ 
   async function publishQDNResource() {
     let address: string = ''
     let name: string = ''
@@ -206,10 +186,10 @@ export const NewMessage = ({
       errorMsg = "Cannot send: your address isn't available"
     }
     if (!name) {
-      errorMsg = 'Cannot send a message without a access to your name'
+      errorMsg = 'Cannot send a message without access to your name'
     }
     if (!destinationName) {
-      errorMsg = 'Cannot send a message without a recipient name'
+      errorMsg = 'Cannot send a message without recipient name'
     }
     // if (!description) missingFields.push('subject')
     if (missingFields.length > 0) {
@@ -244,32 +224,34 @@ export const NewMessage = ({
       if (userConfirmed === false) return
     }
     const mailObject: any = {
-      title,
-      // description,
       subject,
       createdAt: Date.now(),
       version: 1,
       attachments,
-      textContent: value,
+      textContentV2: value,
       generalData: {
-        thread: []
+        thread: [],
+        threadV2: []
       },
       recipient: destinationName
     }
     if (replyTo?.id) {
-      const previousTread = Array.isArray(replyTo?.generalData?.thread)
-        ? replyTo?.generalData?.thread
+      const previousTread = Array.isArray(replyTo?.generalData?.threadV2)
+        ? replyTo?.generalData?.threadV2
         : []
-      mailObject.generalData.thread = [
+      mailObject.generalData.threadV2 = [
         ...previousTread,
         {
-          identifier: replyTo.id,
+          reference: {
+            identifier: replyTo.id,
           name: replyTo.user,
           service: MAIL_SERVICE_TYPE
+          },
+          data: replyTo
         }
       ]
     }
-
+ 
     try {
       if (!destinationName) return
       const id = uid()
@@ -287,6 +269,7 @@ export const NewMessage = ({
       })
       if (!resAddress?.publicKey) return
       const recipientPublicKey = resAddress.publicKey
+      const bccPublicKeys = bccNames.map((item)=> item.publicKey)
 
       // START OF ATTACHMENT LOGIC
 
@@ -331,16 +314,12 @@ export const NewMessage = ({
           }
         })
 
-        // const multiplePublish = {
-        //   action: 'PUBLISH_MULTIPLE_QDN_RESOURCES',
-        //   resources: [...attachmentArray],
-        //   encrypt: true,
-        //   publicKeys: [recipientPublicKey]
-        // }
-        // await qortalRequest(multiplePublish)
+  
       }
 
       //END OF ATTACHMENT LOGIC
+
+     
 
       const blogPostToBase64 = await objectToBase64(mailObject)
       let identifier = `qortal_qmail_${recipientName.slice(
@@ -357,31 +336,46 @@ export const NewMessage = ({
         name: name,
         service: MAIL_SERVICE_TYPE,
         data64: blogPostToBase64,
-        title: title,
-        // description: description,
-        identifier,
-        encrypt: true,
-        publicKeys: [recipientPublicKey]
+        identifier
       }
 
+      const mails = [requestBody]
+
+      if (!aliasValue) {
+
+      for (const element of bccNames) {
+        const copyMailObject = structuredClone(mailObject)
+        copyMailObject.recipient = element.name
+        const mailPostToBase64 = await objectToBase64(copyMailObject)
+        let identifierMail = `qortal_qmail_${element.name.slice(
+          0,
+          20
+        )}_${element.address.slice(-6)}_mail_${id}`
+
+        let requestBodyMail: any = {
+          action: 'PUBLISH_QDN_RESOURCE',
+          name: name,
+          service: MAIL_SERVICE_TYPE,
+          data64: mailPostToBase64,
+          identifier: identifierMail
+        }
+        mails.push(requestBodyMail)
+      }
+      
+    }
       // await qortalRequest(requestBody)
       const multiplePublish = {
         action: 'PUBLISH_MULTIPLE_QDN_RESOURCES',
-        resources: [...listOfPublishes, requestBody],
+        resources: [...listOfPublishes, ...mails],
         encrypt: true,
-        publicKeys: [recipientPublicKey]
+        publicKeys: [recipientPublicKey, ...bccPublicKeys]
       };
       setPublishes(multiplePublish);
       setIsOpenMultiplePublish(true);
-      // dispatch(
-      //   setNotification({
-      //     msg: 'Message sent',
-      //     alertType: 'success'
-      //   })
-      // )
-
-      // closeModal()
+   
     } catch (error: any) {
+      setIsOpenMultiplePublish(false);
+      setPublishes(null)
       let notificationObj = null
       if (typeof error === 'string') {
         notificationObj = {
@@ -482,6 +476,10 @@ export const NewMessage = ({
                 fontSize: '16px'
               }}
             />
+            {!replyTo && (
+                          <ChipInputComponent chips={bccNames} setChips={setBccNames} />
+
+            )}
             <Box
               sx={{
                 display: 'flex',
@@ -595,13 +593,16 @@ export const NewMessage = ({
               })}
             </Box>
           </Box>
-          <BlogEditor
+          <TextEditor inlineContent={value} setInlineContent={(val: any)=> {
+                      setValue(val)
+                    }} />
+          {/* <BlogEditor
             mode="mail"
             value={value}
             setValue={setValue}
             editorKey={1}
             disableMaxHeight
-          />
+          /> */}
         </Box>
         <BuilderButton onClick={sendMail}>
           {replyTo ? 'Send reply mail' : 'Send mail'}
@@ -612,6 +613,18 @@ export const NewMessage = ({
       {isOpenMultiplePublish && (
         <MultiplePublish
           isOpen={isOpenMultiplePublish}
+          onError={(messageNotification)=> {
+            setIsOpenMultiplePublish(false);
+            setPublishes(null)
+            if(messageNotification){
+              dispatch(
+                setNotification({
+                  msg: messageNotification,
+                  alertType: 'error'
+                })
+              )
+            }
+          }}
           onSubmit={() => {
             dispatch(
               setNotification({

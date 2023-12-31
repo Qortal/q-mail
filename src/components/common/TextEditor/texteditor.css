@@ -1,0 +1,30 @@
+.ql-editor {
+    min-height: 100px;
+    width: 100%
+  }
+  
+  .ql-editor img {
+    cursor: default;
+  }
+  
+  .ql-container {
+    font-size: 16px
+  }
+
+  .ql-toolbar .ql-stroke {
+    fill: none !important;
+    stroke: #fff !important;
+}
+
+.ql-toolbar .ql-fill {
+    fill: #fff !important;
+    stroke: none !important;
+}
+
+.ql-toolbar .ql-picker {
+    color: #fff !important;
+}
+
+.ql-toolbar .ql-picker-options {
+    background-color: #2e3d60 !important;
+}

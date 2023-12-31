@@ -262,7 +262,10 @@ export const useFetchMail = () => {
         const offset = mailMessages.length
 
         dispatch(setIsLoadingGlobal(true))
-        const query = `qortal_qmail_`
+        const query = `qortal_qmail_${recipientName.slice(
+          0,
+          20
+        )}_${recipientAddress.slice(-6)}_mail_`
         const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${query}&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',

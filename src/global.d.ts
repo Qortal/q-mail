@@ -59,3 +59,5 @@ declare global {
     ) => Promise<FileSystemFileHandle>
   }
 }
+
+declare module 'quill-image-resize-module-react' {}

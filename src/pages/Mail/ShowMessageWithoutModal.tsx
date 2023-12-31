@@ -22,6 +22,7 @@ import MailThread from './MailThread'
 import { AvatarWrapper } from './MailTable'
 import { formatTimestamp } from '../../utils/time'
 import FileElement from '../../components/FileElement'
+import { DisplayHtml } from '../../components/common/TextEditor/DisplayHtml'
 const initialValue: Descendant[] = [
   {
     type: 'paragraph',
@@ -165,6 +166,9 @@ export const ShowMessage = ({ message }: any) => {
         {message?.textContent && (
           <ReadOnlySlate content={message.textContent} mode="mail" />
         )}
+         {message?.textContentV2 && (
+              <DisplayHtml html={message?.textContentV2} />
+          )}
         {message?.htmlContent && (
           <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />
         )}
