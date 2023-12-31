@@ -4,18 +4,17 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState
-} from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from '../../state/store'
-import EditIcon from '@mui/icons-material/Edit'
-import CloseIcon from '@mui/icons-material/Close'
-import Joyride, { ACTIONS, EVENTS, STATUS, Step } from 'react-joyride'
-import SendIcon from '@mui/icons-material/Send'
-import MailIcon from '@mui/icons-material/Mail'
-import GroupIcon from '@mui/icons-material/Group'
-import { styled } from '@mui/system'
+  useState,
+} from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../state/store";
+import CloseIcon from "@mui/icons-material/Close";
+import Joyride, { ACTIONS, EVENTS, STATUS, Step } from "react-joyride";
+import SendIcon from "@mui/icons-material/Send";
+import MailIcon from "@mui/icons-material/Mail";
+import GroupIcon from "@mui/icons-material/Group";
+import { styled } from "@mui/system";
 import {
   Box,
   Button,
@@ -23,31 +22,22 @@ import {
   Typography,
   useTheme,
   IconButton,
-  Select,
-  InputLabel,
-  FormControl,
-  MenuItem,
-  OutlinedInput,
-  SelectChangeEvent
-} from '@mui/material'
-import { useFetchPosts } from '../../hooks/useFetchPosts'
-import LazyLoad from '../../components/common/LazyLoad'
-import { removePrefix } from '../../utils/blogIdformats'
-import { NewMessage } from './NewMessage'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
-import { useFetchMail } from '../../hooks/useFetchMail'
-import { ShowMessage } from './ShowMessage'
-import { addToHashMapMail } from '../../state/features/mailSlice'
-import { setIsLoadingGlobal } from '../../state/features/globalSlice'
-import SimpleTable from './MailTable'
-import { AliasMail } from './AliasMail'
-import { SentMail } from './SentMail'
-import { NewThread } from './NewThread'
-import { GroupMail } from './GroupMail'
-import { useModal } from '../../components/common/useModal'
-import { OpenMail } from './OpenMail'
-import { MAIL_SERVICE_TYPE } from '../../constants/mail'
+  CircularProgress,
+} from "@mui/material";
+import LazyLoad from "../../components/common/LazyLoad";
+import { NewMessage } from "./NewMessage";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import { useFetchMail } from "../../hooks/useFetchMail";
+import { ShowMessage } from "./ShowMessage";
+
+import SimpleTable from "./MailTable";
+import { AliasMail } from "./AliasMail";
+import { SentMail } from "./SentMail";
+import { GroupMail } from "./GroupMail";
+import { useModal } from "../../components/common/useModal";
+import { OpenMail } from "./OpenMail";
+import { MAIL_SERVICE_TYPE } from "../../constants/mail";
 
 const steps: Step[] = [
   {
@@ -56,14 +46,14 @@ const steps: Step[] = [
         <h2>Welcome To Q-Mail</h2>
         <p
           style={{
-            fontSize: '18px'
+            fontSize: "18px",
           }}
         >
           Let's take a tour
         </p>
         <p
           style={{
-            fontSize: '12px'
+            fontSize: "12px",
           }}
         >
           The Qortal community, along with its development team and the creators
@@ -73,20 +63,20 @@ const steps: Step[] = [
         </p>
       </div>
     ),
-    placement: 'center',
-    target: '.step-1'
+    placement: "center",
+    target: ".step-1",
   },
 
   {
-    target: '.step-2',
+    target: ".step-2",
     content: (
       <div>
         <h2>Composing a mail message</h2>
         <p
           style={{
-            fontSize: '18px',
-            fontWeight: 'bold',
-            fontFamily: 'Arial'
+            fontSize: "18px",
+            fontWeight: "bold",
+            fontFamily: "Arial",
           }}
         >
           Compose a secure message featuring encrypted attachments (up to 25MB
@@ -94,8 +84,8 @@ const steps: Step[] = [
         </p>
         <p
           style={{
-            fontSize: '18px',
-            fontFamily: 'Arial'
+            fontSize: "18px",
+            fontFamily: "Arial",
           }}
         >
           To protect the identity of the recipient, assign them an alias for
@@ -103,18 +93,18 @@ const steps: Step[] = [
         </p>
       </div>
     ),
-    placement: 'bottom'
+    placement: "bottom",
   },
   {
-    target: '.step-3',
+    target: ".step-3",
     content: (
       <div>
         <h2>What is an alias?</h2>
         <p
           style={{
-            fontSize: '18px',
-            fontWeight: 'bold',
-            fontFamily: 'Arial'
+            fontSize: "18px",
+            fontWeight: "bold",
+            fontFamily: "Arial",
           }}
         >
           To conceal the identity of the message recipient, utilize the alias
@@ -122,8 +112,8 @@ const steps: Step[] = [
         </p>
         <p
           style={{
-            fontSize: '14px',
-            fontFamily: 'Arial'
+            fontSize: "14px",
+            fontFamily: "Arial",
           }}
         >
           For instance, instruct your friend to address the message to you using
@@ -131,8 +121,8 @@ const steps: Step[] = [
         </p>
         <p
           style={{
-            fontSize: '14px',
-            fontFamily: 'Arial'
+            fontSize: "14px",
+            fontFamily: "Arial",
           }}
         >
           To access messages sent to that alias, simply enter 'FrederickGreat'
@@ -140,101 +130,114 @@ const steps: Step[] = [
         </p>
       </div>
     ),
-    placement: 'bottom'
-  }
-]
+    placement: "bottom",
+  },
+];
 
 const GroupTabs = styled(Tabs)({
-  maxWidth: '50vw'
-})
+  maxWidth: "50vw",
+});
 
 interface MailProps {
-  isFromTo: boolean
+  isFromTo: boolean;
 }
 
 export const Mail = ({ isFromTo }: MailProps) => {
-  const {isShow, onCancel, onOk, show} = useModal()
-  const theme = useTheme()
-  const { user } = useSelector((state: RootState) => state.auth)
-  const [isOpen, setIsOpen] = useState<boolean>(false)
-  const [message, setMessage] = useState<any>(null)
-  const [replyTo, setReplyTo] = useState<any>(null)
-  const [valueTab, setValueTab] = React.useState<null | number>(0)
+  const { isShow, onCancel, onOk, show } = useModal();
+  const theme = useTheme();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [message, setMessage] = useState<any>(null);
+  const [replyTo, setReplyTo] = useState<any>(null);
+  const [valueTab, setValueTab] = React.useState<null | number>(0);
   const [valueTabGroups, setValueTabGroups] = React.useState<null | number>(
     null
-  )
-  const [paramTo, setParamTo] = useState<null | string>(null)
-  const [aliasValue, setAliasValue] = useState('')
-  const [alias, setAlias] = useState<string[]>([])
-  const [run, setRun] = useState(false)
+  );
+  const [paramTo, setParamTo] = useState<null | string>(null);
+  const [aliasValue, setAliasValue] = useState("");
+  const [alias, setAlias] = useState<string[]>([]);
+  const [run, setRun] = useState(false);
   const privateGroups = useSelector(
     (state: RootState) => state.global.privateGroups
-  )
-  const [mailInfo, setMailInfo] = useState<any>(null)
+  );
+  const [mailInfo, setMailInfo] = useState<any>(null);
   const hasFetchedPrivateGroups = useSelector(
     (state: RootState) => state.global.hasFetchedPrivateGroups
-  )
+  );
   const options = useMemo(() => {
-    return Object.keys(privateGroups).map((key) => {
+    return Object.keys(privateGroups).map(key => {
       return {
         ...privateGroups[key],
         name: privateGroups[key].groupName,
-        id: key
-      }
-    })
-  }, [privateGroups])
+        id: key,
+      };
+    });
+  }, [privateGroups]);
   const hashMapMailMessages = useSelector(
     (state: RootState) => state.mail.hashMapMailMessages
-  )
+  );
   const mailMessages = useSelector(
     (state: RootState) => state.mail.mailMessages
-  )
+  );
 
   const userName = useMemo(() => {
-    if (!user?.name) return ''
-    return user.name
-  }, [user])
+    if (!user?.name) return "";
+    return user.name;
+  }, [user]);
 
   const fullMailMessages = useMemo(() => {
-    return mailMessages.map((msg) => {
-      let message = msg
-      const existingMessage = hashMapMailMessages[msg.id]
+    return mailMessages.map(msg => {
+      let message = msg;
+      const existingMessage = hashMapMailMessages[msg.id];
       if (existingMessage) {
-        message = existingMessage
+        message = existingMessage;
       }
-      return message
-    })
-  }, [mailMessages, hashMapMailMessages])
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+      return message;
+    });
+  }, [mailMessages, hashMapMailMessages]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const { getMailMessages, checkNewMessages } = useFetchMail()
-  const getMessages = React.useCallback(async () => {
-    if (!user?.name || !user?.address) return
-    await getMailMessages(user.name, user.address)
-  }, [getMailMessages, user])
+  const { getMailMessages, checkNewMessages } = useFetchMail();
+  const getMessages = React.useCallback(
+    async (isOnMount?: boolean) => {
+      if (!user?.name || !user?.address) return;
+      try {
+        if (isOnMount) {
+          setIsLoading(true);
+        }
+        await getMailMessages(user.name, user.address);
+      } catch (error) {
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [getMailMessages, user]
+  );
 
-  const interval = useRef<any>(null)
+  const interval = useRef<any>(null);
 
   const checkNewMessagesFunc = useCallback(() => {
-    if (!user?.name || !user?.address) return
-    let isCalling = false
+    if (!user?.name || !user?.address) return;
+    let isCalling = false;
     interval.current = setInterval(async () => {
-      if (isCalling || !user?.name || !user?.address) return
-      isCalling = true
-      const res = await checkNewMessages(user?.name, user.address)
-      isCalling = false
-    }, 30000)
-  }, [checkNewMessages, user])
+      if (isCalling || !user?.name || !user?.address) return;
+      isCalling = true;
+      const res = await checkNewMessages(user?.name, user.address);
+      isCalling = false;
+    }, 30000);
+  }, [checkNewMessages, user]);
 
   useEffect(() => {
-    checkNewMessagesFunc()
+    checkNewMessagesFunc();
     return () => {
       if (interval?.current) {
-        clearInterval(interval.current)
+        clearInterval(interval.current);
       }
-    }
-  }, [checkNewMessagesFunc])
+    };
+  }, [checkNewMessagesFunc]);
 
   const openMessage = async (
     user: string,
@@ -242,64 +245,68 @@ export const Mail = ({ isFromTo }: MailProps) => {
     content: any
   ) => {
     try {
-      const existingMessage: any = hashMapMailMessages[messageIdentifier]
-      if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
-        setMessage(existingMessage)
-        setIsOpen(true)
-        return
+      const existingMessage: any = hashMapMailMessages[messageIdentifier];
+      if (
+        existingMessage &&
+        existingMessage.isValid &&
+        !existingMessage.unableToDecrypt
+      ) {
+        setMessage(existingMessage);
+        setIsOpen(true);
+        return;
       }
       setMailInfo({
         identifier: messageIdentifier,
         name: user,
-        service: MAIL_SERVICE_TYPE
-      })
-      const res: any = await show()
-      setMailInfo(null)
-      const existingMessageAgain = hashMapMailMessages[messageIdentifier]
+        service: MAIL_SERVICE_TYPE,
+      });
+      const res: any = await show();
+      setMailInfo(null);
+      const existingMessageAgain = hashMapMailMessages[messageIdentifier];
       if (res && res.isValid && !res.unableToDecrypt) {
-        setMessage(res)
-        setIsOpen(true)
-        return
+        setMessage(res);
+        setIsOpen(true);
+        return;
       }
     } catch (error) {
     } finally {
     }
-  }
+  };
 
-  const firstMount = useRef(false)
+  const firstMount = useRef(false);
   useEffect(() => {
     if (user?.name && !firstMount.current) {
-      getMessages()
-      firstMount.current = true
+      getMessages(true);
+      firstMount.current = true;
     }
-  }, [user])
+  }, [user]);
 
   function a11yProps(index: number) {
     return {
       id: `mail-tabs-${index}`,
-      'aria-controls': `mail-tabs-${index}`
-    }
+      "aria-controls": `mail-tabs-${index}`,
+    };
   }
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValueTab(newValue)
-    setValueTabGroups(null)
-  }
+    setValueTab(newValue);
+    setValueTabGroups(null);
+  };
 
   const handleChangeGroups = (
     event: React.SyntheticEvent,
     newValue: number
   ) => {
-    setValueTabGroups(newValue)
-    setValueTab(null)
-  }
+    setValueTabGroups(newValue);
+    setValueTab(null);
+  };
 
   function CustomTabLabelDefault({ label }: any) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: "flex", alignItems: "center" }}>
         <span
           style={{
-            textTransform: 'none'
+            textTransform: "none",
           }}
         >
           {label}
@@ -308,15 +315,15 @@ export const Mail = ({ isFromTo }: MailProps) => {
           <CloseIcon fontSize="inherit" />
         </IconButton>
       </div>
-    )
+    );
   }
 
   function CustomTabLabel({ index, label }: any) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div style={{ display: "flex", alignItems: "center" }}>
         <span
           style={{
-            textTransform: 'none'
+            textTransform: "none",
           }}
         >
           {label}
@@ -326,20 +333,20 @@ export const Mail = ({ isFromTo }: MailProps) => {
           edge="end"
           color="inherit"
           size="small"
-          onClick={(event) => {
-            event.stopPropagation() // Add this l
-            setValueTab(0)
-            const newList = [...alias]
+          onClick={event => {
+            event.stopPropagation(); // Add this l
+            setValueTab(0);
+            const newList = [...alias];
 
-            newList.splice(index, 1)
+            newList.splice(index, 1);
 
-            setAlias(newList)
+            setAlias(newList);
             if (userName) {
               try {
                 localStorage.setItem(
                   `alias-qmail-${userName}`,
                   JSON.stringify(newList)
-                )
+                );
               } catch (error) {}
             }
           }}
@@ -347,75 +354,71 @@ export const Mail = ({ isFromTo }: MailProps) => {
           <CloseIcon fontSize="inherit" />
         </IconButton>
       </div>
-    )
+    );
   }
 
   function CustomTabLabelGroup({ index, label }: any) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
         <GroupIcon />
         <span
           style={{
-            textTransform: 'none'
+            textTransform: "none",
           }}
         >
           {label}
         </span>
       </div>
-    )
+    );
   }
 
   useEffect(() => {
-    const savedTourStatus = localStorage.getItem('tourStatus-qmail')
+    const savedTourStatus = localStorage.getItem("tourStatus-qmail");
     if (!savedTourStatus || savedTourStatus === STATUS.SKIPPED) {
-      setRun(true)
+      setRun(true);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    if (!userName) return
-    const savedAlias = localStorage.getItem(`alias-qmail-${userName}`)
+    if (!userName) return;
+    const savedAlias = localStorage.getItem(`alias-qmail-${userName}`);
     if (savedAlias) {
       try {
-        setAlias(JSON.parse(savedAlias))
+        setAlias(JSON.parse(savedAlias));
       } catch (error) {
-        console.error('Error parsing JSON from localStorage:', error)
+        console.error("Error parsing JSON from localStorage:", error);
       }
     }
-  }, [userName])
+  }, [userName]);
 
   const handleJoyrideCallback = (data: any) => {
-    const { action, status } = data
+    const { action, status } = data;
 
     if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      setRun(false)
-      localStorage.setItem('tourStatus-qmail', status)
+      setRun(false);
+      localStorage.setItem("tourStatus-qmail", status);
     }
-  }
+  };
 
-  const handleOptionChange = (event: SelectChangeEvent<string>) => {
-    const optionId = event.target.value
-    const selectedOption = options.find((option: any) => option.id === optionId)
-  }
-
+  console.log({ isLoading });
   return (
     <Box
       className="step-1"
       sx={{
-        display: 'flex',
-        width: '100%',
-        flexDirection: 'column',
-        backgroundColor: 'background.paper'
+        display: "flex",
+        width: "100%",
+        flexDirection: "column",
+        backgroundColor: "background.paper",
       }}
     >
       <Box
         sx={{
           borderBottom: 1,
-          borderColor: 'divider',
-          display: 'flex',
-          width: '100%',
-          alignItems: 'center',
-          justifyContent: 'flex-start'
+          borderColor: "divider",
+          display: "flex",
+          width: "100%",
+          alignItems: "center",
+          justifyContent: "flex-start",
         }}
       >
         <Tabs
@@ -424,15 +427,15 @@ export const Mail = ({ isFromTo }: MailProps) => {
           aria-label="basic tabs example"
           variant="scrollable"
           sx={{
-            maxWidth: '35vw'
+            maxWidth: "35vw",
           }}
         >
           <Tab
             sx={{
-              '&.Mui-selected': {
+              "&.Mui-selected": {
                 color: theme.palette.text.primary,
-                fontWeight: theme.typography.fontWeightMedium
-              }
+                fontWeight: theme.typography.fontWeightMedium,
+              },
             }}
             label={<CustomTabLabelDefault label={user?.name} />}
             {...a11yProps(0)}
@@ -441,74 +444,74 @@ export const Mail = ({ isFromTo }: MailProps) => {
             return (
               <Tab
                 sx={{
-                  '&.Mui-selected': {
+                  "&.Mui-selected": {
                     color: theme.palette.text.primary,
-                    fontWeight: theme.typography.fontWeightMedium
-                  }
+                    fontWeight: theme.typography.fontWeightMedium,
+                  },
                 }}
                 key={alia}
                 label={<CustomTabLabel index={index} label={alia} />}
                 {...a11yProps(1 + index)}
               />
-            )
+            );
           })}
         </Tabs>
         <Box
           className="step-3"
           sx={{
-            display: 'flex'
+            display: "flex",
           }}
         >
           <Input
             id="standard-adornment-alias"
-            onChange={(e) => {
-              setAliasValue(e.target.value)
+            onChange={e => {
+              setAliasValue(e.target.value);
             }}
             value={aliasValue}
             placeholder="Type in alias"
             sx={{
-              marginLeft: '20px',
-              '&&:before': {
-                borderBottom: 'none'
+              marginLeft: "20px",
+              "&&:before": {
+                borderBottom: "none",
               },
-              '&&:after': {
-                borderBottom: 'none'
+              "&&:after": {
+                borderBottom: "none",
               },
-              '&&:hover:before': {
-                borderBottom: 'none'
+              "&&:hover:before": {
+                borderBottom: "none",
               },
-              '&&.Mui-focused:before': {
-                borderBottom: 'none'
+              "&&.Mui-focused:before": {
+                borderBottom: "none",
               },
-              '&&.Mui-focused': {
-                outline: 'none'
+              "&&.Mui-focused": {
+                outline: "none",
               },
-              fontSize: '14px',
-              display: 'flex',
-              minWidth: '120px'
+              fontSize: "14px",
+              display: "flex",
+              minWidth: "120px",
             }}
           />
           <Button
             sx={{
-              height: '30px',
-              alignSelf: 'center',
-              marginRight: '10px',
-              flexShrink: 0
+              height: "30px",
+              alignSelf: "center",
+              marginRight: "10px",
+              flexShrink: 0,
             }}
             onClick={() => {
-              if (!aliasValue) return
-              const newList = [...alias, aliasValue]
+              if (!aliasValue) return;
+              const newList = [...alias, aliasValue];
               if (userName) {
                 try {
                   localStorage.setItem(
                     `alias-qmail-${userName}`,
                     JSON.stringify(newList)
-                  )
+                  );
                 } catch (error) {}
               }
 
-              setAlias((prev) => [...prev, aliasValue])
-              setAliasValue('')
+              setAlias(prev => [...prev, aliasValue]);
+              setAliasValue("");
             }}
             variant="contained"
           >
@@ -537,13 +540,13 @@ export const Mail = ({ isFromTo }: MailProps) => {
           {!hasFetchedPrivateGroups && (
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center'
+                display: "flex",
+                alignItems: "center",
               }}
             >
               <Typography
                 sx={{
-                  fontSize: '14px'
+                  fontSize: "14px",
                 }}
               >
                 Fetching groups...
@@ -560,10 +563,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
               return (
                 <Tab
                   sx={{
-                    '&.Mui-selected': {
+                    "&.Mui-selected": {
                       color: theme.palette.text.primary,
-                      fontWeight: theme.typography.fontWeightMedium
-                    }
+                      fontWeight: theme.typography.fontWeightMedium,
+                    },
                   }}
                   key={group.id}
                   label={
@@ -571,49 +574,49 @@ export const Mail = ({ isFromTo }: MailProps) => {
                   }
                   {...a11yProps(1 + index)}
                 />
-              )
+              );
             })}
           </GroupTabs>
         </Box>
       </Box>
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          width: '100%'
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
         }}
       >
         {valueTab === 0 || valueTab === 500 ? (
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
+              display: "flex",
+              alignItems: "center",
               background: theme.palette.background.default,
-              height: 'auto',
-              padding: '5px',
-              cursor: 'pointer',
-              margin: '7px 10px 7px 7px;'
+              height: "auto",
+              padding: "5px",
+              cursor: "pointer",
+              margin: "7px 10px 7px 7px;",
             }}
             onClick={() => {
               if (valueTab === 0) {
-                setValueTab(500)
-                return
+                setValueTab(500);
+                return;
               }
-              setValueTab(0)
+              setValueTab(0);
             }}
           >
             {valueTab === 0 && (
               <>
                 <SendIcon
                   sx={{
-                    cursor: 'pointer',
-                    marginRight: '5px'
+                    cursor: "pointer",
+                    marginRight: "5px",
                   }}
                 />
                 <Typography
                   sx={{
-                    fontSize: '14px'
+                    fontSize: "14px",
                   }}
                 >
                   Sent
@@ -624,13 +627,13 @@ export const Mail = ({ isFromTo }: MailProps) => {
               <>
                 <MailIcon
                   sx={{
-                    cursor: 'pointer',
-                    marginRight: '5px'
+                    cursor: "pointer",
+                    marginRight: "5px",
                   }}
                 />
                 <Typography
                   sx={{
-                    fontSize: '14px'
+                    fontSize: "14px",
                   }}
                 >
                   Inbox
@@ -647,7 +650,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
             replyTo={replyTo}
             setReplyTo={setReplyTo}
             alias={
-              valueTab === 0 || valueTab === null ? '' : alias[valueTab - 1]
+              valueTab === 0 || valueTab === null ? "" : alias[valueTab - 1]
             }
           />
         )}
@@ -664,6 +667,19 @@ export const Mail = ({ isFromTo }: MailProps) => {
           openMessage={openMessage}
           data={fullMailMessages}
         ></SimpleTable>
+        {isLoading && (
+          <div
+            style={{
+              display: "flex",
+              marginTop: '10px',
+              justifyContent: "center",
+              minHeight: "25px",
+              width: "100%",
+            }}
+          >
+            <CircularProgress />
+          </div>
+        )}
         <LazyLoad onLoadMore={getMessages}></LazyLoad>
       </TabPanel>
 
@@ -676,14 +692,14 @@ export const Mail = ({ isFromTo }: MailProps) => {
           <TabPanel key={alia} value={valueTab} index={1 + index}>
             <AliasMail value={alia} />
           </TabPanel>
-        )
+        );
       })}
       {options.map((group, index) => {
         return (
           <TabPanel key={group.id} value={valueTabGroups} index={index}>
             <GroupMail groupInfo={group} />
           </TabPanel>
-        )
+        );
       })}
 
       <Joyride
@@ -696,20 +712,20 @@ export const Mail = ({ isFromTo }: MailProps) => {
         showSkipButton={true}
       />
       {mailInfo && isShow && (
-              <OpenMail open={isShow} handleClose={onOk} fileInfo={mailInfo}/>
+        <OpenMail open={isShow} handleClose={onOk} fileInfo={mailInfo} />
       )}
     </Box>
-  )
-}
+  );
+};
 
 interface TabPanelProps {
-  children?: React.ReactNode
-  index: number
-  value: number | null
+  children?: React.ReactNode;
+  index: number;
+  value: number | null;
 }
 
 export function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props
+  const { children, value, index, ...other } = props;
 
   return (
     <div
@@ -719,10 +735,10 @@ export function TabPanel(props: TabPanelProps) {
       aria-labelledby={`mail-tabs-${index}`}
       {...other}
       style={{
-        width: '100%'
+        width: "100%",
       }}
     >
       {value === index && children}
     </div>
-  )
+  );
 }

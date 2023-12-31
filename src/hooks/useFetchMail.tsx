@@ -261,7 +261,7 @@ export const useFetchMail = () => {
       try {
         const offset = mailMessages.length
 
-        dispatch(setIsLoadingGlobal(true))
+        // dispatch(setIsLoadingGlobal(true))
         const query = `qortal_qmail_${recipientName.slice(
           0,
           20
@@ -296,7 +296,7 @@ export const useFetchMail = () => {
         }
       } catch (error) {
       } finally {
-        dispatch(setIsLoadingGlobal(false))
+        // dispatch(setIsLoadingGlobal(false))
       }
     },
     [mailMessages, hashMapMailMessages]
