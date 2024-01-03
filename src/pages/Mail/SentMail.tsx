@@ -30,6 +30,8 @@ import { BlogPost } from '../../state/features/blogSlice'
 import { setNotification } from '../../state/features/notificationsSlice'
 import { useModal } from '../../components/common/useModal'
 import { OpenMail } from './OpenMail'
+import { MessagesContainer } from './Mail-styles'
+import { MailMessageRow } from './MailMessageRow'
 
 interface SentMailProps {}
 export const SentMail = ({}: SentMailProps) => {
@@ -38,6 +40,7 @@ export const SentMail = ({}: SentMailProps) => {
   const theme = useTheme()
   const { user } = useSelector((state: RootState) => state.auth)
   const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<any>(null)
   const [replyTo, setReplyTo] = useState<any>(null)
   const [valueTab, setValueTab] = React.useState(0)
@@ -147,9 +150,10 @@ export const SentMail = ({}: SentMailProps) => {
     async (recipientName: string, recipientAddress: string) => {
       try {
         if (!user?.name) return
+        console.log({user})
         const offset = mailMessages.length
 
-        dispatch(setIsLoadingGlobal(true))
+        // dispatch(setIsLoadingGlobal(true))
         const query = `qortal_qmail_`
         const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${query}&name=${user.name}&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
@@ -199,15 +203,32 @@ export const SentMail = ({}: SentMailProps) => {
         }
       } catch (error) {
       } finally {
-        dispatch(setIsLoadingGlobal(false))
+        // dispatch(setIsLoadingGlobal(false))
       }
     },
-    [mailMessages, hashMapMailMessages]
+    [mailMessages, hashMapMailMessages, user]
   )
-  const getMessages = React.useCallback(async () => {
-    if (!user?.name || !user?.address) return
-    await getMailMessages(user.name, user.address)
+  const getMessages = React.useCallback(async (isOnMount?: boolean) => {
+    if (!user?.name || !user?.address) return;
+    try {
+      if (isOnMount) {
+        setIsLoading(true);
+      }
+      await getMailMessages(user.name, user.address);
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
+    }
   }, [getMailMessages, user])
+
+  const firstMount = useRef(false);
+  useEffect(() => {
+    if (user?.name && !firstMount.current) {
+      console.log('hello', user)
+      getMessages(true);
+      firstMount.current = true;
+    }
+  }, [user]);
 
   const interval = useRef<any>(null)
 
@@ -231,46 +252,8 @@ export const SentMail = ({}: SentMailProps) => {
     }
   }, [checkNewMessagesFunc])
 
-  function extractData(identifier: string) {
-    let parts = identifier.split('_')
 
-    let recipientName = parts[2]
-    let recipientAddress = parts[3]
-
-    return { recipientName, recipientAddress }
-  }
-
-  const findUserFunc = async (msgIdentifier: string) => {
-    const { recipientName, recipientAddress } = extractData(msgIdentifier)
-    if (!recipientName || !recipientAddress) return null
-    // full name lookup
-    try {
-      const url = `/names/${recipientName}`
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      const responseData = await response.json()
-      if (responseData?.name) return responseData.name
-    } catch (error) {}
-
-    // check partial name lookp
-    const url = `/names/search?query=${recipientName}&limit=5`
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const responseData = await response.json()
-    const findName = responseData.find((item: any) =>
-      item.owner.includes(recipientAddress)
-    )
-    if (findName) return findName?.name
-    return null
-  }
+ 
 
   const openMessage = async (
     user: string,
@@ -320,11 +303,22 @@ export const SentMail = ({}: SentMailProps) => {
         message={message}
         setReplyTo={setReplyTo}
       />
-      <SimpleTable
+       <MessagesContainer>
+                {fullMailMessages.map(item => {
+                  return (
+                    <MailMessageRow
+                      messageData={item}
+                      openMessage={openMessage}
+                    />
+                  );
+                })}
+                <LazyLoad onLoadMore={getMessages}></LazyLoad>
+              </MessagesContainer>
+      {/* <SimpleTable
         openMessage={openMessage}
         data={fullMailMessages}
       ></SimpleTable>
-      <LazyLoad onLoadMore={getMessages}></LazyLoad>
+      <LazyLoad onLoadMore={getMessages}></LazyLoad> */}
     </>
   )
 }

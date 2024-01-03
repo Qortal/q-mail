@@ -49,6 +49,9 @@ export interface BlogPost {
   tags?: string[]
   updated?: number | string
   isValid?: boolean
+  unableToDecrypt?: boolean
+  subject?:string
+  attachments?: any[]
 }
 
 export const removeFavorites = createAsyncThunk<

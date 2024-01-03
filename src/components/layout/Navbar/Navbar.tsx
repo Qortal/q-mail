@@ -8,7 +8,7 @@ import { UserNavbar } from '../../common/UserNavbar/UserNavbar'
 import { removePrefix } from '../../../utils/blogIdformats'
 import { useLocation } from 'react-router-dom'
 import { BlockedNamesModal } from '../../common/BlockedNamesModal/BlockedNamesModal'
-
+import Logo from '../../../assets/svgs/Logo.svg'
 import {
   AvatarContainer,
   CustomAppBar,
@@ -81,9 +81,9 @@ const NavBar: React.FC<Props> = ({
       <CustomToolbar variant="dense">
         <QblogLogoContainer
           style={{
-            height: '32px'
+            height: '54px'
           }}
-          src={QMailLogo}
+          src={Logo}
           alt="Q-Mail Logo"
           onClick={() => {
             navigate(`/`)
@@ -116,15 +116,15 @@ const NavBar: React.FC<Props> = ({
               {!userAvatar ? (
                 <AccountCircleSVG
                   color={theme.palette.text.primary}
-                  width="32"
-                  height="32"
+                  width="35"
+                  height="35"
                 />
               ) : (
                 <img
                   src={userAvatar}
                   alt="User Avatar"
-                  width="32"
-                  height="32"
+                  width="35"
+                  height="35"
                   style={{
                     borderRadius: '50%'
                   }}

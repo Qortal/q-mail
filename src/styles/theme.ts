@@ -1,14 +1,12 @@
 import { createTheme } from '@mui/material/styles'
 
+
+// Extend the Theme interface
+
 const commonThemeOptions = {
   typography: {
     fontFamily: [
-      'CambonLight',
-      'Raleway, sans-serif',
-      'Oxygen',
-      'Catamaran',
-      'Cairo',
-      'Arial'
+      'Roboto'
     ].join(','),
     h1: {
       fontSize: '2rem',
@@ -36,7 +34,6 @@ const commonThemeOptions = {
     },
     body1: {
       fontSize: '23px',
-      fontFamily: 'Raleway',
       fontWeight: 400,
       lineHeight: 1.5,
       letterSpacing: '0.5px'
@@ -44,7 +41,6 @@ const commonThemeOptions = {
 
     body2: {
       fontSize: '18px',
-      fontFamily: 'Raleway, Arial',
       fontWeight: 400,
       lineHeight: 1.4,
       letterSpacing: '0.2px'
@@ -111,6 +107,7 @@ const lightTheme = createTheme({
       secondary: '#525252'
     }
   },
+
   components: {
     MuiCard: {
       styleOverrides: {

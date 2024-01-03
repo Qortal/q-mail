@@ -140,7 +140,7 @@ const BlogPostPreview: React.FC<BlogPostPreviewProps> = ({
     try {
       const response = await qortalRequest({
         action: 'ADD_LIST_ITEMS',
-        list_name: 'blockedNames_q-blog',
+        list_name: 'blockedNames',
         items: [user]
       })
 

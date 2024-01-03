@@ -29,6 +29,8 @@ import { MAIL_SERVICE_TYPE } from '../../constants/mail'
 import { BlogPost } from '../../state/features/blogSlice'
 import { useModal } from '../../components/common/useModal'
 import { OpenMail } from './OpenMail'
+import { MessagesContainer } from './Mail-styles'
+import { MailMessageRow } from './MailMessageRow'
 
 interface AliasMailProps {
   value: string
@@ -140,7 +142,7 @@ export const AliasMail = ({ value }: AliasMailProps) => {
         return
       } catch (error) {}
     },
-    [mailMessages]
+    [mailMessages, value]
   )
 
   const getMailMessages = React.useCallback(
@@ -148,7 +150,7 @@ export const AliasMail = ({ value }: AliasMailProps) => {
       try {
         const offset = mailMessages.length
 
-        dispatch(setIsLoadingGlobal(true))
+        // dispatch(setIsLoadingGlobal(true))
         const query = `qortal_qmail_${value}_mail`
         const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${query}&limit=50&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
@@ -198,10 +200,10 @@ export const AliasMail = ({ value }: AliasMailProps) => {
         }
       } catch (error) {
       } finally {
-        dispatch(setIsLoadingGlobal(false))
+        // dispatch(setIsLoadingGlobal(false))
       }
     },
-    [mailMessages, hashMapMailMessages]
+    [mailMessages, hashMapMailMessages, value]
   )
   const getMessages = React.useCallback(async () => {
     if (!user?.name || !user?.address) return
@@ -260,13 +262,17 @@ export const AliasMail = ({ value }: AliasMailProps) => {
     }
   }
 
-  const firstMount = useRef(false)
+  const firstMount = useRef<null | string>(null)
   useEffect(() => {
-    if (user?.name && !firstMount.current) {
-      getMessages()
-      firstMount.current = true
+    if (user?.name && (!firstMount.current || firstMount.current !== value)) {
+      setMailMessages([])
+      setTimeout(() => {
+        console.log('sup', value)
+        getMessages()
+      }, 100);
+      firstMount.current = value
     }
-  }, [user])
+  }, [user, value])
 
   return (
     <>
@@ -283,10 +289,21 @@ export const AliasMail = ({ value }: AliasMailProps) => {
         setReplyTo={setReplyTo}
         alias={value}
       />
-      <SimpleTable
+       <MessagesContainer>
+                {fullMailMessages.map(item => {
+                  return (
+                    <MailMessageRow
+                      messageData={item}
+                      openMessage={openMessage}
+                    />
+                  );
+                })}
+                <LazyLoad onLoadMore={getMessages}></LazyLoad>
+              </MessagesContainer>
+      {/* <SimpleTable
         openMessage={openMessage}
         data={fullMailMessages}
-      ></SimpleTable>
+      ></SimpleTable> */}
       <Box
         sx={{
           width: '100%',

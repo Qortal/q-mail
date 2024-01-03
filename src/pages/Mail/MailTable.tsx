@@ -156,7 +156,7 @@ export default function SimpleTable({
   )
 }
 
-export const AvatarWrapper = ({ user }: any) => {
+export const AvatarWrapper = ({ user, height }: any) => {
   const userAvatarHash = useSelector(
     (state: RootState) => state.global.userAvatarHash
   )
@@ -167,5 +167,5 @@ export const AvatarWrapper = ({ user }: any) => {
     return findUserAvatar
   }, [userAvatarHash, user])
 
-  return <Avatar src={avatarLink} alt={`${user}'s avatar`} />
+  return <Avatar  sx={{ width: height, height: height }} src={avatarLink} alt={`${user}'s avatar`} />
 }

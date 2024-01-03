@@ -1,32 +1,37 @@
 @font-face {
-  font-family: 'CambonLight';
-  src: url('./styles/fonts/Cambon-Light.ttf') format('truetype');
+  font-family: 'Roboto';
+  src: url('./styles/fonts/Roboto-Regular.ttf') format('truetype');
+  font-weight: 400;
 }
 
 @font-face {
-  font-family: 'Raleway';
-  src: url('./styles/fonts/Raleway.ttf') format('truetype');
+  font-family: 'Roboto';
+  src: url('./styles/fonts/Roboto-Medium.ttf') format('truetype');
+  font-weight: 500;
+}
+@font-face {
+  font-family: 'Roboto';
+  src: url('./styles/fonts/Roboto-Black.ttf') format('truetype');
+  font-weight: 900;
+}
+@font-face {
+  font-family: 'Roboto';
+  src: url('./styles/fonts/Roboto-Light.ttf') format('truetype');
+  font-weight: 300;
 }
 
-@font-face {
-  font-family: 'Catamaran';
-  src: url('./styles/fonts/Catamaran.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Oxygen';
-  src: url('./styles/fonts/Oxygen.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Cairo';
-  src: url('./styles/fonts/Cairo.ttf') format('truetype');
-}
 
 :root {
   padding: 0px;
   margin: 0px;
   box-sizing: border-box;
+  --color-instance : #1E1E20;
+  --color-instance-popover-bg: #222222;
+}
+p {
+  margin-block-start: 0px;
+  margin-block-end: 0px;
+  line-height: 1.2;
 }
 
 .line-clamp {

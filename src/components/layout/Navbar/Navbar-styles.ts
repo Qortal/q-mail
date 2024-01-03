@@ -19,7 +19,9 @@ export const CustomAppBar = styled(AppBar)(({ theme }) => ({
 export const CustomToolbar = styled(Toolbar)({
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'center'
+  alignItems: 'center',
+  minHeight: '78px',
+  maxHeight: '78px'
 })
 
 export const CustomTitle = styled(Typography)({
@@ -41,7 +43,6 @@ export const CreateBlogButton = styled(Button)(({ theme }) => ({
   gap: '4px',
   backgroundColor: theme.palette.secondary.main,
   color: '#fff',
-  fontFamily: "Arial",
   transition: "all 0.3s ease-in-out",
   boxShadow: "none",
   "&:hover": {
@@ -61,7 +62,6 @@ export const AuthenticateButton = styled(Button)({
   gap: '4px',
   backgroundColor: "#4ACE91",
   color: '#fff',
-  fontFamily: "Arial",
   transition: "all 0.3s ease-in-out",
   boxShadow: "none",
   "&:hover": {
@@ -98,14 +98,12 @@ export const DropdownContainer = styled(Box)(({ theme }) => ({
 }));
 
 export const DropdownText = styled(Typography)(({ theme }) => ({
-  fontFamily: "Arial",
   fontSize: "16px",
   color: theme.palette.text.primary,
   userSelect: "none"
 }));
 
 export const NavbarName = styled(Typography)(({ theme }) => ({
-  fontFamily: "Arial",
   fontSize: "18px",
   color: theme.palette.text.primary,
   margin: "0 10px",

@@ -15,7 +15,6 @@ import CreateIcon from '@mui/icons-material/Create'
 import { setNotification } from '../../state/features/notificationsSlice'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import mime from 'mime';
-
 import {
   objectToBase64,
   objectToUint8Array,
@@ -33,6 +32,8 @@ import useConfirmationModal from '../../hooks/useConfirmModal'
 import { MultiplePublish } from '../../components/common/MultiplePublish/MultiplePublish'
 import { ChipInputComponent, NameChip } from '../../components/common/ChipInputComponent/ChipInputComponent'
 import { TextEditor } from '../../components/common/TextEditor/TextEditor'
+import { ComposeContainer, ComposeIcon, ComposeP } from './Mail-styles'
+import ComposeIconSVG from "../../assets/svgs/ComposeIcon.svg"
 const initialValue: Descendant[] = [
   {
     type: 'paragraph',
@@ -410,34 +411,11 @@ export const NewMessage = ({
       }}
     >
       {!hideButton && (
-        <Box
-          className="step-2"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            background: theme.palette.background.default,
-            borderRadius: '25px',
-            height: 'auto',
-            padding: '10px',
-            cursor: 'pointer',
-            margin: '7px 10px 7px 0px;'
-          }}
-          onClick={openModal}
-        >
-          <CreateIcon
-            sx={{
-              cursor: 'pointer',
-              marginRight: '5px'
-            }}
-          />
-          <Typography
-            sx={{
-              fontSize: '14px'
-            }}
-          >
-            Compose
-          </Typography>
-        </Box>
+       <ComposeContainer           onClick={openModal}
+       >
+       <ComposeIcon src={ComposeIconSVG} />
+       <ComposeP>Compose</ComposeP>
+     </ComposeContainer>
       )}
 
       <ReusableModal
