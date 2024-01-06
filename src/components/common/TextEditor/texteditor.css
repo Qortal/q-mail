@@ -1,6 +1,11 @@
 .ql-editor {
     min-height: 100px;
-    width: 100%
+    width: 100%;
+    color: black;
+    font-size: 16px;
+    font-family: Roboto;
+    max-height: 225px;
+    overflow-y: scroll;
   }
   
   .ql-editor img {
@@ -13,18 +18,18 @@
 
   .ql-toolbar .ql-stroke {
     fill: none !important;
-    stroke: #fff !important;
+    stroke: black !important;
 }
 
 .ql-toolbar .ql-fill {
-    fill: #fff !important;
+    fill: black !important;
     stroke: none !important;
 }
 
 .ql-toolbar .ql-picker {
-    color: #fff !important;
+    color: black !important;
 }
 
 .ql-toolbar .ql-picker-options {
-    background-color: #2e3d60 !important;
+    background-color: white !important;
 }

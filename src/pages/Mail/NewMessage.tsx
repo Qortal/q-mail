@@ -32,8 +32,13 @@ import useConfirmationModal from '../../hooks/useConfirmModal'
 import { MultiplePublish } from '../../components/common/MultiplePublish/MultiplePublish'
 import { ChipInputComponent, NameChip } from '../../components/common/ChipInputComponent/ChipInputComponent'
 import { TextEditor } from '../../components/common/TextEditor/TextEditor'
-import { ComposeContainer, ComposeIcon, ComposeP } from './Mail-styles'
+import { AliasLabelP, AttachmentContainer, ComposeContainer, ComposeIcon, ComposeP, InstanceFooter, InstanceListContainer, InstanceListHeader, NewMessageAliasContainer, NewMessageAttachmentImg, NewMessageCloseImg, NewMessageHeaderP, NewMessageInputLabelP, NewMessageInputRow, NewMessageSendButton, NewMessageSendP } from './Mail-styles'
 import ComposeIconSVG from "../../assets/svgs/ComposeIcon.svg"
+import ModalCloseSVG from "../../assets/svgs/ModalClose.svg"
+import AttachmentSVG from "../../assets/svgs/NewMessageAttachment.svg"
+import { Spacer } from '../../components/common/Spacer'
+import { SendNewMessage } from '../../assets/svgs/SendNewMessage'
+
 const initialValue: Descendant[] = [
   {
     type: 'paragraph',
@@ -422,10 +427,121 @@ export const NewMessage = ({
         open={isOpen}
         customStyles={{
           maxHeight: '95vh',
-          overflowY: 'auto'
+          maxWidth: '950px',
+          height: '700px',
+          borderRadius: '12px 12px 0px 0px',
+          background: 'var(--Mail-Backgrund, #313338)',
+          padding: '0px',
+          gap: '0px'
         }}
       >
-        <Box
+        <InstanceListHeader sx={{
+          backgroundColor: 'unset',
+          height: '69px',
+          padding: '20px 42px',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <NewMessageHeaderP>New Message</NewMessageHeaderP>
+          <NewMessageCloseImg onClick={closeModal} src={ModalCloseSVG} />
+        </InstanceListHeader>
+        <InstanceListContainer sx={{
+          backgroundColor: 'rgba(217, 217, 217, 1)',
+          padding: '20px 42px'
+        }}>
+          <Spacer height="30px" />
+        <NewMessageInputRow>
+          <NewMessageAliasContainer>
+          <NewMessageInputLabelP>To:</NewMessageInputLabelP>
+          <Input
+              id="standard-adornment-name"
+              value={destinationName}
+              onChange={(e) => {
+                setDestinationName(e.target.value)
+              }}
+              disableUnderline
+              autoComplete='off'
+              autoCorrect='off'
+              sx={{
+                width: '100%',
+                color: 'var(--new-message-text)',
+                '& .MuiInput-input::placeholder': {
+                  color: 'rgba(84, 84, 84, 0.70) !important',
+                  fontSize: '20px',
+                  fontStyle: 'normal',
+                  fontWeight: 400,
+                  lineHeight: '120%', // 24px
+                  letterSpacing: '0.15px',
+                  opacity: 1
+                },
+                '&:focus': {
+                  outline: 'none',
+                },
+                // Add any additional styles for the input here
+              }}
+            />
+          </NewMessageAliasContainer>
+          <NewMessageAliasContainer>
+          <AliasLabelP>Add Alias</AliasLabelP>
+          <AliasLabelP>Bcc</AliasLabelP>
+          </NewMessageAliasContainer>
+        </NewMessageInputRow>
+        <Spacer height="10px" />
+        <NewMessageInputRow sx={{width: '100%'}}>
+        <Input
+              id="standard-adornment-name"
+              value={subject}
+              onChange={(e) => {
+                setSubject(e.target.value)
+              }}
+              placeholder="Subject"
+              disableUnderline
+              autoComplete='off'
+              autoCorrect='off'
+              sx={{
+                width: '100%',
+                color: 'var(--new-message-text)',
+                '& .MuiInput-input::placeholder': {
+                  color: 'rgba(84, 84, 84, 0.70) !important',
+                  fontSize: '20px',
+                  fontStyle: 'normal',
+                  fontWeight: 400,
+                  lineHeight: '120%', // 24px
+                  letterSpacing: '0.15px',
+                  opacity: 1
+                },
+                '&:focus': {
+                  outline: 'none',
+                },
+                // Add any additional styles for the input here
+              }}
+            />
+        </NewMessageInputRow>
+        <Spacer height="10px" />
+        <AttachmentContainer>
+              <NewMessageAttachmentImg src={AttachmentSVG} />
+        </AttachmentContainer>
+        <Spacer height="30px" />
+        <Box sx={{
+          maxHeight: '40vh'
+        }}>
+        <TextEditor inlineContent={value} setInlineContent={(val: any)=> {
+                      setValue(val)
+                    }} />
+        </Box>
+        </InstanceListContainer>
+        <InstanceFooter sx={{
+          backgroundColor: 'rgba(217, 217, 217, 1)',
+          padding: '20px 42px',
+          alignItems: 'center'
+        }}>
+        <NewMessageSendButton onClick={sendMail}>
+          <NewMessageSendP>Send Message</NewMessageSendP>
+          <SendNewMessage color="red" opacity={1} height="25px" width="25px" />
+        </NewMessageSendButton>
+        </InstanceFooter>
+        {/* <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -574,18 +690,12 @@ export const NewMessage = ({
           <TextEditor inlineContent={value} setInlineContent={(val: any)=> {
                       setValue(val)
                     }} />
-          {/* <BlogEditor
-            mode="mail"
-            value={value}
-            setValue={setValue}
-            editorKey={1}
-            disableMaxHeight
-          /> */}
+  
         </Box>
         <BuilderButton onClick={sendMail}>
           {replyTo ? 'Send reply mail' : 'Send mail'}
         </BuilderButton>
-        <BuilderButton onClick={closeModal}>Close</BuilderButton>
+        <BuilderButton onClick={closeModal}>Close</BuilderButton> */}
       </ReusableModal>
       <Modal />
       {isOpenMultiplePublish && (

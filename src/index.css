@@ -27,6 +27,8 @@
   box-sizing: border-box;
   --color-instance : #1E1E20;
   --color-instance-popover-bg: #222222;
+  --Mail-Background: rgba(49, 51, 56, 1);
+  --new-message-text: black;
 }
 p {
   margin-block-start: 0px;

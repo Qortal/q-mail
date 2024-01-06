@@ -383,3 +383,98 @@ export const TypeInAliasTextfield = styled(TextField)({
     borderBottom: 'none',
   },
 })
+
+export const NewMessageCloseImg = styled('img')({
+  width: 'auto',
+  height: 'auto',
+  userSelect: 'none',
+  objectFit: 'contain',
+  cursor: 'pointer'
+})
+export const NewMessageHeaderP = styled(Typography)(({ theme }) => ({
+  fontSize: '23px',
+  fontWeight: 600
+ }))
+
+ export const NewMessageInputRow = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  borderBottom: '3px solid rgba(237, 239, 241, 1)',
+  width: '100%',
+  paddingBottom: '6px'
+}))
+export const NewMessageInputLabelP = styled(Typography)`
+color: rgba(84, 84, 84, 0.70);
+font-size: 20px;
+font-style: normal;
+font-weight: 400;
+line-height: 120%; /* 24px */
+letter-spacing: 0.15px;
+`
+export const AliasLabelP = styled(Typography)`
+color: rgba(84, 84, 84, 0.70);
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: 120%; /* 24px */
+letter-spacing: 0.15px;
+transition: color 0.2s;
+cursor: pointer;
+&:hover {
+  color: rgba(43, 43, 43, 1);
+}
+`
+export const NewMessageAliasContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px'
+}))
+export const AttachmentContainer = styled(Box)(({ theme }) => ({
+  height: '36px',
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+}))
+
+export const NewMessageAttachmentImg = styled('img')({
+  width: 'auto',
+  height: 'auto',
+  userSelect: 'none',
+  objectFit: 'contain',
+  cursor: 'pointer',
+  padding: '10px',
+  border: '1px dashed #646464'
+})
+
+export const NewMessageSendButton = styled(Box)`
+border-radius: 4px;
+border: 1px solid rgba(0, 0, 0, 0.90);
+display: inline-flex;
+padding: 8px 16px 8px 12px;
+align-items: center;
+gap: 8px;
+width: fit-content;
+transition: all 0.2s;
+color: black;
+min-width: 120px;
+gap: 8px;
+cursor: pointer;
+&:hover {
+  background-color: rgba(41, 41, 43, 1);
+  color: white;
+  svg path {
+      fill: white; // Fill color changes to white on hover
+    }
+}
+`
+
+export const NewMessageSendP = styled(Typography)`
+font-family: Roboto;
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: 120%; /* 19.2px */
+letter-spacing: -0.16px;
+`
+
