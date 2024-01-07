@@ -38,6 +38,8 @@ import ModalCloseSVG from "../../assets/svgs/ModalClose.svg"
 import AttachmentSVG from "../../assets/svgs/NewMessageAttachment.svg"
 import { Spacer } from '../../components/common/Spacer'
 import { SendNewMessage } from '../../assets/svgs/SendNewMessage'
+import { AttachmentTwoTone } from '@mui/icons-material'
+import { formatBytes } from '../../utils/displaySize'
 
 const initialValue: Descendant[] = [
   {
@@ -77,6 +79,7 @@ export const NewMessage = ({
   const { user } = useSelector((state: RootState) => state.auth)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [showAlias, setShowAlias] = useState<boolean>(false)
+  const [showBCC, setShowBCC] = useState<boolean>(false)
   const [bccNames, setBccNames] = useState<NameChip[]>([])
   const theme = useTheme()
   const { Modal, showModal } = useConfirmationModal({
@@ -152,6 +155,7 @@ export const NewMessage = ({
     setDestinationName('')
     setBccNames([])
     setShowAlias(false)
+    setShowBCC(false)
     setValue("")
     setReplyTo(null)
     setIsOpen(false)
@@ -301,7 +305,8 @@ export const NewMessage = ({
           originalFilename: attachment?.name || '',
           identifier,
           data64: base64String,
-          type: attachment?.type
+          type: attachment?.type,
+          size: attachment?.size
         }
 
         attachmentArray.push(obj)
@@ -316,7 +321,8 @@ export const NewMessage = ({
             service: MAIL_ATTACHMENT_SERVICE_TYPE,
             filename: item.filename,
             originalFilename: item.originalFilename,
-            type: item?.type
+            type: item?.type,
+            size: item?.size
           }
         })
 
@@ -448,7 +454,9 @@ export const NewMessage = ({
         </InstanceListHeader>
         <InstanceListContainer sx={{
           backgroundColor: 'rgba(217, 217, 217, 1)',
-          padding: '20px 42px'
+          padding: '20px 42px',
+          height: 'calc(100% - 150px)',
+          flexShrink: 0
         }}>
           <Spacer height="30px" />
         <NewMessageInputRow>
@@ -483,8 +491,8 @@ export const NewMessage = ({
             />
           </NewMessageAliasContainer>
           <NewMessageAliasContainer>
-          <AliasLabelP>Add Alias</AliasLabelP>
-          <AliasLabelP>Bcc</AliasLabelP>
+          <AliasLabelP  onClick={() => setShowAlias(true)}>Add Alias</AliasLabelP>
+          <AliasLabelP onClick={() => setShowBCC(true)}>Bcc</AliasLabelP>
           </NewMessageAliasContainer>
         </NewMessageInputRow>
         <Spacer height="10px" />
@@ -518,130 +526,65 @@ export const NewMessage = ({
               }}
             />
         </NewMessageInputRow>
+     
+
+        {(alias || showAlias) && (
+             <NewMessageInputRow sx={{
+              marginTop: '10px'
+             }}>
+                <NewMessageAliasContainer>
+                <NewMessageInputLabelP>Alias:</NewMessageInputLabelP>
+                <Input
+                    id="standard-adornment-name"
+                    value={aliasValue}
+                    onChange={(e) => {
+                      setAliasValue(e.target.value)
+                    }}
+                    disableUnderline
+                    autoComplete='off'
+                    autoCorrect='off'
+                    sx={{
+                      width: '100%',
+                      color: 'var(--new-message-text)',
+                      '& .MuiInput-input::placeholder': {
+                        color: 'rgba(84, 84, 84, 0.70) !important',
+                        fontSize: '20px',
+                        fontStyle: 'normal',
+                        fontWeight: 400,
+                        lineHeight: '120%', // 24px
+                        letterSpacing: '0.15px',
+                        opacity: 1
+                      },
+                      '&:focus': {
+                        outline: 'none',
+                      },
+                      // Add any additional styles for the input here
+                    }}
+                  />
+                </NewMessageAliasContainer>
+                </NewMessageInputRow>
+              )}
+
+{showBCC && (
+             <NewMessageInputRow sx={{
+              marginTop: '10px'
+             }}>
+                <NewMessageAliasContainer>
+                <NewMessageInputLabelP>Bcc:</NewMessageInputLabelP>
+                <ChipInputComponent chips={bccNames} setChips={setBccNames} />
+                </NewMessageAliasContainer>
+                </NewMessageInputRow>
+              )}
+      
         <Spacer height="10px" />
-        <AttachmentContainer>
+        <AttachmentContainer  {...getRootProps()} sx={{
+          width: 'fit-content'
+        }}>
+        <input {...getInputProps()} />
               <NewMessageAttachmentImg src={AttachmentSVG} />
         </AttachmentContainer>
-        <Spacer height="30px" />
-        <Box sx={{
-          maxHeight: '40vh'
-        }}>
-        <TextEditor inlineContent={value} setInlineContent={(val: any)=> {
-                      setValue(val)
-                    }} />
-        </Box>
-        </InstanceListContainer>
-        <InstanceFooter sx={{
-          backgroundColor: 'rgba(217, 217, 217, 1)',
-          padding: '20px 42px',
-          alignItems: 'center'
-        }}>
-        <NewMessageSendButton onClick={sendMail}>
-          <NewMessageSendP>Send Message</NewMessageSendP>
-          <SendNewMessage color="red" opacity={1} height="25px" width="25px" />
-        </NewMessageSendButton>
-        </InstanceFooter>
-        {/* <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            flexDirection: 'column',
-            gap: 1
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              flexDirection: 'column',
-              gap: 2,
-              width: '100%'
-            }}
-          >
-            <Input
-              id="standard-adornment-name"
-              value={destinationName}
-              onChange={(e) => {
-                setDestinationName(e.target.value)
-              }}
-              placeholder="To (name)"
-              sx={{
-                width: '100%',
-                fontSize: '16px'
-              }}
-            />
-            {!replyTo && (
-                          <ChipInputComponent chips={bccNames} setChips={setBccNames} />
-
-            )}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                width: '100%'
-              }}
-            >
-              {(alias || showAlias) && (
-                <Input
-                  id="standard-adornment-alias"
-                  value={aliasValue}
-                  onChange={(e) => {
-                    setAliasValue(e.target.value)
-                  }}
-                  placeholder={`Alias ${alias ? '' : '-optional'}`}
-                  sx={{
-                    width: '100%',
-                    fontSize: '16px'
-                  }}
-                />
-              )}
-              {!alias && !showAlias && (
-                <Button
-                  onClick={() => setShowAlias(true)}
-                  size="small"
-                  variant="contained"
-                  sx={{
-                    textTransform: 'none'
-                  }}
-                >
-                  Add Alias - optional
-                </Button>
-              )}
-            </Box>
-
-            <Input
-              id="standard-adornment-name"
-              value={subject}
-              onChange={(e) => {
-                setSubject(e.target.value)
-              }}
-              placeholder="Subject"
-              sx={{
-                width: '100%',
-                fontSize: '16px'
-              }}
-            />
-            <Box
-              {...getRootProps()}
-              sx={{
-                border: '1px dashed gray',
-                padding: 2,
-                textAlign: 'center',
-                marginBottom: 2
-              }}
-            >
-              <input {...getInputProps()} />
-              <AttachFileIcon
-                sx={{
-                  height: '20px',
-                  width: 'auto',
-                  cursor: 'pointer'
-                }}
-              ></AttachFileIcon>
-            </Box>
-            <Box>
-              {attachments.map(({file, extension}, index) => {
+        <Spacer height="10px" />
+        {attachments.map(({file, extension}, index) => {
                 return (
                   <Box
                     sx={{
@@ -653,10 +596,10 @@ export const NewMessage = ({
                     <Typography
                       sx={{
                         fontSize: '16px',
-                        color: !extension ? 'red' : 'unset'
+                        color: !extension ? 'red' : 'rgba(84, 84, 84, 1)'
                       }}
                     >
-                      {file?.name}
+                      {file?.name} ({formatBytes(file?.size || 0)})
                     </Typography>
                     <CloseIcon
                       onClick={() =>
@@ -667,7 +610,8 @@ export const NewMessage = ({
                       sx={{
                         height: '16px',
                         width: 'auto',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        color: 'rgba(84, 84, 84, 1)'
                       }}
                     />
                     {!extension && (
@@ -685,17 +629,27 @@ export const NewMessage = ({
                   </Box>
                 )
               })}
-            </Box>
-          </Box>
-          <TextEditor inlineContent={value} setInlineContent={(val: any)=> {
+        <Spacer height="30px" />
+        <Box sx={{
+          maxHeight: '40vh'
+        }}>
+        <TextEditor inlineContent={value} setInlineContent={(val: any)=> {
                       setValue(val)
                     }} />
-  
         </Box>
-        <BuilderButton onClick={sendMail}>
-          {replyTo ? 'Send reply mail' : 'Send mail'}
-        </BuilderButton>
-        <BuilderButton onClick={closeModal}>Close</BuilderButton> */}
+        </InstanceListContainer>
+        <InstanceFooter sx={{
+          backgroundColor: 'rgba(217, 217, 217, 1)',
+          padding: '20px 42px',
+          alignItems: 'center',
+          height: '90px'
+        }}>
+        <NewMessageSendButton onClick={sendMail}>
+          <NewMessageSendP>Send Message</NewMessageSendP>
+          <SendNewMessage color="red" opacity={1} height="25px" width="25px" />
+        </NewMessageSendButton>
+        </InstanceFooter>
+        
       </ReusableModal>
       <Modal />
       {isOpenMultiplePublish && (

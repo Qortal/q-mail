@@ -686,6 +686,15 @@ export const Mail = ({ isFromTo }: MailProps) => {
                       );
                     })}
                     <LazyLoad onLoadMore={getMessages}></LazyLoad>
+                    {isLoading && (
+                      <Box sx={{
+                        display: 'flex',
+                        width: '100%',
+                        justifyContent: 'center'
+                      }}>
+                        <CircularProgress />
+                      </Box>
+                    )}
                   </MessagesContainer>
                 )}
 

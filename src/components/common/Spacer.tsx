@@ -5,6 +5,8 @@ export const Spacer = ({ height }: any) => {
       <Box
         sx={{
           height: height,
+          display: 'flex',
+          flexShrink: 0
         }}
       />
     );

@@ -3,6 +3,7 @@ import Chip from '@mui/material/Chip';
 import TextField from '@mui/material/TextField';
 import { useDispatch } from 'react-redux';
 import { setNotification } from '../../../state/features/notificationsSlice';
+import { Input } from '@mui/material';
 
 export interface NameChip {
     name: string;
@@ -66,13 +67,51 @@ export const ChipInputComponent = ({chips, setChips}: ChipInputComponent) => {
                     key={index}
                     label={chip.name}
                     onDelete={handleDeleteChip(chip.name)}
+                    sx={{
+                        color: 'rgba(84, 84, 84, 1)',
+                        '& .MuiChip-deleteIcon': {
+                            color: 'black' , // Style the delete icon,
+                            "&:hover": {
+                                color: 'rgba(84, 84, 84, 1)'
+                            }
+                        }
+                    }}
                 />
             ))}
-            <TextField
+            {/* <TextField
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddChip()}
                 placeholder="Type and press enter..."
+            /> */}
+             <Input
+              id="standard-adornment-name"
+              value={inputValue}
+              onChange={(e) => {
+                setInputValue(e.target.value)
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddChip()}
+              disableUnderline
+              autoComplete='off'
+              autoCorrect='off'
+              placeholder="Type and press enter..."
+              sx={{
+                width: '100%',
+                color: 'var(--new-message-text)',
+                '& .MuiInput-input::placeholder': {
+                  color: 'rgba(84, 84, 84, 0.70) !important',
+                  fontSize: '20px',
+                  fontStyle: 'normal',
+                  fontWeight: 400,
+                  lineHeight: '120%', // 24px
+                  letterSpacing: '0.15px',
+                  opacity: 1
+                },
+                '&:focus': {
+                  outline: 'none',
+                },
+                // Add any additional styles for the input here
+              }}
             />
         </div>
     );

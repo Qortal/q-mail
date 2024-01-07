@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import EditIcon from '@mui/icons-material/Edit'
-import { Box, Button, Input, Typography, useTheme } from '@mui/material'
+import { Box, Button, CircularProgress, Input, Typography, useTheme } from '@mui/material'
 import { useFetchPosts } from '../../hooks/useFetchPosts'
 import LazyLoad from '../../components/common/LazyLoad'
 import { removePrefix } from '../../utils/blogIdformats'
@@ -313,6 +313,15 @@ export const SentMail = ({}: SentMailProps) => {
                   );
                 })}
                 <LazyLoad onLoadMore={getMessages}></LazyLoad>
+                {isLoading && (
+                      <Box sx={{
+                        display: 'flex',
+                        width: '100%',
+                        justifyContent: 'center'
+                      }}>
+                        <CircularProgress />
+                      </Box>
+                    )}
               </MessagesContainer>
       {/* <SimpleTable
         openMessage={openMessage}
