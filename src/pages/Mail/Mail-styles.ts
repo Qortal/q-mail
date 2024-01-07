@@ -140,7 +140,13 @@ export const InstanceContainer = styled(Box)(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
     gap: '3px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    padding: '8px',
+    transition: 'all 0.2s',
+    "&:hover": {
+      borderRadius: '8px',
+background:  '#434448',
+    }
   }))
 
 
@@ -478,3 +484,74 @@ line-height: 120%; /* 19.2px */
 letter-spacing: -0.16px;
 `
 
+export const ShowMessageNameP = styled(Typography)`
+font-family: Roboto;
+font-size: 16px;
+font-weight: 900;
+line-height: 19px;
+letter-spacing: 0em;
+text-align: left;
+white-space: nowrap;
+text-overflow: ellipsis;
+overflow: hidden;
+`
+export const ShowMessageTimeP = styled(Typography)`
+font-family: Roboto;
+font-size: 15px;
+font-weight: 500;
+line-height: 18px;
+letter-spacing: 0em;
+text-align: left;
+
+`
+export const ShowMessageSubjectP = styled(Typography)`
+font-family: Roboto;
+font-size: 16px;
+font-weight: 500;
+line-height: 19px;
+letter-spacing: 0.0075em;
+text-align: left;
+`
+
+export const ShowMessageButton = styled(Box)`
+display: inline-flex;
+padding: 8px 16px 8px 16px;
+align-items: center;
+justify-content: center;
+gap: 8px;
+width: fit-content;
+transition: all 0.2s;
+color: white;
+background-color: rgba(41, 41, 43, 1)
+min-width: 120px;
+gap: 8px;
+border-radius: 4px;
+border: 1px solid rgba(0, 0, 0, 0.50);
+background-color: #29292B;
+font-family: Roboto;
+
+min-width: 120px;
+cursor: pointer;
+&:hover {
+  background-color: rgba(30, 30, 32, 1);
+  color: white;
+}
+`
+
+export const ShowMessageButtonP = styled(Typography)`
+font-size: 16px;
+font-style: normal;
+font-weight: 500;
+line-height: 120%; /* 19.2px */
+letter-spacing: -0.16px;
+color: white;
+
+`
+
+export const ShowMessageButtonImg = styled('img')({
+  width: 'auto',
+  height: 'auto',
+  userSelect: 'none',
+  objectFit: 'contain',
+  cursor: 'pointer'
+})

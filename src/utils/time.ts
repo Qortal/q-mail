@@ -21,3 +21,21 @@ export const formatDate = (unixTimestamp: number): string => {
 
   return date
 }
+
+
+
+export function formatEmailDate(timestamp: number) {
+    const date = moment(timestamp);
+    const now = moment();
+
+    if (date.isSame(now, 'day')) {
+        // If the email was received today, show the time
+        return date.format('h:mm A');
+    } else if (date.isSame(now, 'year')) {
+        // If the email was received this year, show the month and day
+        return date.format('MMM D');
+    } else {
+        // For older emails, show the full date
+        return date.format('MMM D, YYYY');
+    }
+}

@@ -85,6 +85,7 @@ import {
 import { MailMessageRow } from "./MailMessageRow";
 import { CloseSVG } from "../../assets/svgs/CloseSVG";
 import { objectToBase64 } from "../../utils/toBase64";
+import { ShowMessageV2 } from "./ShowMessageV2";
 
 const steps: Step[] = [
   {
@@ -669,12 +670,12 @@ export const Mail = ({ isFromTo }: MailProps) => {
                 }}
               >
                
-                <ShowMessage
+                {/* <ShowMessage
                   isOpen={isOpen}
                   setIsOpen={setIsOpen}
                   message={message}
                   setReplyTo={setReplyTo}
-                />
+                /> */}
                 {!selectedAlias && (
                   <MessagesContainer>
                     {fullMailMessages.map(item => {
@@ -719,8 +720,35 @@ export const Mail = ({ isFromTo }: MailProps) => {
             </MailBodyInnerScroll>
           </MailBodyInner>
           <MailBodyInner>
+           {isOpen && message ? (
+            <>
+             <MailBodyInnerHeader>
+
+             </MailBodyInnerHeader>
+             <MailBodyInnerScroll sx={{
+                direction: 'rtl'
+              }}>
+              <Box
+                className="step-1"
+                sx={{
+                  display: "flex",
+                  width: "100%",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  direction: 'ltr'
+                }}
+              >
+              <ShowMessageV2 isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            message={message}
+            setReplyTo={setReplyTo} />
+              </Box>
+            </MailBodyInnerScroll>
            
-              <MailBodyInnerHeader>
+            </>
+           ): (
+            <>
+  <MailBodyInnerHeader>
                 <MailIconImg src={SendSVG} />
                 <ComposeP>Sent</ComposeP>
               </MailBodyInnerHeader>
@@ -740,6 +768,9 @@ export const Mail = ({ isFromTo }: MailProps) => {
               <SentMail />
               </Box>
             </MailBodyInnerScroll>
+            </>
+           )}
+              
           </MailBodyInner>
         </MailBody>
       )}

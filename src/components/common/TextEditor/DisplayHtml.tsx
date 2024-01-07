@@ -17,7 +17,7 @@ const CrowdfundInlineContent = styled(Box)(({ theme }) => ({
     width: '100%'
   }));
 
-export const DisplayHtml = ({ html }: any) => {
+export const DisplayHtml = ({ html, textColor }: any) => {
   const cleanContent = useMemo(() => {
     if (!html) return null;
 
@@ -33,6 +33,11 @@ export const DisplayHtml = ({ html }: any) => {
     <CrowdfundInlineContent>
       <div
         className="ql-editor"
+        style={{
+          color: textColor || 'white',
+          fontWeight: 400,
+          fontSize: '16px'
+        }}
         dangerouslySetInnerHTML={{ __html: cleanContent }}
       />
     </CrowdfundInlineContent>
