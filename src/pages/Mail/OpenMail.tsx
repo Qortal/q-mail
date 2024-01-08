@@ -35,6 +35,7 @@ export const OpenMail = ({
   fileInfo
 }: OpenMailProps) => {
   const { downloadVideo } = React.useContext(MyContext);
+  const username = useSelector((state: RootState) => state.auth?.user?.name);
   const [startedDownload, setStartedDownload] = React.useState<boolean>(false);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const downloads = useSelector((state: RootState) => state.global?.downloads);
@@ -52,7 +53,7 @@ const [isValid, setIsValid] = React.useState<boolean>(true)
 
   const handleFetchMail = async (contentInfo: any, saveToHashFunc: any)=> {
     try {
-      const res =  await fetchAndEvaluateMail(contentInfo, saveToHashFunc)
+      const res =  await fetchAndEvaluateMail(contentInfo, saveToHashFunc, username)
       console.log({res})
       if(res.unableToDecrypt){
         setUnableToDecrypt(true)

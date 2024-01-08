@@ -33,8 +33,10 @@ import { OpenMail } from './OpenMail'
 import { MessagesContainer } from './Mail-styles'
 import { MailMessageRow } from './MailMessageRow'
 
-interface SentMailProps {}
-export const SentMail = ({}: SentMailProps) => {
+interface SentMailProps {
+  onOpen: (user: string, identifier: string, content: any)=> Promise<void>
+}
+export const SentMail = ({onOpen}: SentMailProps) => {
   const {isShow, onCancel, onOk, show} = useModal()
 
   const theme = useTheme()
@@ -261,32 +263,33 @@ export const SentMail = ({}: SentMailProps) => {
     content: any
   ) => {
     try {
-      const existingMessage: any = hashMapMailMessages[messageIdentifier]
-      if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
-        setMessage(existingMessage)
-        setIsOpen(true)
-        return
-      }
-      setMailInfo({
-        identifier: messageIdentifier,
-        name: user,
-        service: MAIL_SERVICE_TYPE
-      })
-      const res: any = await show()
-      setMailInfo(null)
-      const existingMessageAgain = hashMapMailMessages[messageIdentifier]
-      if (res && res.isValid && !res.unableToDecrypt) {
-        setMessage(res)
-        setIsOpen(true)
-        return
-      }
-    } catch (error) {
-      dispatch(
-        setNotification({
-          alertType: 'error',
-          msg: 'Unknown recipient- cannot decrypt message'
-        })
-      )
+      onOpen(user, messageIdentifier, {})
+    //   const existingMessage: any = hashMapMailMessages[messageIdentifier]
+    //   if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
+    //     setMessage(existingMessage)
+    //     setIsOpen(true)
+    //     return
+    //   }
+    //   setMailInfo({
+    //     identifier: messageIdentifier,
+    //     name: user,
+    //     service: MAIL_SERVICE_TYPE
+    //   })
+    //   const res: any = await show()
+    //   setMailInfo(null)
+    //   const existingMessageAgain = hashMapMailMessages[messageIdentifier]
+    //   if (res && res.isValid && !res.unableToDecrypt) {
+    //     setMessage(res)
+    //     setIsOpen(true)
+    //     return
+    //   }
+    // } catch (error) {
+    //   dispatch(
+    //     setNotification({
+    //       alertType: 'error',
+    //       msg: 'Unknown recipient- cannot decrypt message'
+    //     })
+    //   )
     } finally {
     }
   }

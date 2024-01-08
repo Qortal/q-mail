@@ -492,7 +492,9 @@ export const NewMessage = ({
           </NewMessageAliasContainer>
           <NewMessageAliasContainer>
           <AliasLabelP  onClick={() => setShowAlias(true)}>Add Alias</AliasLabelP>
-          <AliasLabelP onClick={() => setShowBCC(true)}>Bcc</AliasLabelP>
+          {!replyTo && (
+             <AliasLabelP onClick={() => setShowBCC(true)}>Bcc</AliasLabelP>
+          )}
           </NewMessageAliasContainer>
         </NewMessageInputRow>
         <Spacer height="10px" />
@@ -645,7 +647,7 @@ export const NewMessage = ({
           height: '90px'
         }}>
         <NewMessageSendButton onClick={sendMail}>
-          <NewMessageSendP>Send Message</NewMessageSendP>
+          <NewMessageSendP>{replyTo ? 'Reply' : 'Send Message'}</NewMessageSendP>
           <SendNewMessage color="red" opacity={1} height="25px" width="25px" />
         </NewMessageSendButton>
         </InstanceFooter>

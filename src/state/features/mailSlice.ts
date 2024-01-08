@@ -6,6 +6,11 @@ const favoritesLocal = localForage.createInstance({
 })
 const instanceCache = new Map<string, LocalForage>()
 
+interface SavedSubject {
+  timestamp: number;
+  subject: string;
+  attachments: boolean;
+}
 interface GlobalState {
   posts: BlogPost[]
   filteredPosts: BlogPost[]
@@ -20,6 +25,7 @@ interface GlobalState {
   filterValue: string
   mailMessages: any[]
   hashMapMailMessages: Record<string, BlogPost>
+  hashMapSavedSubjects : Record<string, SavedSubject>
 }
 const initialState: GlobalState = {
   posts: [],
@@ -34,7 +40,8 @@ const initialState: GlobalState = {
   isFiltering: false,
   filterValue: '',
   mailMessages: [],
-  hashMapMailMessages: {}
+  hashMapMailMessages: {},
+  hashMapSavedSubjects: {}
 }
 
 export interface BlogPost {
@@ -186,6 +193,14 @@ export const mailSlice = createSlice({
     addToHashMapMail: (state, action) => {
       const message = action.payload
       state.hashMapMailMessages[message.id] = message
+    },
+    addAllHashMapSubject: (state, action) => {
+      const subjects = action.payload
+      state.hashMapSavedSubjects = subjects
+    },
+    addToHashMapSubject: (state, action) => {
+      const subject = action.payload
+      state.hashMapSavedSubjects[subject.id] = subject
     },
     updateInHashMap: (state, action) => {
       const { id } = action.payload
@@ -342,7 +357,9 @@ export const {
   setFilterValue,
   upsertMessages,
   addToHashMapMail,
-  upsertMessagesBeginning
+  upsertMessagesBeginning,
+  addAllHashMapSubject,
+  addToHashMapSubject
 } = mailSlice.actions
 
 export default mailSlice.reducer

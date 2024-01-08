@@ -40,7 +40,6 @@ export const checkStructureMailMessages = (content: any) => {
   if (!content?.createdAt) isValid = false
   if (!content?.version) isValid = false
   if (!Array.isArray(content?.attachments)) isValid = false
-  if (!content?.htmlContent && !content?.textContentV2 && !Array.isArray(content?.textContent)) isValid = false
   if (typeof content?.generalData !== 'object') isValid = false
 
   return isValid

@@ -33,9 +33,11 @@ import { MessagesContainer } from './Mail-styles'
 import { MailMessageRow } from './MailMessageRow'
 
 interface AliasMailProps {
-  value: string
+  value: string;
+  onOpen: (user: string, identifier: string, content: any)=> Promise<void>
+  messageOpenedId: number
 }
-export const AliasMail = ({ value }: AliasMailProps) => {
+export const AliasMail = ({ value, onOpen, messageOpenedId}: AliasMailProps) => {
   const {isShow, onCancel, onOk, show} = useModal()
 
   const theme = useTheme()
@@ -238,25 +240,26 @@ export const AliasMail = ({ value }: AliasMailProps) => {
     content: any
   ) => {
     try {
-      const existingMessage: any = hashMapMailMessages[messageIdentifier]
-      if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
-        setMessage(existingMessage)
-        setIsOpen(true)
-        return
-      }
-      setMailInfo({
-        identifier: messageIdentifier,
-        name: user,
-        service: MAIL_SERVICE_TYPE
-      })
-      const res: any = await show()
-      setMailInfo(null)
-      const existingMessageAgain = hashMapMailMessages[messageIdentifier]
-      if (res && res.isValid && !res.unableToDecrypt) {
-        setMessage(res)
-        setIsOpen(true)
-        return
-      }
+      onOpen(user, messageIdentifier, {})
+      // const existingMessage: any = hashMapMailMessages[messageIdentifier]
+      // if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
+      //   setMessage(existingMessage)
+      //   setIsOpen(true)
+      //   return
+      // }
+      // setMailInfo({
+      //   identifier: messageIdentifier,
+      //   name: user,
+      //   service: MAIL_SERVICE_TYPE
+      // })
+      // const res: any = await show()
+      // setMailInfo(null)
+      // const existingMessageAgain = hashMapMailMessages[messageIdentifier]
+      // if (res && res.isValid && !res.unableToDecrypt) {
+      //   setMessage(res)
+      //   setIsOpen(true)
+      //   return
+      // }
     } catch (error) {
     } finally {
     }
@@ -295,6 +298,7 @@ export const AliasMail = ({ value }: AliasMailProps) => {
                     <MailMessageRow
                       messageData={item}
                       openMessage={openMessage}
+                      isOpen={messageOpenedId === item?.id}
                     />
                   );
                 })}

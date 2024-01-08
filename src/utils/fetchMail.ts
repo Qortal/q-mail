@@ -3,12 +3,14 @@ import { checkStructure, checkStructureMailMessages } from './checkStructure'
 import { extractTextFromSlate } from './extractTextFromSlate'
 import {
   base64ToUint8Array,
+  objectToBase64,
   objectToUint8ArrayFromResponse,
   uint8ArrayToObject
 } from './toBase64'
 
-export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> void) => {
+export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> void, username?: string) => {
   const getBlogPost = async () => {
+    console.log('fetch', username)
     const { user, messageIdentifier, content, otherUser } = data
     let obj: any = {
       ...content,
@@ -50,6 +52,7 @@ export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> 
       try {
          resDecrypt = await qortalRequest(requestEncryptBody)
          unableToDecrypt = false
+         
       } catch (error) {
         
       }
@@ -64,6 +67,7 @@ export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> 
         if(saveToHash){
           saveToHash(obj)
         }
+       
         return obj
       }
       const decryptToUnit8Array = base64ToUint8Array(resDecrypt)
@@ -78,6 +82,40 @@ export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> 
           createdAt: responseData.createdAt,
           id: messageIdentifier,
           isValid: true
+        }
+
+        try {
+          const encryptData = async (data: any)=> {
+            const dataToBase64 =  await objectToBase64(data)
+
+            const res = await qortalRequest({
+              "action": "ENCRYPT_DATA",
+              data64: dataToBase64
+            })
+            if(res) return res
+            else return ""
+          }
+          console.log({username})
+          if(username){
+            const subjects = JSON.parse(localStorage.getItem(`qmail_persistance_${username}`) || "{}")
+            if(!subjects[messageIdentifier]){
+              const copySubjects = structuredClone(subjects)
+              let subject = obj?.subject || ""
+              if(subject){
+                subject = await encryptData(subject)
+              }
+              copySubjects[messageIdentifier] = {
+               timestamp: Date.now(),
+               subject: subject || "",
+               attachments: obj?.attachments?.length > 0 ? true : false
+              }
+              localStorage.setItem(`qmail_persistance_${username}`, JSON.stringify(copySubjects))
+            }
+           
+          }
+      
+        } catch (error) {
+          console.log({error})
         }
       }
       if(saveToHash){

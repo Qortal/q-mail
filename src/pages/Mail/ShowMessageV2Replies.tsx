@@ -25,9 +25,12 @@ import FileElement from "../../components/FileElement";
 import MailThreadWithoutCalling from "./MailThreadWithoutCalling";
 import { DisplayHtml } from "../../components/common/TextEditor/DisplayHtml";
 import { Spacer } from "../../components/common/Spacer";
-import { ShowMessageButton, ShowMessageButtonImg, ShowMessageButtonP, ShowMessageNameP, ShowMessageSubjectP, ShowMessageTimeP } from "./Mail-styles";
+import { MailAttachmentImg, MoreImg, MoreP, ShowMessageButton, ShowMessageButtonImg, ShowMessageButtonP, ShowMessageNameP, ShowMessageSubjectP, ShowMessageTimeP } from "./Mail-styles";
 import ReplySVG from '../../assets/svgs/Reply.svg'
 import ForwardSVG from '../../assets/svgs/Forward.svg'
+import MoreSVG from "../../assets/svgs/More.svg";
+import AttachmentMailSVG from "../../assets/svgs/AttachmentMail.svg";
+
 
 const initialValue: Descendant[] = [
   {
@@ -42,6 +45,7 @@ export const ShowMessageV2Replies = ({
 }: any) => {
   console.log({message})
   const username = useSelector((state: RootState) => state.auth?.user?.name);
+  const [expandAttachments, setExpandAttachments] = useState<boolean>(false);
 
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -163,50 +167,82 @@ padding: '7px',
               marginTop: "10px",
             }}
           >
-            {message?.attachments.map((file: any) => {
-              return (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    width: "100%",
-                  }}
-                >
+           {message?.attachments?.length > 0 && (
+          <Box
+            sx={{
+              width: "100%",
+              marginTop: "10px",
+            }}
+          >
+            {message?.attachments
+              .map((file: any, index: number) => {
+                const isFirst = index === 0
+                return (
                   <Box
                     sx={{
-                      display: "flex",
+                      display: expandAttachments ? "flex" : !expandAttachments && isFirst ? 'flex' : 'none',
                       alignItems: "center",
-                      gap: "5px",
-                      cursor: "pointer",
-                      width: "auto",
+                      justifyContent: "flex-start",
+                      width: "100%",
                     }}
                   >
-                    <FileElement
-                      fileInfo={{ ...file, mimeTypeSaved: file?.type }}
-                      title={file?.filename}
-                      mode="mail"
-                      otherUser={message?.user}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        cursor: "pointer",
+                        width: "auto",
+                      }}
                     >
-                      <AttachFileIcon
-                        sx={{
-                          height: "16px",
-                          width: "auto",
-                        }}
-                      ></AttachFileIcon>
-                      <Typography
-                        sx={{
-                          fontSize: "16px",
-                          color: !isUser ? 'black' : 'unset'
-                        }}
+                      <FileElement
+                        fileInfo={{ ...file, mimeTypeSaved: file?.type }}
+                        title={file?.filename}
+                        mode="mail"
+                        otherUser={message?.user}
                       >
-                        {file?.originalFilename || file?.filename}
-                      </Typography>
-                    </FileElement>
+                        <MailAttachmentImg src={AttachmentMailSVG} />
+
+                        <Typography
+                          sx={{
+                            fontSize: "16px",
+                          }}
+                        >
+                          {file?.originalFilename || file?.filename}
+                        </Typography>
+                      </FileElement>
+                      {message?.attachments?.length > 1 && isFirst && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "5px",
+                          }}
+                          onClick={() => {
+                            setExpandAttachments(prev => !prev);
+                          }}
+                        >
+                          <MoreImg
+                            sx={{
+                              marginLeft: "5px",
+                              transform: expandAttachments
+                                ? "rotate(180deg)"
+                                : "unset",
+                            }}
+                            src={MoreSVG}
+                          />
+                          <MoreP>
+                            ({message?.attachments?.length - 1} more)
+                          </MoreP>
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              );
-            })}
+                );
+              })
+              }
+          </Box>
+        )}
           </Box>
         )}
         <Spacer height="7px" />

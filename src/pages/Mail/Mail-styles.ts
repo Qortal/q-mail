@@ -458,6 +458,7 @@ border-radius: 4px;
 border: 1px solid rgba(0, 0, 0, 0.90);
 display: inline-flex;
 padding: 8px 16px 8px 12px;
+justify-content: center;
 align-items: center;
 gap: 8px;
 width: fit-content;
@@ -526,15 +527,37 @@ background-color: rgba(41, 41, 43, 1)
 min-width: 120px;
 gap: 8px;
 border-radius: 4px;
-border: 1px solid rgba(0, 0, 0, 0.50);
-background-color: #29292B;
+border: 0.5px solid rgba(255, 255, 255, 0.70);
 font-family: Roboto;
 
 min-width: 120px;
 cursor: pointer;
 &:hover {
-  background-color: rgba(30, 30, 32, 1);
-  color: white;
+  border-radius: 4px;
+border: 0.5px solid rgba(255, 255, 255, 0.70);
+background:  #434448;
+}
+`
+export const ShowMessageReturnButton = styled(Box)`
+display: inline-flex;
+padding: 8px 16px 8px 16px;
+align-items: center;
+justify-content: center;
+gap: 8px;
+width: fit-content;
+transition: all 0.2s;
+color: white;
+background-color: rgba(41, 41, 43, 1)
+min-width: 120px;
+gap: 8px;
+border-radius: 4px;
+font-family: Roboto;
+
+min-width: 120px;
+cursor: pointer;
+&:hover {
+  border-radius: 4px;
+background:  #434448;
 }
 `
 
@@ -555,3 +578,34 @@ export const ShowMessageButtonImg = styled('img')({
   objectFit: 'contain',
   cursor: 'pointer'
 })
+
+export const MailAttachmentImg = styled('img')({
+  width: 'auto',
+  height: 'auto',
+  userSelect: 'none',
+  objectFit: 'contain',
+})
+export const MoreImg = styled('img')({
+  width: 'auto',
+  height: 'auto',
+  userSelect: 'none',
+  objectFit: 'contain',
+  transition: '0.2s all',
+  "&:hover": {
+    transform: 'scale(1.3)'
+  }
+})
+
+export const MoreP =  styled(Typography)`
+color: rgba(255, 255, 255, 0.50);
+
+/* Attachments */
+font-family: Roboto;
+font-size: 16px;
+font-style: normal;
+font-weight: 400;
+line-height: 120%; /* 19.2px */
+letter-spacing: -0.16px;
+white-space: nowrap
+
+`

@@ -23,6 +23,7 @@ import GroupIcon from "@mui/icons-material/Group";
 import GroupSVG from "../../assets/svgs/Group.svg";
 import AddAliasSVG from "../../assets/svgs/AddAlias.svg";
 import HomeSVG from "../../assets/svgs/Home.svg";
+import ReturnSVG from "../../assets/svgs/Return.svg";
 
 import { styled } from "@mui/system";
 import {
@@ -80,6 +81,8 @@ import {
   MessagesContainer,
   SelectInstanceContainer,
   SelectInstanceContainerInner,
+  ShowMessageButton,
+  ShowMessageReturnButton,
   TypeInAliasTextfield,
 } from "./Mail-styles";
 import { MailMessageRow } from "./MailMessageRow";
@@ -210,7 +213,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const [run, setRun] = useState(false);
 
   const [selectedAlias, setSelectedAlias] = useState<string | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<any>(null)
+  const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const privateGroups = useSelector(
     (state: RootState) => state.global.privateGroups
   );
@@ -230,6 +233,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const hashMapMailMessages = useSelector(
     (state: RootState) => state.mail.hashMapMailMessages
   );
+
   const mailMessages = useSelector(
     (state: RootState) => state.mail.mailMessages
   );
@@ -314,7 +318,6 @@ export const Mail = ({ isFromTo }: MailProps) => {
       });
       const res: any = await show();
       setMailInfo(null);
-      const existingMessageAgain = hashMapMailMessages[messageIdentifier];
       if (res && res.isValid && !res.unableToDecrypt) {
         setMessage(res);
         setIsOpen(true);
@@ -399,7 +402,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
                   `alias-qmail-${userName}`,
                   JSON.stringify(newList)
                 );
-              } catch (error) { }
+              } catch (error) {}
             }
           }}
         >
@@ -456,8 +459,6 @@ export const Mail = ({ isFromTo }: MailProps) => {
     setIsOpenInstanceList(false);
   };
 
-
-
   const addAlias = () => {
     if (!aliasValue) return;
     const newList = [...alias, aliasValue];
@@ -467,28 +468,28 @@ export const Mail = ({ isFromTo }: MailProps) => {
           `alias-qmail-${userName}`,
           JSON.stringify(newList)
         );
-      } catch (error) { }
+      } catch (error) {}
     }
 
     setAlias(prev => [...prev, aliasValue]);
     setAliasValue("");
-  }
+  };
 
   const handleInputKeyDown = (event: any) => {
-    if (event.key === 'Enter') {
-      addAlias()
+    if (event.key === "Enter") {
+      addAlias();
     }
-  }
+  };
 
   return (
     <MailContainer>
       <InstanceContainer>
-        <NewMessage isFromTo={isFromTo}
+        <NewMessage
+          isFromTo={isFromTo}
           replyTo={replyTo}
           setReplyTo={setReplyTo}
-          alias={
-            selectedAlias || ""
-          } />
+          alias={selectedAlias || ""}
+        />
         <SelectInstanceContainer>
           <InstanceLabel>Current Instance:</InstanceLabel>
           <SelectInstanceContainerInner
@@ -497,7 +498,13 @@ export const Mail = ({ isFromTo }: MailProps) => {
             }}
             ref={anchorElInstance}
           >
-            <InstanceP>{selectedAlias ? selectedAlias : selectedGroup ? selectedGroup?.name : user?.name}</InstanceP>
+            <InstanceP>
+              {selectedAlias
+                ? selectedAlias
+                : selectedGroup
+                ? selectedGroup?.name
+                : user?.name}
+            </InstanceP>
             <ArrowDownIcon src={ArrowDownSVG} />
           </SelectInstanceContainerInner>
         </SelectInstanceContainer>
@@ -530,17 +537,18 @@ export const Mail = ({ isFromTo }: MailProps) => {
               <InstanceListContainerRow
                 onClick={() => {
                   setSelectedAlias(null);
-                  setSelectedGroup(null)
+                  setSelectedGroup(null);
                   handleCloseInstanceList();
                 }}
                 sx={{
-                  backgroundColor: (!selectedAlias && !selectedGroup) ? 'rgba(74, 158, 244, 1)' : 'unset'
+                  backgroundColor:
+                    !selectedAlias && !selectedGroup
+                      ? "rgba(74, 158, 244, 1)"
+                      : "unset",
                 }}
               >
                 <InstanceListContainerRowCheck>
-
                   <InstanceListContainerRowCheckIcon src={HomeSVG} />
-
                 </InstanceListContainerRowCheck>
                 <InstanceListContainerRowMain>
                   <InstanceListContainerRowMainP>
@@ -552,12 +560,15 @@ export const Mail = ({ isFromTo }: MailProps) => {
                 return (
                   <InstanceListContainerRow
                     sx={{
-                      backgroundColor: selectedAlias === alia ? 'rgba(74, 158, 244, 1)' : 'unset'
+                      backgroundColor:
+                        selectedAlias === alia
+                          ? "rgba(74, 158, 244, 1)"
+                          : "unset",
                     }}
                     key={alia}
                     onClick={() => {
                       setSelectedAlias(alia);
-                      setSelectedGroup(null)
+                      setSelectedGroup(null);
                       handleCloseInstanceList();
                     }}
                   >
@@ -570,41 +581,49 @@ export const Mail = ({ isFromTo }: MailProps) => {
                       <InstanceListContainerRowMainP>
                         {alia}
                       </InstanceListContainerRowMainP>
-                      <Box onClick={(e) => {
-                        e.stopPropagation();
-                        const newList = [...alias];
+                      <Box
+                        onClick={e => {
+                          e.stopPropagation();
+                          const newList = [...alias];
 
-                        newList.splice(index, 1);
+                          newList.splice(index, 1);
 
-                        setAlias(newList);
-                        if (userName) {
-                          try {
-                            localStorage.setItem(
-                              `alias-qmail-${userName}`,
-                              JSON.stringify(newList)
-                            );
-                          } catch (error) { }
-                        }
-                      }}>
-                        <CloseSVG height="" width="" color="white" opacity={selectedAlias ? 1 : 0.2} />
-                      </Box >
+                          setAlias(newList);
+                          if (userName) {
+                            try {
+                              localStorage.setItem(
+                                `alias-qmail-${userName}`,
+                                JSON.stringify(newList)
+                              );
+                            } catch (error) {}
+                          }
+                        }}
+                      >
+                        <CloseSVG
+                          height=""
+                          width=""
+                          color="white"
+                          opacity={selectedAlias ? 1 : 0.2}
+                        />
+                      </Box>
                     </InstanceListContainerRowMain>
                   </InstanceListContainerRow>
                 );
               })}
 
-              {options?.map((group) => {
-
+              {options?.map(group => {
                 return (
                   <InstanceListContainerRow
                     onClick={() => {
                       setSelectedAlias(null);
                       setSelectedGroup(group);
                       handleCloseInstanceList();
-
                     }}
                     sx={{
-                      backgroundColor: selectedGroup?.id === group?.id ? 'rgba(74, 158, 244, 1)' : 'unset'
+                      backgroundColor:
+                        selectedGroup?.id === group?.id
+                          ? "rgba(74, 158, 244, 1)"
+                          : "unset",
                     }}
                     key={group?.id}
                   >
@@ -619,28 +638,43 @@ export const Mail = ({ isFromTo }: MailProps) => {
                       </InstanceListContainerRowMainP>
                       <CloseParent>
                         <InstanceListContainerRowGroupIcon src={GroupSVG} />
-                        <Box sx={{
-                          visibility: 'hidden'
-                        }}>
-                          <CloseSVG height="" width="" color="white" opacity={0.2} />
-                        </Box >
+                        <Box
+                          sx={{
+                            visibility: "hidden",
+                          }}
+                        >
+                          <CloseSVG
+                            height=""
+                            width=""
+                            color="white"
+                            opacity={0.2}
+                          />
+                        </Box>
                       </CloseParent>
                     </InstanceListContainerRowMain>
                   </InstanceListContainerRow>
-                )
+                );
               })}
-
             </InstanceListContainer>
             <InstanceFooter>
               <InstanceListContainerRowLabelContainer>
                 <InstanceListContainerRowCheck>
-                  <InstanceListContainerRowCheckIcon onClick={addAlias} src={AddAliasSVG} sx={{
-                    cursor: 'pointer'
-                  }} />
+                  <InstanceListContainerRowCheckIcon
+                    onClick={addAlias}
+                    src={AddAliasSVG}
+                    sx={{
+                      cursor: "pointer",
+                    }}
+                  />
                 </InstanceListContainerRowCheck>
-                <TypeInAliasTextfield onKeyDown={handleInputKeyDown} value={aliasValue} placeholder="Type in Alias" onChange={(e) => {
-                  setAliasValue(e.target.value)
-                }} />
+                <TypeInAliasTextfield
+                  onKeyDown={handleInputKeyDown}
+                  value={aliasValue}
+                  placeholder="Type in Alias"
+                  onChange={e => {
+                    setAliasValue(e.target.value);
+                  }}
+                />
               </InstanceListContainerRowLabelContainer>
             </InstanceFooter>
           </InstanceListParent>
@@ -657,9 +691,11 @@ export const Mail = ({ isFromTo }: MailProps) => {
               <MailIconImg src={MailSVG} />
               <ComposeP>Inbox</ComposeP>
             </MailBodyInnerHeader>
-            <MailBodyInnerScroll sx={{
-                  borderRight: '1px solid rgba(85, 84, 84, 0.4)'
-            }}>
+            <MailBodyInnerScroll
+              sx={{
+                borderRight: "1px solid rgba(85, 84, 84, 0.4)",
+              }}
+            >
               <Box
                 className="step-1"
                 sx={{
@@ -669,7 +705,6 @@ export const Mail = ({ isFromTo }: MailProps) => {
                   alignItems: "center",
                 }}
               >
-               
                 {/* <ShowMessage
                   isOpen={isOpen}
                   setIsOpen={setIsOpen}
@@ -683,23 +718,26 @@ export const Mail = ({ isFromTo }: MailProps) => {
                         <MailMessageRow
                           messageData={item}
                           openMessage={openMessage}
+                          isOpen={message?.id === item?.id}
                         />
                       );
                     })}
                     <LazyLoad onLoadMore={getMessages}></LazyLoad>
                     {isLoading && (
-                      <Box sx={{
-                        display: 'flex',
-                        width: '100%',
-                        justifyContent: 'center'
-                      }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          width: "100%",
+                          justifyContent: "center",
+                        }}
+                      >
                         <CircularProgress />
                       </Box>
                     )}
                   </MessagesContainer>
                 )}
 
-                {selectedAlias && <AliasMail value={selectedAlias} />}
+                {selectedAlias && <AliasMail value={selectedAlias} onOpen={openMessage}  messageOpenedId={message?.id} />}
                 <Joyride
                   steps={steps}
                   run={run}
@@ -720,62 +758,74 @@ export const Mail = ({ isFromTo }: MailProps) => {
             </MailBodyInnerScroll>
           </MailBodyInner>
           <MailBodyInner>
-           {isOpen && message ? (
+            {isOpen && message && (
+              <>
+                <MailBodyInnerHeader>
+                  <ShowMessageReturnButton onClick={() => {
+                    setIsOpen(false)
+                    setMessage(null)
+                  }}>
+                    <MailIconImg src={ReturnSVG} />
+                    <ComposeP>Return to Sent</ComposeP>
+                  </ShowMessageReturnButton>
+                </MailBodyInnerHeader>
+                <MailBodyInnerScroll
+                  sx={{
+                    direction: "rtl",
+                  }}
+                >
+                  <Box
+                    className="step-1"
+                    sx={{
+                      display: "flex",
+                      width: "100%",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      direction: "ltr",
+                    }}
+                  >
+                    <ShowMessageV2
+                      isOpen={isOpen}
+                      setIsOpen={setIsOpen}
+                      message={message}
+                      setReplyTo={setReplyTo}
+                    />
+                  </Box>
+                </MailBodyInnerScroll>
+              </>
+            )}
             <>
-             <MailBodyInnerHeader>
-
-             </MailBodyInnerHeader>
-             <MailBodyInnerScroll sx={{
-                direction: 'rtl'
-              }}>
-              <Box
-                className="step-1"
+              <MailBodyInnerHeader
                 sx={{
-                  display: "flex",
-                  width: "100%",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  direction: 'ltr'
+                  display: isOpen && message ? "none" : "flex",
                 }}
               >
-              <ShowMessageV2 isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            message={message}
-            setReplyTo={setReplyTo} />
-              </Box>
-            </MailBodyInnerScroll>
-           
-            </>
-           ): (
-            <>
-  <MailBodyInnerHeader>
                 <MailIconImg src={SendSVG} />
                 <ComposeP>Sent</ComposeP>
               </MailBodyInnerHeader>
-              <MailBodyInnerScroll sx={{
-                direction: 'rtl'
-              }}>
-              <Box
-                className="step-1"
+              <MailBodyInnerScroll
                 sx={{
-                  display: "flex",
-                  width: "100%",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  direction: 'ltr'
+                  direction: "rtl",
+                  display: isOpen && message ? "none" : "flex",
                 }}
               >
-              <SentMail />
-              </Box>
-            </MailBodyInnerScroll>
+                <Box
+                  className="step-1"
+                  sx={{
+                    display: "flex",
+                    width: "100%",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    direction: "ltr",
+                  }}
+                >
+                  <SentMail onOpen={openMessage} />
+                </Box>
+              </MailBodyInnerScroll>
             </>
-           )}
-              
           </MailBodyInner>
         </MailBody>
       )}
-
-
     </MailContainer>
   );
 };
