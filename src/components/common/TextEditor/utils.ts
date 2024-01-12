@@ -1,4 +1,4 @@
-export function convertQortalLinks(inputHtml) {
+export function convertQortalLinks(inputHtml:string) {
     // Regular expression to match 'qortal://...' URLs. 
     // This will stop at the first whitespace, comma, or HTML tag
     var regex = /(qortal:\/\/[^\s,<]+)/g;
