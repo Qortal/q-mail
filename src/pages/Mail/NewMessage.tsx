@@ -55,6 +55,8 @@ interface NewMessageProps {
   alias?: string
   hideButton?: boolean
   isFromTo?: boolean
+  setForwardInfo: React.Dispatch<any>
+  forwardInfo: any
 }
 const maxSize = 40 * 1024 * 1024 // 40 MB in bytes
 export const NewMessage = ({
@@ -62,7 +64,9 @@ export const NewMessage = ({
   replyTo,
   alias,
   hideButton,
-  isFromTo
+  isFromTo,
+  setForwardInfo,
+  forwardInfo
 }: NewMessageProps) => {
   const { name } = useParams()
   const [publishes, setPublishes] = useState<any>(null);
@@ -90,6 +94,7 @@ export const NewMessage = ({
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const location = useLocation()
+  console.log({value})
   const { getRootProps, getInputProps } = useDropzone({
     maxSize,
     onDrop: async (acceptedFiles) => {
@@ -148,6 +153,7 @@ export const NewMessage = ({
     setIsOpen(true)
 
     setReplyTo(null)
+    setForwardInfo(null)
   }
   const closeModal = () => {
     setAttachments([])
@@ -158,6 +164,7 @@ export const NewMessage = ({
     setShowBCC(false)
     setValue("")
     setReplyTo(null)
+    setForwardInfo(null)
     setIsOpen(false)
     setAliasValue('')
   }
@@ -182,6 +189,12 @@ export const NewMessage = ({
     }
   }, [replyTo])
 
+  useEffect(() => {
+    if (forwardInfo) {
+      setIsOpen(true)
+      setValue(forwardInfo)
+    }
+  }, [forwardInfo])
  
   async function publishQDNResource() {
     let address: string = ''
@@ -334,13 +347,13 @@ export const NewMessage = ({
      
 
       const blogPostToBase64 = await objectToBase64(mailObject)
-      let identifier = `qortal_qmail_${recipientName.slice(
+      let identifier = `qortal_qmail_mail_${recipientName.slice(
         0,
         20
       )}_${recipientAddress.slice(-6)}_mail_${id}`
 
       if (aliasValue) {
-        identifier = `qortal_qmail_${aliasValue}_mail_${id}`
+        identifier = `qortal_qmail_mail_${aliasValue}_mail_${id}`
       }
 
       let requestBody: any = {
@@ -359,7 +372,7 @@ export const NewMessage = ({
         const copyMailObject = structuredClone(mailObject)
         copyMailObject.recipient = element.name
         const mailPostToBase64 = await objectToBase64(copyMailObject)
-        let identifierMail = `qortal_qmail_${element.name.slice(
+        let identifierMail = `qortal_qmail_mail_${element.name.slice(
           0,
           20
         )}_${element.address.slice(-6)}_mail_${id}`
@@ -418,7 +431,8 @@ export const NewMessage = ({
   return (
     <Box
       sx={{
-        display: 'flex'
+        display: 'flex',
+        height: '100%'
       }}
     >
       {!hideButton && (
@@ -461,7 +475,9 @@ export const NewMessage = ({
           <Spacer height="30px" />
         <NewMessageInputRow>
           <NewMessageAliasContainer>
-          <NewMessageInputLabelP>To:</NewMessageInputLabelP>
+          <NewMessageInputLabelP sx={{
+            userSelect: 'none'
+          }}>To:</NewMessageInputLabelP>
           <Input
               id="standard-adornment-name"
               value={destinationName}

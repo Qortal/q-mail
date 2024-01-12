@@ -10,7 +10,8 @@ import { Avatar, Box } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { formatTimestamp } from '../../utils/time'
-
+import AliasAvatar from '../../assets/svgs/AliasAvatar.svg'
+import { AliasAvatarImg } from './Mail-styles'
 const tableCellFontSize = '16px'
 
 interface Data {
@@ -156,7 +157,7 @@ export default function SimpleTable({
   )
 }
 
-export const AvatarWrapper = ({ user, height }: any) => {
+export const AvatarWrapper = ({ user, height , fallback, isAlias}: any) => {
   const userAvatarHash = useSelector(
     (state: RootState) => state.global.userAvatarHash
   )
@@ -166,6 +167,11 @@ export const AvatarWrapper = ({ user, height }: any) => {
     if (!findUserAvatar) return ''
     return findUserAvatar
   }, [userAvatarHash, user])
-
-  return <Avatar  sx={{ width: height, height: height }} src={avatarLink} alt={`${user}'s avatar`} />
+console.log({user})
+if(isAlias) return <AliasAvatarImg sx={{
+  width: height,
+  height: height
+}}  src={AliasAvatar}/>
+if(!fallback) return <Avatar  sx={{ width: height, height: height }} src={avatarLink} alt={user} />
+  return <Avatar  sx={{ width: height, height: height }} src={avatarLink} alt={fallback} >{fallback?.charAt(0)}</Avatar>
 }

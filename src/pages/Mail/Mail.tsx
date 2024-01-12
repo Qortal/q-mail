@@ -89,6 +89,7 @@ import { MailMessageRow } from "./MailMessageRow";
 import { CloseSVG } from "../../assets/svgs/CloseSVG";
 import { objectToBase64 } from "../../utils/toBase64";
 import { ShowMessageV2 } from "./ShowMessageV2";
+import { executeEvent } from "../../utils/events";
 
 const steps: Step[] = [
   {
@@ -203,6 +204,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const anchorElInstance = useRef<any>(null);
   const [message, setMessage] = useState<any>(null);
   const [replyTo, setReplyTo] = useState<any>(null);
+  const [forwardInfo, setForwardInfo] = useState<any>(null);
+  const [currentThread, setCurrentThread] = useState<any>(null);
   const [valueTab, setValueTab] = React.useState<null | number>(0);
   const [valueTabGroups, setValueTabGroups] = React.useState<null | number>(
     null
@@ -298,7 +301,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const openMessage = async (
     user: string,
     messageIdentifier: string,
-    content: any
+    content: any,
+    to?: string
   ) => {
     try {
       const existingMessage: any = hashMapMailMessages[messageIdentifier];
@@ -315,6 +319,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
         identifier: messageIdentifier,
         name: user,
         service: MAIL_SERVICE_TYPE,
+        to
       });
       const res: any = await show();
       setMailInfo(null);
@@ -481,15 +486,36 @@ export const Mail = ({ isFromTo }: MailProps) => {
     }
   };
 
+  const openNewThread = ()=> {
+    if(currentThread){
+      executeEvent('openNewThreadMessageModal', {})
+      return
+    }
+    executeEvent('openNewThreadModal', {})
+  }
+
   return (
-    <MailContainer>
+    <MailContainer sx={{
+      height: selectedGroup && 'auto'
+    }}>
       <InstanceContainer>
-        <NewMessage
+        {selectedGroup ? (
+           <ComposeContainer           onClick={openNewThread}
+           >
+           <ComposeIcon src={ComposeIconSVG} />
+           <ComposeP>{currentThread ? 'New Post' : 'New Thread'}</ComposeP>
+         </ComposeContainer>
+        ) : (
+          <NewMessage
           isFromTo={isFromTo}
           replyTo={replyTo}
           setReplyTo={setReplyTo}
+          setForwardInfo={setForwardInfo}
+          forwardInfo={forwardInfo}
           alias={selectedAlias || ""}
         />
+        )}
+        
         <SelectInstanceContainer>
           <InstanceLabel>Current Instance:</InstanceLabel>
           <SelectInstanceContainerInner
@@ -570,6 +596,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
                       setSelectedAlias(alia);
                       setSelectedGroup(null);
                       handleCloseInstanceList();
+                      setIsOpen(false)
+                      setMessage(null)
                     }}
                   >
                     <InstanceListContainerRowCheck>
@@ -683,7 +711,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
         <ComposeContainerBlank></ComposeContainerBlank>
       </InstanceContainer>
       {selectedGroup ? (
-        <GroupMail groupInfo={selectedGroup} />
+        <GroupMail groupInfo={selectedGroup} currentThread={currentThread} setCurrentThread={setCurrentThread} />
       ) : (
         <MailBody>
           <MailBodyInner>
@@ -705,12 +733,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
                   alignItems: "center",
                 }}
               >
-                {/* <ShowMessage
-                  isOpen={isOpen}
-                  setIsOpen={setIsOpen}
-                  message={message}
-                  setReplyTo={setReplyTo}
-                /> */}
+              
                 {!selectedAlias && (
                   <MessagesContainer>
                     {fullMailMessages.map(item => {
@@ -789,6 +812,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
                       setIsOpen={setIsOpen}
                       message={message}
                       setReplyTo={setReplyTo}
+                      setForwardInfo={setForwardInfo}
+                      alias={selectedAlias}
                     />
                   </Box>
                 </MailBodyInnerScroll>

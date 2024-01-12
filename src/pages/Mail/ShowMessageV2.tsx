@@ -41,6 +41,7 @@ import ForwardSVG from "../../assets/svgs/Forward.svg";
 import AttachmentMailSVG from "../../assets/svgs/AttachmentMail.svg";
 import MoreSVG from "../../assets/svgs/More.svg";
 import { ShowMessageV2Replies } from "./ShowMessageV2Replies";
+import { updateMessageDetails } from "../../utils/helpers";
 
 const initialValue: Descendant[] = [
   {
@@ -56,13 +57,15 @@ export const ShowMessageV2 = ({
   message,
   setReplyTo,
   alias,
+  setForwardInfo
 }: any) => {
+  console.log({message2: message})
   const [value, setValue] = useState(initialValue);
   const [title, setTitle] = useState<string>("");
   const [attachments, setAttachments] = useState<any[]>([]);
   const [description, setDescription] = useState<string>("");
   const [expandAttachments, setExpandAttachments] = useState<boolean>(false);
-
+  const [toUser, setToUser] = useState(null)
   const [destinationName, setDestinationName] = useState("");
   const username = useSelector((state: RootState) => state.auth?.user?.name);
   const dispatch = useDispatch();
@@ -76,6 +79,27 @@ export const ShowMessageV2 = ({
   const handleReply = () => {
     setReplyTo(message);
   };
+
+ 
+
+
+  const handleForwardedMessage = ()=> {
+    if(!username) return
+    let secondpart = ""
+    if(message?.textContentV2){
+      secondpart = message.textContentV2
+    }
+    if (message?.htmlContent) {
+      secondpart = DOMPurify.sanitize(message.htmlContent);
+    }
+    let newTo = username
+    if(alias){
+      newTo = `${alias} (alias)`
+    }
+    const firstPart = updateMessageDetails(message?.user, message?.subject || "", newTo)
+    const fullMessage = firstPart + secondpart
+    setForwardInfo(fullMessage)
+  }
 
   let cleanHTML = "";
   if (message?.htmlContent) {
@@ -115,11 +139,11 @@ export const ShowMessageV2 = ({
           <Box
             sx={{
               display: "flex",
-              alignItems: "flex-start",
-              gap: "6px",
+              alignItems: "center",
+              gap: "10px",
             }}
           >
-            <AvatarWrapper height="40px" user={message?.user} />
+            <AvatarWrapper height="50px" user={message?.user} />
             <Box
               sx={{
                 display: "flex",
@@ -131,6 +155,11 @@ export const ShowMessageV2 = ({
               }}
             >
               <ShowMessageNameP>{message?.user}</ShowMessageNameP>
+              <ShowMessageTimeP sx={{
+                marginTop: '2px'
+              }}>
+                to: {message?.to}
+              </ShowMessageTimeP>
               <ShowMessageTimeP>
                 {formatEmailDate(message?.createdAt)}
               </ShowMessageTimeP>
@@ -211,7 +240,8 @@ export const ShowMessageV2 = ({
                             src={MoreSVG}
                           />
                           <MoreP>
-                            ({message?.attachments?.length - 1} more)
+                            {expandAttachments ? 'hide' : `(${message?.attachments?.length - 1} more)`}
+                            
                           </MoreP>
                         </Box>
                       )}
@@ -241,7 +271,7 @@ export const ShowMessageV2 = ({
           <ShowMessageButtonImg src={ReplySVG} />
           <ShowMessageButtonP>Reply</ShowMessageButtonP>
         </ShowMessageButton>
-        <ShowMessageButton onClick={closeModal}>
+        <ShowMessageButton onClick={handleForwardedMessage}>
           <ShowMessageButtonP>Forward</ShowMessageButtonP>
           <ShowMessageButtonImg src={ForwardSVG} />
         </ShowMessageButton>
@@ -262,6 +292,12 @@ export const ShowMessageV2 = ({
           if (!msg?.data) return null;
           return <ShowMessageV2Replies message={msg?.data} />;
         })}
+        {message?.htmlContent && (
+            <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />
+          )}
+        {message?.textContent && (
+            <ReadOnlySlate content={message.textContent} mode="mail" />
+          )}
       </Box>
     </Box>
   );

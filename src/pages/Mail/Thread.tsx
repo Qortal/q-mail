@@ -27,16 +27,20 @@ import {
   setIsLoadingGlobal
 } from '../../state/features/globalSlice'
 import { addToHashMapMail } from '../../state/features/mailSlice'
-
+import { ComposeP, GroupNameP, MailIconImg, ShowMessageReturnButton, SingleThreadParent, ThreadContainer, ThreadContainerFullWidth } from './Mail-styles'
+import { Spacer } from '../../components/common/Spacer'
+import ReturnSVG from '../../assets/svgs/Return.svg'
 interface ThreadProps {
   currentThread: any
   groupInfo: any
   closeThread: () => void
+  members: any
 }
 export const Thread = ({
   currentThread,
   groupInfo,
-  closeThread
+  closeThread,
+  members
 }: ThreadProps) => {
   const theme = useTheme()
   const { user } = useSelector((state: RootState) => state.auth)
@@ -73,7 +77,7 @@ export const Thread = ({
   const getMailMessages = React.useCallback(
     async (groupInfo: any, reset?: boolean) => {
       try {
-        dispatch(setIsLoadingCustom('Loading messages. This may take time.'))
+        dispatch(setIsLoadingCustom('Loading messages'))
         let str = groupInfo.threadId
         let parts = str.split('_').reverse()
         let result = parts[0]
@@ -221,14 +225,14 @@ export const Thread = ({
   return (
     <div
       style={{
-        backgroundColor: theme.palette.background.paper,
+        // backgroundColor: theme.palette.background.paper,
         width: '100%',
-        minHeight: '100%',
-        overflow: 'auto'
+        // minHeight: '100%',
+        // overflow: 'auto'
       }}
-      className="threadScroller"
+      // className="threadScroller"
     >
-      <Box
+      {/* <Box
         sx={{
           display: 'flex',
           gap: '20px',
@@ -254,21 +258,37 @@ export const Thread = ({
           isMessage={true}
           currentThread={currentThread}
           messageCallback={messageCallback}
+          members={members}
         />
-      </Box>
-      <Box
-        sx={{
-          width: '100%',
-          alignItems: 'center',
-          display: 'flex',
-          flexDirection: 'column',
-          margin: '10px 0px'
-        }}
-      >
-        <Typography variant="h2">{currentThread?.threadData?.title}</Typography>
-        <Typography variant="h6">Group: {groupInfo?.groupName}</Typography>
-      </Box>
-      {messages.map((message) => {
+      </Box> */}
+       <NewThread
+          groupInfo={groupInfo}
+          isMessage={true}
+          currentThread={currentThread}
+          messageCallback={messageCallback}
+          members={members}
+        />
+      <ThreadContainerFullWidth>
+      <ThreadContainer>
+      <Spacer height="60px" />
+          <Box sx={{
+            width: '100%',
+            alignItems: 'center',
+            display: 'flex',
+            justifyContent: 'space-between'
+          }}>
+          <GroupNameP>{currentThread?.threadData?.title}</GroupNameP>
+
+          <ShowMessageReturnButton onClick={() => {
+                    setMessages([])
+                    closeThread()
+                  }}>
+                    <MailIconImg src={ReturnSVG} />
+                    <ComposeP>Return to Threads</ComposeP>
+                  </ShowMessageReturnButton>
+          </Box>
+          <Spacer height="60px" />
+          {messages.map((message) => {
         let fullMessage = message
 
         if (hashMapMailMessages[message?.identifier]) {
@@ -277,41 +297,24 @@ export const Thread = ({
         }
 
         return (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              width: '100%',
-              marginBottom: '15px'
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                flexDirection: 'column',
-                gap: 1,
-                flexGrow: 1,
-                overflow: 'auto',
-                width: '100%',
-                maxWidth: '90%',
-                background: theme.palette.background.default,
-                padding: '10px',
-                borderRadius: '5px'
-              }}
-            >
+          <SingleThreadParent>
+            
               <Skeleton
                 variant="rectangular"
                 style={{
                   width: '100%',
                   height: 60,
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  overflow: 'hidden'
                 }}
               />
-            </Box>
-          </Box>
+           
+            </SingleThreadParent>
         )
       })}
+    </ThreadContainer>
+      </ThreadContainerFullWidth>
+    
       {messages.length > 0 && (
         <Box
           sx={{

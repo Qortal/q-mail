@@ -50,6 +50,7 @@ interface IAudioElement {
   mode?: string;
   otherUser?: string;
   customStyles?: any;
+  loadStyles?: any
 }
 
 interface CustomWindow extends Window {
@@ -67,6 +68,7 @@ export default function FileElement({
   mimeTypeSaved,
   disable,
   customStyles,
+  loadStyles = {}
 }: IAudioElement) {
   const { downloadVideo } = React.useContext(MyContext);
   const [startedDownload, setStartedDownload] = React.useState<boolean>(false)
@@ -299,7 +301,9 @@ console.log({download})
           isLoading) && startedDownload ? (
             <>
               <CircularProgress color="secondary" size={14} />
-              <Typography variant="body2">{`${Math.round(
+              <Typography style={{
+                ...loadStyles
+              }} variant="body2">{`${Math.round(
                 resourceStatus?.percentLoaded || 0
               ).toFixed(0)}% loaded`}</Typography>
             </>
@@ -309,8 +313,11 @@ console.log({download})
                 sx={{
                   fontSize: "14px",
                 }}
+                style={{
+                  ...loadStyles
+                }}
               >
-                Ready to save: click here
+                Click to save
               </Typography>
               {downloadLoader && (
                 <CircularProgress color="secondary" size={14} />

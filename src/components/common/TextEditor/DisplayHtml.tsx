@@ -32,7 +32,7 @@ export const DisplayHtml = ({ html, textColor }: any) => {
   return (
     <CrowdfundInlineContent>
       <div
-        className="ql-editor"
+        className="ql-editor-display"
         style={{
           color: textColor || 'white',
           fontWeight: 400,

@@ -45,6 +45,7 @@ export const AliasMail = ({ value, onOpen, messageOpenedId}: AliasMailProps) => 
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const [message, setMessage] = useState<any>(null)
   const [replyTo, setReplyTo] = useState<any>(null)
+  const [forwardInfo, setForwardInfo] = useState<any>(null);
   const [valueTab, setValueTab] = React.useState(0)
   const [aliasValue, setAliasValue] = useState('')
   const [alias, setAlias] = useState<string[]>([])
@@ -282,6 +283,8 @@ export const AliasMail = ({ value, onOpen, messageOpenedId}: AliasMailProps) => 
       <NewMessage
         replyTo={replyTo}
         setReplyTo={setReplyTo}
+        setForwardInfo={setForwardInfo}
+        forwardInfo={forwardInfo}
         alias={value}
         hideButton
       />

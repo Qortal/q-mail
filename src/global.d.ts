@@ -37,6 +37,8 @@ interface QortalRequestOptions {
   before?: number
   groupId?: string | number
   message?: string
+  query?: string
+  prefix?: boolean
 }
 
 declare function qortalRequest(options: QortalRequestOptions): Promise<any>

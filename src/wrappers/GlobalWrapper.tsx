@@ -84,6 +84,7 @@ const GlobalWrapper: React.FC<Props> = ({ children }) => {
   React.useEffect(() => {
     privateGroupsRef.current = privateGroups;
   }, [privateGroupsRef, privateGroups]);
+
   async function getGroups(address: string) {
     try {
       const groups: any = {};
@@ -95,71 +96,9 @@ const GlobalWrapper: React.FC<Props> = ({ children }) => {
       if (filterPrivate?.length > 0) {
         for (const group of filterPrivate) {
           const groupNumber = group.groupId;
-          let prevGroupMembers = privateGroupsRef.current?.[groupNumber] || {};
-          if (prevGroupMembers) {
-            prevGroupMembers = {
-              ...(prevGroupMembers?.membersByAddress || {}),
-            };
-          }
-          const response = await fetch(
-            `/groups/members/${groupNumber}?limit=0`
-          );
-          const groupData = await response.json();
-
-          let members: any = {};
-          let membersByAddress: any = {};
-          if (groupData && Array.isArray(groupData?.members)) {
-            for (const member of groupData.members) {
-              if (member.member) {
-                if (prevGroupMembers[member.member]) {
-                  delete prevGroupMembers[member.member];
-                  continue;
-                }
-                const res = await getNameInfo(member.member);
-                const resAddress = await qortalRequest({
-                  action: "GET_ACCOUNT_DATA",
-                  address: member.member,
-                });
-                const name = res;
-                const publicKey = resAddress.publicKey;
-                if (name) {
-                  members[name] = {
-                    publicKey,
-                    address: member.member,
-                  };
-                  membersByAddress[member.member] = true;
-                }
-              }
-            }
-          }
-
-          let oldGroup = privateGroupsRef.current?.[groupNumber];
-          if (oldGroup) {
-            oldGroup = structuredClone(privateGroupsRef.current[groupNumber]);
-          }
-          let remainingMembers: any = {};
-          let remainingMembersByAddress: any = {};
-          for (const memberName of Object.keys(oldGroup?.members || {})) {
-            const member = oldGroup?.members[memberName];
-            if (member && prevGroupMembers[member.address]) {
-              continue;
-            } else if (member) {
-              remainingMembers[memberName] = member;
-              remainingMembersByAddress[member.address] = true;
-            }
-          }
-          const addNewMembers = {
-            ...remainingMembers,
-            ...members,
-          };
-          const addNewMembersByAddress = {
-            ...membersByAddress,
-            ...remainingMembersByAddress,
-          };
           groups[groupNumber] = {
             ...group,
-            members: addNewMembers,
-            membersByAddress: addNewMembersByAddress,
+
           };
         }
       }
@@ -168,6 +107,90 @@ const GlobalWrapper: React.FC<Props> = ({ children }) => {
       console.log({ error });
     }
   }
+  // async function getGroups(address: string) {
+  //   try {
+  //     const groups: any = {};
+  //     const response = await fetch("/groups/member/" + address);
+  //     const groupData = await response.json();
+  //     const filterPrivate = groupData?.filter(
+  //       (group: any) => group?.isOpen === false
+  //     );
+  //     if (filterPrivate?.length > 0) {
+  //       for (const group of filterPrivate) {
+  //         const groupNumber = group.groupId;
+  //         let prevGroupMembers = privateGroupsRef.current?.[groupNumber] || {};
+  //         if (prevGroupMembers) {
+  //           prevGroupMembers = {
+  //             ...(prevGroupMembers?.membersByAddress || {}),
+  //           };
+  //         }
+  //         const response = await fetch(
+  //           `/groups/members/${groupNumber}?limit=0`
+  //         );
+  //         const groupData = await response.json();
+
+  //         let members: any = {};
+  //         let membersByAddress: any = {};
+  //         if (groupData && Array.isArray(groupData?.members)) {
+  //           for (const member of groupData.members) {
+  //             if (member.member) {
+  //               if (prevGroupMembers[member.member]) {
+  //                 delete prevGroupMembers[member.member];
+  //                 continue;
+  //               }
+  //               const res = await getNameInfo(member.member);
+  //               const resAddress = await qortalRequest({
+  //                 action: "GET_ACCOUNT_DATA",
+  //                 address: member.member,
+  //               });
+  //               const name = res;
+  //               const publicKey = resAddress.publicKey;
+  //               if (name) {
+  //                 members[name] = {
+  //                   publicKey,
+  //                   address: member.member,
+  //                 };
+  //                 membersByAddress[member.member] = true;
+  //               }
+  //             }
+  //           }
+  //         }
+
+  //         let oldGroup = privateGroupsRef.current?.[groupNumber];
+  //         if (oldGroup) {
+  //           oldGroup = structuredClone(privateGroupsRef.current[groupNumber]);
+  //         }
+  //         let remainingMembers: any = {};
+  //         let remainingMembersByAddress: any = {};
+  //         for (const memberName of Object.keys(oldGroup?.members || {})) {
+  //           const member = oldGroup?.members[memberName];
+  //           if (member && prevGroupMembers[member.address]) {
+  //             continue;
+  //           } else if (member) {
+  //             remainingMembers[memberName] = member;
+  //             remainingMembersByAddress[member.address] = true;
+  //           }
+  //         }
+  //         const addNewMembers = {
+  //           ...remainingMembers,
+  //           ...members,
+  //         };
+  //         const addNewMembersByAddress = {
+  //           ...membersByAddress,
+  //           ...remainingMembersByAddress,
+  //         };
+  //         groups[groupNumber] = {
+  //           ...group,
+  //           members: addNewMembers,
+  //           membersByAddress: addNewMembersByAddress,
+  //         };
+  //       }
+  //     }
+  //     dispatch(setPrivateGroups(groups));
+  //   } catch (error) {
+  //     console.log({ error });
+  //   }
+  // }
   const interval = useRef<any>(null);
 
   const getLocalSubjects = async (name?: string) => {

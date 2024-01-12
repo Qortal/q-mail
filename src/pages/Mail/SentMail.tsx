@@ -34,7 +34,7 @@ import { MessagesContainer } from './Mail-styles'
 import { MailMessageRow } from './MailMessageRow'
 
 interface SentMailProps {
-  onOpen: (user: string, identifier: string, content: any)=> Promise<void>
+  onOpen: (user: string, identifier: string, content: any, to?:string)=> Promise<void>
 }
 export const SentMail = ({onOpen}: SentMailProps) => {
   const {isShow, onCancel, onOk, show} = useModal()
@@ -91,8 +91,8 @@ export const SentMail = ({onOpen}: SentMailProps) => {
     async (recipientName: string, recipientAddress: string) => {
       try {
         if (!user?.name) return
-        const query = `qortal_qmail_`
-        const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${query}&name=${user?.name}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
+        const query = `qortal_qmail_mail_`
+        const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&identifier=_mail_&query=${query}&name=${user?.name}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -156,8 +156,8 @@ export const SentMail = ({onOpen}: SentMailProps) => {
         const offset = mailMessages.length
 
         // dispatch(setIsLoadingGlobal(true))
-        const query = `qortal_qmail_`
-        const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${query}&name=${user.name}&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true`
+        const query = `qortal_qmail_mail_`
+        const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&identifier=_mail_&query=${query}&name=${user.name}&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -260,10 +260,11 @@ export const SentMail = ({onOpen}: SentMailProps) => {
   const openMessage = async (
     user: string,
     messageIdentifier: string,
-    content: any
+    content: any,
+    to?: string
   ) => {
     try {
-      onOpen(user, messageIdentifier, {})
+      onOpen(user, messageIdentifier, {}, to)
     //   const existingMessage: any = hashMapMailMessages[messageIdentifier]
     //   if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
     //     setMessage(existingMessage)
@@ -294,12 +295,13 @@ export const SentMail = ({onOpen}: SentMailProps) => {
     }
   }
 
+  console.log({fullMailMessages})
   return (
     <>
      {mailInfo && isShow && (
               <OpenMail open={isShow} handleClose={onOk} fileInfo={mailInfo}/>
       )}
-      <NewMessage replyTo={replyTo} setReplyTo={setReplyTo} hideButton />
+      {/* <NewMessage replyTo={replyTo} setReplyTo={setReplyTo} hideButton /> */}
       <ShowMessage
         isOpen={isOpen}
         setIsOpen={setIsOpen}
@@ -312,6 +314,7 @@ export const SentMail = ({onOpen}: SentMailProps) => {
                     <MailMessageRow
                       messageData={item}
                       openMessage={openMessage}
+                      isFromSent
                     />
                   );
                 })}

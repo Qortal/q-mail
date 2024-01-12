@@ -1,178 +1,201 @@
-import React, { useEffect, useState } from 'react'
-import { ReusableModal } from '../../components/modals/ReusableModal'
-import { Box, Button, Input, Typography, useTheme } from '@mui/material'
-import { BuilderButton } from '../CreatePost/CreatePost-styles'
-import BlogEditor from '../../components/editor/BlogEditor'
-import EmailIcon from '@mui/icons-material/Email'
-import { Descendant } from 'slate'
-import ShortUniqueId from 'short-unique-id'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from '../../state/store'
-import AttachFileIcon from '@mui/icons-material/AttachFile'
-import DOMPurify from 'dompurify'
-import { setNotification } from '../../state/features/notificationsSlice'
+import React, { useEffect, useState } from "react";
+import { ReusableModal } from "../../components/modals/ReusableModal";
+import { Box, Button, Input, Typography, useTheme } from "@mui/material";
+import { BuilderButton } from "../CreatePost/CreatePost-styles";
+import BlogEditor from "../../components/editor/BlogEditor";
+import EmailIcon from "@mui/icons-material/Email";
+import { Descendant } from "slate";
+import ShortUniqueId from "short-unique-id";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../state/store";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import DOMPurify from "dompurify";
+import { setNotification } from "../../state/features/notificationsSlice";
 import {
   objectToBase64,
   objectToUint8Array,
   objectToUint8ArrayFromResponse,
-  uint8ArrayToBase64
-} from '../../utils/toBase64'
-import ReadOnlySlate from '../../components/editor/ReadOnlySlate'
-import MailThread from './MailThread'
-import { AvatarWrapper } from './MailTable'
-import { formatTimestamp } from '../../utils/time'
-import FileElement from '../../components/FileElement'
-import { DisplayHtml } from '../../components/common/TextEditor/DisplayHtml'
+  uint8ArrayToBase64,
+} from "../../utils/toBase64";
+import ReadOnlySlate from "../../components/editor/ReadOnlySlate";
+import MailThread from "./MailThread";
+import { AvatarWrapper } from "./MailTable";
+import { formatDate, formatTimestamp } from "../../utils/time";
+import FileElement from "../../components/FileElement";
+import { DisplayHtml } from "../../components/common/TextEditor/DisplayHtml";
+import AttachmentMailSVG from "../../assets/svgs/AttachmentMail.svg";
+import MoreSVG from "../../assets/svgs/More.svg";
+import {
+  MailAttachmentImg,
+  MoreImg,
+  MoreP,
+  SingleTheadMessageParent,
+  SingleThreadParent,
+  ThreadInfoColumn,
+  ThreadInfoColumnNameP,
+  ThreadInfoColumnTime,
+  ThreadInfoColumnbyP,
+  ThreadSingleLastMessageP,
+  ThreadSingleLastMessageSpanP,
+  ThreadSingleTitle,
+} from "./Mail-styles";
+import { Spacer } from "../../components/common/Spacer";
 const initialValue: Descendant[] = [
   {
-    type: 'paragraph',
-    children: [{ text: '' }]
-  }
-]
-const uid = new ShortUniqueId()
+    type: "paragraph",
+    children: [{ text: "" }],
+  },
+];
+const uid = new ShortUniqueId();
 
 export const ShowMessage = ({ message }: any) => {
-  const theme = useTheme()
-  let cleanHTML = ''
+  const [expandAttachments, setExpandAttachments] = useState<boolean>(false);
+
+  console.log({ message });
+  const theme = useTheme();
+  let cleanHTML = "";
   if (message?.htmlContent) {
-    cleanHTML = DOMPurify.sanitize(message.htmlContent)
+    cleanHTML = DOMPurify.sanitize(message.htmlContent);
   }
 
   return (
-    <Box
+    <SingleTheadMessageParent
       sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        width: '100%',
-        marginBottom: '15px'
+        height: "auto",
+        alignItems: "flex-start",
+        cursor: "default",
       }}
     >
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          flexDirection: 'column',
-          gap: 1,
-          flexGrow: 1,
-          overflow: 'auto',
-          width: '100%',
-          maxWidth: '90%',
-          background: theme.palette.background.default,
-          padding: '10px',
-          borderRadius: '5px'
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          width: '100%'
         }}
       >
         <Box
           sx={{
-            display: 'flex',
-            gap: 1,
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            width: '100%'
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "10px",
+
           }}
         >
+          <AvatarWrapper
+            isAlias={false}
+            height="50px"
+            user={message?.name}
+            fallback={message?.name}
+          ></AvatarWrapper>
+          <ThreadInfoColumn>
+            <ThreadInfoColumnNameP>{message?.name}</ThreadInfoColumnNameP>
+            <ThreadInfoColumnTime>
+              {formatTimestamp(message?.created)}
+            </ThreadInfoColumnTime>
+          </ThreadInfoColumn>
+          <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
+         {message?.attachments?.length > 0 && (
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
+              width: "100%",
+              marginTop: "10px",
             }}
           >
-            <AvatarWrapper user={message?.name} />
-            <Typography
-              sx={{
-                fontSize: '16px'
-              }}
-            >
-              {message?.name}
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px'
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: '16px'
-              }}
-            >
-              {message?.subject}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '16px'
-              }}
-            >
-              {formatTimestamp(message?.createdAt)}
-            </Typography>
-          </Box>
-        </Box>
-        {message?.attachments?.length > 0 && (
-          <Box
-            sx={{
-              width: '100%',
-              marginTop: '10px'
-            }}
-          >
-            {message?.attachments.map((file: any) => {
-              return (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
-                    width: '100%'
-                  }}
-                >
+            {message?.attachments
+              .map((file: any, index: number) => {
+                const isFirst = index === 0
+                return (
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      cursor: 'pointer',
-                      width: 'auto'
+                      display: expandAttachments ? "flex" : !expandAttachments && isFirst ? 'flex' : 'none',
+                      alignItems: "center",
+                      justifyContent: "flex-start",
+                      width: "100%",
                     }}
                   >
-                    <FileElement
-                      fileInfo={{...file, mimeTypeSaved: file?.type}}
-                      title={file?.filename}
-                      mode="mail"
-                      otherUser={message?.name}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        cursor: "pointer",
+                        width: "auto",
+                      }}
                     >
-                      <AttachFileIcon
-                        sx={{
-                          height: '16px',
-                          width: 'auto'
-                        }}
-                      ></AttachFileIcon>
-                      <Typography
-                        sx={{
-                          fontSize: '16px'
-                        }}
+                      <FileElement
+                        fileInfo={{ ...file, mimeTypeSaved: file?.type }}
+                        title={file?.filename}
+                        mode="mail"
+                        otherUser={message?.user}
                       >
-                        {file?.originalFilename || file?.filename}
-                      </Typography>
-                    </FileElement>
+                        <MailAttachmentImg src={AttachmentMailSVG} />
+
+                        <Typography
+                          sx={{
+                            fontSize: "16px",
+                          }}
+                        >
+                          {file?.originalFilename || file?.filename}
+                        </Typography>
+                      </FileElement>
+                      {message?.attachments?.length > 1 && isFirst && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "5px",
+                          }}
+                          onClick={() => {
+                            setExpandAttachments(prev => !prev);
+                          }}
+                        >
+                          <MoreImg
+                            sx={{
+                              marginLeft: "5px",
+                              transform: expandAttachments
+                                ? "rotate(180deg)"
+                                : "unset",
+                            }}
+                            src={MoreSVG}
+                          />
+                          <MoreP>
+                            {expandAttachments ? 'hide' : `(${message?.attachments?.length - 1} more)`}
+                            
+                          </MoreP>
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              )
-            })}
+                );
+              })
+              }
           </Box>
         )}
+      
+      </div>
+        </Box>
+        <Spacer height="20px" />
 
         {message?.textContent && (
           <ReadOnlySlate content={message.textContent} mode="mail" />
         )}
-         {message?.textContentV2 && (
-              <DisplayHtml html={message?.textContentV2} />
-          )}
+        {message?.textContentV2 && (
+          <DisplayHtml html={message?.textContentV2} />
+        )}
         {message?.htmlContent && (
           <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />
         )}
       </Box>
-    </Box>
-  )
-}
+
+      
+     
+    </SingleTheadMessageParent>
+  );
+};
