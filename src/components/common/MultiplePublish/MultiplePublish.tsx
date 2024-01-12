@@ -63,7 +63,6 @@ interface MultiplePublishProps {
 
             return
           }
-          console.log({ error });
           
           
           if(unsuccessfulPublishes?.length > 0){

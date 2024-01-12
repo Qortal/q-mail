@@ -38,6 +38,7 @@ import useConfirmationModal from "../../hooks/useConfirmModal";
 import { subscribeToEvent, unsubscribeFromEvent } from "../../utils/events";
 import {
   AttachmentContainer,
+  CloseContainer,
   InstanceFooter,
   InstanceListContainer,
   InstanceListHeader,
@@ -54,6 +55,7 @@ import { TextEditor } from "../../components/common/TextEditor/TextEditor";
 import { SendNewMessage } from "../../assets/svgs/SendNewMessage";
 import { formatBytes } from "../../utils/displaySize";
 import { CreateThreadIcon } from "../../assets/svgs/CreateThreadIcon";
+import { MultiplePublish } from "../../components/common/MultiplePublish/MultiplePublish";
 const initialValue: Descendant[] = [
   {
     type: "paragraph",
@@ -68,6 +70,7 @@ interface NewMessageProps {
   currentThread?: any;
   isMessage?: boolean;
   messageCallback?: (val: any) => void;
+  threadCallback?: (val: any)=> void;
   refreshLatestThreads?: () => void;
   members: any;
 }
@@ -80,6 +83,7 @@ export const NewThread = ({
   isMessage = false,
   messageCallback,
   refreshLatestThreads,
+  threadCallback
 }: NewMessageProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [value, setValue] = useState("");
@@ -90,6 +94,11 @@ export const NewThread = ({
   const [destinationName, setDestinationName] = useState("");
   const { user } = useSelector((state: RootState) => state.auth);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isOpenMultiplePublish, setIsOpenMultiplePublish] = useState(false);
+  const [publishes, setPublishes] = useState<any>(null);
+  const [callbackContent, setCallbackContent] = useState<any>(null);
+
+
   const theme = useTheme();
 
   const navigate = useNavigate();
@@ -160,7 +169,6 @@ export const NewThread = ({
     setIsOpen(false);
   };
 
-  console.log({ groupInfo });
 
   useEffect(() => {
     subscribeToEvent("openNewThreadModal", openModalFromEvent);
@@ -171,7 +179,6 @@ export const NewThread = ({
   }, [openModalFromEvent]);
 
   const openModalPostFromEvent = useCallback(() => {
-    console.log("openModalPostFromEvent");
     if (isMessage) {
       setIsOpen(true);
     }
@@ -240,7 +247,6 @@ export const NewThread = ({
       const groupPublicKeys = Object.keys(members)?.map(
         (key: any) => members[key]?.publicKey
       );
-      console.log({ groupPublicKeys });
       if (!groupPublicKeys || groupPublicKeys?.length === 0) {
         throw new Error("No members in this group could be found");
       }
@@ -288,13 +294,13 @@ export const NewThread = ({
           };
         });
 
-        const multiplePublish = {
-          action: "PUBLISH_MULTIPLE_QDN_RESOURCES",
-          resources: [...attachmentArray],
-          encrypt: true,
-          publicKeys: groupPublicKeys,
-        };
-        await qortalRequest(multiplePublish);
+        // const multiplePublish = {
+        //   action: "PUBLISH_MULTIPLE_QDN_RESOURCES",
+        //   resources: [...attachmentArray],
+        //   encrypt: true,
+        //   publicKeys: groupPublicKeys,
+        // };
+        // await qortalRequest(multiplePublish);
       }
 
       //END OF ATTACHMENT LOGIC
@@ -329,20 +335,41 @@ export const NewThread = ({
         };
         const multiplePublishMsg = {
           action: "PUBLISH_MULTIPLE_QDN_RESOURCES",
-          resources: [requestBody],
+          resources: [requestBody, ...attachmentArray],
           encrypt: true,
           publicKeys: groupPublicKeys,
         };
         await qortalRequest(requestBodyThread);
-        await qortalRequest(multiplePublishMsg);
-        dispatch(
-          setNotification({
-            msg: "Message sent",
-            alertType: "success",
+        setPublishes(multiplePublishMsg);
+        setIsOpenMultiplePublish(true);
+        // await qortalRequest(multiplePublishMsg);
+        // dispatch(
+        //   setNotification({
+        //     msg: "Message sent",
+        //     alertType: "success",
+        //   })
+        // );
+        if (threadCallback) {
+          // threadCallback({
+          //   threadData: threadObject,
+          //   threadOwner: name,
+          //   name,
+          //   threadId: identifierThread,
+          //   created: Date.now(),
+          //   service: 'MAIL_PRIVATE',
+          //   identifier: identifier
+          // })
+          setCallbackContent({
+            thread: {
+              threadData: threadObject,
+              threadOwner: name,
+              name,
+              threadId: identifierThread,
+              created: Date.now(),
+              service: 'MAIL_PRIVATE',
+              identifier: identifier
+            }
           })
-        );
-        if (refreshLatestThreads) {
-          refreshLatestThreads();
         }
         closeModal();
       } else {
@@ -361,32 +388,43 @@ export const NewThread = ({
         };
         const multiplePublishMsg = {
           action: "PUBLISH_MULTIPLE_QDN_RESOURCES",
-          resources: [requestBody],
+          resources: [requestBody, ...attachmentArray],
           encrypt: true,
           publicKeys: groupPublicKeys,
         };
-        await qortalRequest(multiplePublishMsg);
-        dispatch(
-          setNotification({
-            msg: "Message sent",
-            alertType: "success",
-          })
-        );
+        setPublishes(multiplePublishMsg);
+        setIsOpenMultiplePublish(true);
+        // await qortalRequest(multiplePublishMsg);
+        // dispatch(
+        //   setNotification({
+        //     msg: "Message sent",
+        //     alertType: "success",
+        //   })
+        // );
         if (messageCallback) {
-          messageCallback({
-            identifier,
-            id: identifier,
-            name,
-            service: MAIL_SERVICE_TYPE,
-            created: Date.now(),
-            ...mailObject,
-          });
+          setCallbackContent({
+            message: {
+              identifier,
+              id: identifier,
+              name,
+              service: MAIL_SERVICE_TYPE,
+              created: Date.now(),
+              ...mailObject,
+            }
+          })
+          // messageCallback({
+          //   identifier,
+          //   id: identifier,
+          //   name,
+          //   service: MAIL_SERVICE_TYPE,
+          //   created: Date.now(),
+          //   ...mailObject,
+          // });
         }
 
         closeModal();
       }
     } catch (error: any) {
-      console.log({ error });
       let notificationObj = null;
       if (typeof error === "string") {
         notificationObj = {
@@ -435,7 +473,7 @@ export const NewThread = ({
         <InstanceListHeader
           sx={{
             backgroundColor: "unset",
-            height: "69px",
+            height: "50px",
             padding: "20px 42px",
             flexDirection: "row",
             justifyContent: "space-between",
@@ -445,7 +483,9 @@ export const NewThread = ({
           <NewMessageHeaderP>
             {isMessage ? "Post Message" : "New Thread"}
           </NewMessageHeaderP>
-          <NewMessageCloseImg onClick={closeModal} src={ModalCloseSVG} />
+          <CloseContainer onClick={closeModal}>
+          <NewMessageCloseImg  src={ModalCloseSVG} />
+          </CloseContainer>
         </InstanceListHeader>
         <InstanceListContainer
           sx={{
@@ -601,113 +641,46 @@ export const NewThread = ({
            
           </NewMessageSendButton>
         </InstanceFooter>
-        {/* <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            flexDirection: 'column',
-            gap: 1
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              flexDirection: 'column',
-              gap: 2,
-              width: '100%'
-            }}
-          >
-            {!isMessage && (
-              <Input
-                id="standard-adornment-name"
-                value={threadTitle}
-                onChange={(e) => {
-                  setThreadTitle(e.target.value)
-                }}
-                placeholder="New Thread Title"
-                sx={{
-                  width: '100%',
-                  fontSize: '16px'
-                }}
-              />
-            )}
-
-            <Box
-              {...getRootProps()}
-              sx={{
-                border: '1px dashed gray',
-                padding: 2,
-                textAlign: 'center',
-                marginBottom: 2
-              }}
-            >
-              <input {...getInputProps()} />
-              <AttachFileIcon
-                sx={{
-                  height: '20px',
-                  width: 'auto',
-                  cursor: 'pointer'
-                }}
-              ></AttachFileIcon>
-            </Box>
-            <Box>
-              {attachments.map(({file, extension}, index) => {
-                return (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '15px'
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: '16px',
-                        color: !extension ? 'red' : 'unset'
-                      }}
-                    >
-                      {file?.name}
-                    </Typography>
-                    <CloseIcon
-                      onClick={() =>
-                        setAttachments((prev) =>
-                          prev.filter((item, itemIndex) => itemIndex !== index)
-                        )
-                      }
-                      sx={{
-                        height: '16px',
-                        width: 'auto',
-                        cursor: 'pointer'
-                      }}
-                    />
-                       {!extension && (
-                        <Typography
-                        sx={{
-                          fontSize: '12px',
-                          fontWeight: 'bold',
-                          color: 'red'
-                        }}
-                      >
-                        This file has no extension
-                      </Typography>
-                    )}
-                  </Box>
-                )
-              })}
-            </Box>
-          </Box>
-          <BlogEditor
-            mode="mail"
-            value={value}
-            setValue={setValue}
-            editorKey={1}
-            disableMaxHeight
-          />
-        </Box>
-        <BuilderButton onClick={sendMail}>{'Post message'}</BuilderButton>
-        <BuilderButton onClick={closeModal}>Close</BuilderButton> */}
+       
       </ReusableModal>
+      {isOpenMultiplePublish && (
+        <MultiplePublish
+          isOpen={isOpenMultiplePublish}
+          onError={(messageNotification)=> {
+            setIsOpenMultiplePublish(false);
+            setPublishes(null)
+            setCallbackContent(null)
+            if(messageNotification){
+              dispatch(
+                setNotification({
+                  msg: messageNotification,
+                  alertType: 'error'
+                })
+              )
+            }
+          }}
+          onSubmit={() => {
+            dispatch(
+              setNotification({
+                msg: 'Posted',
+                alertType: 'success'
+              })
+            )
+            if(messageCallback && callbackContent?.message){
+              messageCallback(callbackContent.message)
+            }
+            if(threadCallback && callbackContent?.thread){
+              threadCallback(callbackContent.thread)
+            }
+            setCallbackContent(null)
+            setIsOpenMultiplePublish(false);
+            setPublishes(null)
+
+            closeModal()
+          }}
+          publishes={publishes}
+        />
+      )}
     </Box>
   );
 };

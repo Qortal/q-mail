@@ -167,7 +167,7 @@ export const AvatarWrapper = ({ user, height , fallback, isAlias}: any) => {
     if (!findUserAvatar) return ''
     return findUserAvatar
   }, [userAvatarHash, user])
-console.log({user})
+
 if(isAlias) return <AliasAvatarImg sx={{
   width: height,
   height: height

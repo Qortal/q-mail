@@ -271,7 +271,6 @@ export const AliasMail = ({ value, onOpen, messageOpenedId}: AliasMailProps) => 
     if (user?.name && (!firstMount.current || firstMount.current !== value)) {
       setMailMessages([])
       setTimeout(() => {
-        console.log('sup', value)
         getMessages()
       }, 100);
       firstMount.current = value

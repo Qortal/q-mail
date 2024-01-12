@@ -85,15 +85,6 @@ const NavBar: React.FC<Props> = ({
           }}
           src={Logo}
           alt="Q-Mail Logo"
-          onClick={() => {
-            navigate(`/`)
-            dispatch(setIsFiltering(false))
-            dispatch(setFilterValue(''))
-            dispatch(addFilteredPosts([]))
-            searchValRef.current = ''
-            if (!inputRef.current) return
-            inputRef.current.value = ''
-          }}
         />
 
         <Box

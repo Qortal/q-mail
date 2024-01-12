@@ -92,7 +92,6 @@ export default function FileElement({
   const resourceStatus = React.useMemo(() => {
     return download?.status || {};
   }, [download]);
-console.log({download})
 
   const handlePlay = async () => {
     if (disable) return;

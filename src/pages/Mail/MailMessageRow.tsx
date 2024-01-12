@@ -20,7 +20,7 @@ import { base64ToUint8Array, uint8ArrayToObject } from "../../utils/toBase64";
 
 function parseQuery(query: string) {
   // Regular expression to match both possible formats
-  const regex = /qortal_qmail_mail_([^_]+)(?:_([^_]+))?_mail_/;
+  const regex = /qortal_qmail_([^_]+)(?:_([^_]+))?_mail_/;
   const match = query.match(regex);
 
   if (match) {
@@ -56,11 +56,9 @@ export const MailMessageRow = ({
   }, [messageData])
 
   const getSentToName = useCallback(async (id: string)=> {
-    console.log({id2: id})
     try {
       const { recipientName, recipientAddress } = parseQuery(id);
       if(!recipientAddress && recipientName){
-        console.log({recipientAddress, recipientName})
         setAlias(recipientName)
         return
       }
@@ -78,7 +76,6 @@ export const MailMessageRow = ({
           name: findName.name
         })
       }
-      console.log({findName})
     } catch (error) {
       
     }
@@ -98,7 +95,6 @@ export const MailMessageRow = ({
         (state: RootState) => state.mail.hashMapSavedSubjects
       );
 const subjectInHash = hashMapSavedSubjects[messageData?.id]
-console.log({messageData})
 const data = hashMapMailMessages[messageData?.id]
 
 if(subjectInHashDecrypted !== null){
@@ -113,7 +109,6 @@ if(data && data?.isValid && !data?.unableToDecrypt){
 
 
 const getSubjectFromHash = async (subject: string, hasAttachmentParam: boolean) => {
-  console.log({hasAttachmentParam})
   if(subject === undefined || subject === null) throw new Error('no subject')
   if(subject === ""){
     setSubjectInHashDecrypted("")
@@ -130,7 +125,6 @@ const getSubjectFromHash = async (subject: string, hasAttachmentParam: boolean) 
   const responseDataSubject = uint8ArrayToObject(
     decryptToUnit8ArraySubject
   )
-  console.log({responseDataSubject})
     if(responseDataSubject !== null || responseDataSubject !== undefined){
       setSubjectInHashDecrypted(responseDataSubject)
       setHasAttachment(hasAttachmentParam)
@@ -138,13 +132,11 @@ const getSubjectFromHash = async (subject: string, hasAttachmentParam: boolean) 
 }
 
 
-console.log({subjectInHashDecrypted})
 useEffect(()=> {
   if(!isEncrypted) return
 
   if(subjectInHashDecrypted !== null) return
   if(!subjectInHash || subjectInHash?.subject === undefined || subjectInHash?.subject === null ) return
-  console.log({subjectInHash})
   getSubjectFromHash(subjectInHash?.subject, subjectInHash?.attachments)
 }, [isEncrypted, subjectInHashDecrypted])
 

@@ -51,7 +51,6 @@ const uid = new ShortUniqueId();
 export const ShowMessage = ({ message }: any) => {
   const [expandAttachments, setExpandAttachments] = useState<boolean>(false);
 
-  console.log({ message });
   const theme = useTheme();
   let cleanHTML = "";
   if (message?.htmlContent) {
@@ -64,6 +63,7 @@ export const ShowMessage = ({ message }: any) => {
         height: "auto",
         alignItems: "flex-start",
         cursor: "default",
+        borderRadius: '35px 4px 4px 4px'
       }}
     >
       <Box
@@ -140,6 +140,11 @@ export const ShowMessage = ({ message }: any) => {
                         <Typography
                           sx={{
                             fontSize: "16px",
+                            transition: '0.2s all',
+                            "&:hover": {
+                              color: 'rgba(255, 255, 255, 0.90)',
+                              textDecoration: 'underline'
+                            }
                           }}
                         >
                           {file?.originalFilename || file?.filename}

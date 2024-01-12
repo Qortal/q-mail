@@ -47,14 +47,12 @@ const [unableToDecrypt, setUnableToDecrypt] = React.useState<boolean>(false)
 const [isValid, setIsValid] = React.useState<boolean>(true)
 
   const saveToHash = (payload: any)=> {
-    console.log({payload})
     dispatch(addToHashMapMail(payload))
   }
 
   const handleFetchMail = async (contentInfo: any, saveToHashFunc: any)=> {
     try {
       const res =  await fetchAndEvaluateMail(contentInfo, saveToHashFunc, username)
-      console.log({res})
       if(res.unableToDecrypt){
         setUnableToDecrypt(true)
       } else if(res.isValid === false){
@@ -80,7 +78,6 @@ const [isValid, setIsValid] = React.useState<boolean>(true)
     return download?.status || {};
   }, [download]);
 
-  console.log({resourceStatus})
 
   const handleDownloadMail = async () => {
 

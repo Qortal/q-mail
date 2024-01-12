@@ -91,7 +91,7 @@ export const SentMail = ({onOpen}: SentMailProps) => {
     async (recipientName: string, recipientAddress: string) => {
       try {
         if (!user?.name) return
-        const query = `qortal_qmail_mail_`
+        const query = `_mail_qortal_qmail_`
         const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&identifier=_mail_&query=${query}&name=${user?.name}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',
@@ -152,11 +152,10 @@ export const SentMail = ({onOpen}: SentMailProps) => {
     async (recipientName: string, recipientAddress: string) => {
       try {
         if (!user?.name) return
-        console.log({user})
         const offset = mailMessages.length
 
         // dispatch(setIsLoadingGlobal(true))
-        const query = `qortal_qmail_mail_`
+        const query = `_mail_qortal_qmail_`
         const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&identifier=_mail_&query=${query}&name=${user.name}&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',
@@ -226,7 +225,6 @@ export const SentMail = ({onOpen}: SentMailProps) => {
   const firstMount = useRef(false);
   useEffect(() => {
     if (user?.name && !firstMount.current) {
-      console.log('hello', user)
       getMessages(true);
       firstMount.current = true;
     }
@@ -265,37 +263,11 @@ export const SentMail = ({onOpen}: SentMailProps) => {
   ) => {
     try {
       onOpen(user, messageIdentifier, {}, to)
-    //   const existingMessage: any = hashMapMailMessages[messageIdentifier]
-    //   if (existingMessage && existingMessage.isValid && !existingMessage.unableToDecrypt) {
-    //     setMessage(existingMessage)
-    //     setIsOpen(true)
-    //     return
-    //   }
-    //   setMailInfo({
-    //     identifier: messageIdentifier,
-    //     name: user,
-    //     service: MAIL_SERVICE_TYPE
-    //   })
-    //   const res: any = await show()
-    //   setMailInfo(null)
-    //   const existingMessageAgain = hashMapMailMessages[messageIdentifier]
-    //   if (res && res.isValid && !res.unableToDecrypt) {
-    //     setMessage(res)
-    //     setIsOpen(true)
-    //     return
-    //   }
-    // } catch (error) {
-    //   dispatch(
-    //     setNotification({
-    //       alertType: 'error',
-    //       msg: 'Unknown recipient- cannot decrypt message'
-    //     })
-    //   )
+   
     } finally {
     }
   }
 
-  console.log({fullMailMessages})
   return (
     <>
      {mailInfo && isShow && (

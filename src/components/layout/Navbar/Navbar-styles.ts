@@ -5,8 +5,7 @@ export const QblogLogoContainer = styled('img')({
   width: 'auto',
   height: 'auto',
   userSelect: 'none',
-  objectFit: 'contain',
-  cursor: 'pointer'
+  objectFit: 'contain'
 })
 
 export const CustomAppBar = styled(AppBar)(({ theme }) => ({

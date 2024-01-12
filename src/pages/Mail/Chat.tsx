@@ -66,11 +66,8 @@ export const Chat = ({
       try {
         let lastMsg = messages?.slice(0, 20)?.at(-1)?.signature
 
-        console.log({ lastMsg, messages })
         const findEl = document.getElementById(lastMsg)
         lastMsg = ''
-        console.log(targetMessageRef.current)
-        console.log('getmail')
         setIsLoading(true)
         dispatch(setIsLoadingCustom('Loading messages. This may take time.'))
         const offset = messages.length
@@ -82,7 +79,6 @@ export const Chat = ({
           offset,
           reverse: true
         })
-        console.log({ response })
         let fullArrayMsg = reset ? [] : [...messages]
         if (response.length < 2) return
         for (const message of response) {
@@ -146,7 +142,6 @@ export const Chat = ({
   const getMailMessages = React.useCallback(
     async (groupInfo: any, reset?: boolean) => {
       try {
-        console.log('getmail')
         setIsLoading(true)
         dispatch(setIsLoadingCustom('Loading messages. This may take time.'))
         const offset = messages.length
@@ -158,7 +153,6 @@ export const Chat = ({
           offset,
           reverse: true
         })
-        console.log({ response })
         let fullArrayMsg = reset ? [] : [...messages]
         for (const message of response.reverse()) {
           try {
@@ -196,11 +190,7 @@ export const Chat = ({
         }
 
         setMessages(fullArrayMsg)
-        console.log
-        // if (initialLoadRef.current) {
-
-        // }
-
+      
         // Update ref to indicate initial load complete
       } catch (error) {
         console.log({ error })
@@ -262,7 +252,6 @@ export const Chat = ({
           reverse: true,
           after: after
         })
-        console.log({ responseNewMessages })
 
         for (const message of responseNewMessages.reverse()) {
           const binaryString = atob(message.data)
@@ -326,40 +315,13 @@ export const Chat = ({
 
   const postChatMessage = async (msg: string) => {
     try {
-      console.log('postChat', currentThread?.threadData?.groupId, msg)
       if (!currentThread?.threadData?.groupId || !msg) return
-      console.log({ msg })
       const response = await qortalRequest({
         action: 'SEND_CHAT_MESSAGE',
         groupId: currentThread?.threadData?.groupId,
         message: msg
       })
-      // console.log({ response })
-      // if (!response?.data) throw new Error('error')
-      // const binaryString = atob(response.data)
-      // const binaryLength = binaryString.length
-      // const bytes = new Uint8Array(binaryLength)
-
-      // for (let i = 0; i < binaryLength; i++) {
-      //   bytes[i] = binaryString.charCodeAt(i)
-      // }
-
-      // const decoder = new TextDecoder()
-      // const decodedString = decoder.decode(bytes)
-      // const obj = JSON.parse(decodedString)
-      // const messageHTML = generateHTML(obj?.messageText, [
-      //   StarterKit,
-      //   Underline,
-      //   Highlight
-      //   // other extensions …
-      // ])
-      // const messageObj = {
-      //   ...response,
-      //   messageData: obj,
-      //   messageHTML
-      // }
-      // setMessages((prev) => [messageObj, ...prev])
-      // console.log({ response })
+      
     } catch (error) {
       console.error({ error })
       throw new Error('error')

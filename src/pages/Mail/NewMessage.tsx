@@ -32,7 +32,7 @@ import useConfirmationModal from '../../hooks/useConfirmModal'
 import { MultiplePublish } from '../../components/common/MultiplePublish/MultiplePublish'
 import { ChipInputComponent, NameChip } from '../../components/common/ChipInputComponent/ChipInputComponent'
 import { TextEditor } from '../../components/common/TextEditor/TextEditor'
-import { AliasLabelP, AttachmentContainer, ComposeContainer, ComposeIcon, ComposeP, InstanceFooter, InstanceListContainer, InstanceListHeader, NewMessageAliasContainer, NewMessageAttachmentImg, NewMessageCloseImg, NewMessageHeaderP, NewMessageInputLabelP, NewMessageInputRow, NewMessageSendButton, NewMessageSendP } from './Mail-styles'
+import { AliasLabelP, AttachmentContainer, CloseContainer, ComposeContainer, ComposeIcon, ComposeP, InstanceFooter, InstanceListContainer, InstanceListHeader, NewMessageAliasContainer, NewMessageAttachmentImg, NewMessageCloseImg, NewMessageHeaderP, NewMessageInputLabelP, NewMessageInputRow, NewMessageSendButton, NewMessageSendP } from './Mail-styles'
 import ComposeIconSVG from "../../assets/svgs/ComposeIcon.svg"
 import ModalCloseSVG from "../../assets/svgs/ModalClose.svg"
 import AttachmentSVG from "../../assets/svgs/NewMessageAttachment.svg"
@@ -94,7 +94,6 @@ export const NewMessage = ({
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const location = useLocation()
-  console.log({value})
   const { getRootProps, getInputProps } = useDropzone({
     maxSize,
     onDrop: async (acceptedFiles) => {
@@ -147,7 +146,6 @@ export const NewMessage = ({
     }
   })
 
-  console.log({attachments})
 
   const openModal = () => {
     setIsOpen(true)
@@ -347,13 +345,13 @@ export const NewMessage = ({
      
 
       const blogPostToBase64 = await objectToBase64(mailObject)
-      let identifier = `qortal_qmail_mail_${recipientName.slice(
+      let identifier = `_mail_qortal_qmail_${recipientName.slice(
         0,
         20
       )}_${recipientAddress.slice(-6)}_mail_${id}`
 
       if (aliasValue) {
-        identifier = `qortal_qmail_mail_${aliasValue}_mail_${id}`
+        identifier = `_mail_qortal_qmail_${aliasValue}_mail_${id}`
       }
 
       let requestBody: any = {
@@ -372,7 +370,7 @@ export const NewMessage = ({
         const copyMailObject = structuredClone(mailObject)
         copyMailObject.recipient = element.name
         const mailPostToBase64 = await objectToBase64(copyMailObject)
-        let identifierMail = `qortal_qmail_mail_${element.name.slice(
+        let identifierMail = `_mail_qortal_qmail_${element.name.slice(
           0,
           20
         )}_${element.address.slice(-6)}_mail_${id}`
@@ -457,14 +455,16 @@ export const NewMessage = ({
       >
         <InstanceListHeader sx={{
           backgroundColor: 'unset',
-          height: '69px',
+          height: '50px',
           padding: '20px 42px',
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
           <NewMessageHeaderP>New Message</NewMessageHeaderP>
-          <NewMessageCloseImg onClick={closeModal} src={ModalCloseSVG} />
+          <CloseContainer onClick={closeModal}>
+          <NewMessageCloseImg  src={ModalCloseSVG} />
+          </CloseContainer>
         </InstanceListHeader>
         <InstanceListContainer sx={{
           backgroundColor: 'rgba(217, 217, 217, 1)',
@@ -472,7 +472,6 @@ export const NewMessage = ({
           height: 'calc(100% - 150px)',
           flexShrink: 0
         }}>
-          <Spacer height="30px" />
         <NewMessageInputRow>
           <NewMessageAliasContainer>
           <NewMessageInputLabelP sx={{

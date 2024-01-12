@@ -59,7 +59,6 @@ export const ShowMessageV2 = ({
   alias,
   setForwardInfo
 }: any) => {
-  console.log({message2: message})
   const [value, setValue] = useState(initialValue);
   const [title, setTitle] = useState<string>("");
   const [attachments, setAttachments] = useState<any[]>([]);
@@ -106,7 +105,6 @@ export const ShowMessageV2 = ({
     cleanHTML = DOMPurify.sanitize(message.htmlContent);
   }
 
-  console.log({ message });
   return (
     <Box
       sx={{
@@ -214,6 +212,10 @@ export const ShowMessageV2 = ({
                         <Typography
                           sx={{
                             fontSize: "16px",
+                            transition: '0.2s all',
+                            "&:hover": {
+                              textDecoration: 'underline'
+                            }
                           }}
                         >
                           {file?.originalFilename || file?.filename}
@@ -265,6 +267,7 @@ export const ShowMessageV2 = ({
           display: "flex",
           gap: "25px",
           justifyContent: "center",
+          marginTop: '10px'
         }}
       >
         <ShowMessageButton onClick={handleReply}>

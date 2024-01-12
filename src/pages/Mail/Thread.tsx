@@ -27,9 +27,10 @@ import {
   setIsLoadingGlobal
 } from '../../state/features/globalSlice'
 import { addToHashMapMail } from '../../state/features/mailSlice'
-import { ComposeP, GroupNameP, MailIconImg, ShowMessageReturnButton, SingleThreadParent, ThreadContainer, ThreadContainerFullWidth } from './Mail-styles'
+import { ComposeP, GroupContainer, GroupNameP, MailIconImg, ShowMessageReturnButton, SingleThreadParent, ThreadContainer, ThreadContainerFullWidth } from './Mail-styles'
 import { Spacer } from '../../components/common/Spacer'
 import ReturnSVG from '../../assets/svgs/Return.svg'
+import LazyLoad from '../../components/common/LazyLoad'
 interface ThreadProps {
   currentThread: any
   groupInfo: any
@@ -74,10 +75,14 @@ export const Thread = ({
       dispatch(addToHashMapMail(fullObject))
     } catch (error) {}
   }
+  
   const getMailMessages = React.useCallback(
-    async (groupInfo: any, reset?: boolean) => {
+    async (groupInfo: any, reset?: boolean, hideAlert?: boolean) => {
       try {
-        dispatch(setIsLoadingCustom('Loading messages'))
+        if(!hideAlert){
+          dispatch(setIsLoadingCustom('Loading messages'))
+
+        }
         let str = groupInfo.threadId
         let parts = str.split('_').reverse()
         let result = parts[0]
@@ -108,7 +113,9 @@ export const Thread = ({
         setMessages(fullArrayMsg)
       } catch (error) {
       } finally {
+        if(!hideAlert){
         dispatch(setIsLoadingCustom(null))
+        }
       }
     },
     [messages]
@@ -118,10 +125,44 @@ export const Thread = ({
     await getMailMessages(currentThread, true)
   }, [getMailMessages, user, currentThread])
   const firstMount = useRef(false)
+
+  const saveTimestamp = useCallback((currentThread: any, username?: string)=> {
+    if(!currentThread?.threadData?.groupId || !currentThread?.threadId || !username) return
+    const threadIdForLocalStorage = `qmail_threads_${currentThread?.threadData?.groupId}_${currentThread?.threadId}`
+    const threads = JSON.parse(
+      localStorage.getItem(`qmail_threads_viewedtimestamp_${username}`) || "{}"
+    );
+    // Convert to an array of objects with identifier and all fields
+    let dataArray = Object.entries(threads).map(([identifier, value]) => ({
+      identifier,
+      ...(value as any),
+    }));
+
+    // Sort the array based on timestamp in descending order
+    dataArray.sort((a, b) => b.timestamp - a.timestamp);
+
+    // Slice the array to keep only the first 500 elements
+    let latest500 = dataArray.slice(0, 500);
+
+    // Convert back to the original object format
+    let latest500Data: any = {};
+    latest500.forEach(item => {
+      const { identifier, ...rest } = item;
+      latest500Data[identifier] = rest;
+    });
+    latest500Data[threadIdForLocalStorage] = {
+      timestamp: Date.now(),
+    }
+    localStorage.setItem(
+      `qmail_threads_viewedtimestamp_${username}`,
+      JSON.stringify(latest500Data)
+    );
+  }, [])
   useEffect(() => {
     if (user?.name && currentThread) {
       getMessages()
       firstMount.current = true
+      saveTimestamp(currentThread, user.name)
     }
   }, [user, currentThread])
   const messageCallback = useCallback((msg: any) => {
@@ -221,46 +262,18 @@ export const Thread = ({
     }
   }, [checkNewMessagesFunc])
 
+
+
   if (!currentThread) return null
   return (
-    <div
-      style={{
-        // backgroundColor: theme.palette.background.paper,
-        width: '100%',
-        // minHeight: '100%',
-        // overflow: 'auto'
+    <GroupContainer
+      sx={{
+        position: "relative",
+        overflow: 'auto',
+        width: '100%'
       }}
-      // className="threadScroller"
     >
-      {/* <Box
-        sx={{
-          display: 'flex',
-          gap: '20px',
-          margin: '2px 10px 10px 10px',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}
-      >
-        <Button
-          sx={{
-            height: '45px'
-          }}
-          variant="contained"
-          onClick={() => {
-            setMessages([])
-            closeThread()
-          }}
-        >
-          Close Thread
-        </Button>
-        <NewThread
-          groupInfo={groupInfo}
-          isMessage={true}
-          currentThread={currentThread}
-          messageCallback={messageCallback}
-          members={members}
-        />
-      </Box> */}
+      
        <NewThread
           groupInfo={groupInfo}
           isMessage={true}
@@ -314,23 +327,11 @@ export const Thread = ({
       })}
     </ThreadContainer>
       </ThreadContainerFullWidth>
-    
-      {messages.length > 0 && (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            maxWidth: '100%'
-          }}
-        >
-          <Button
-            variant="contained"
-            onClick={() => getMailMessages(currentThread)}
-          >
-            Load older messages
-          </Button>
-        </Box>
+      {messages.length >= 20 && (
+              <LazyLoad onLoadMore={()=> getMailMessages(currentThread, false, true)}></LazyLoad>
+
       )}
-    </div>
+     
+    </GroupContainer>
   )
 }

@@ -10,7 +10,6 @@ import {
 
 export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> void, username?: string) => {
   const getBlogPost = async () => {
-    console.log('fetch', username)
     const { user, messageIdentifier, content, otherUser } = data
     let obj: any = {
       ...content,
@@ -56,7 +55,6 @@ export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> 
       } catch (error) {
         
       }
-      console.log({resDecrypt})
       if (!resDecrypt){
         obj = {
           ...obj,
@@ -72,7 +70,6 @@ export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> 
       }
       const decryptToUnit8Array = base64ToUint8Array(resDecrypt)
       const responseData = uint8ArrayToObject(decryptToUnit8Array)
-      console.log({responseData}, checkStructureMailMessages(responseData))
       if (checkStructureMailMessages(responseData)) {
         obj = {
           ...content,
@@ -95,7 +92,6 @@ export const fetchAndEvaluateMail = async (data: any, saveToHash?: (val: any)=> 
             if(res) return res
             else return ""
           }
-          console.log({username})
           if(username){
             const subjects = JSON.parse(localStorage.getItem(`qmail_persistance_${username}`) || "{}")
             if(!subjects[messageIdentifier]){

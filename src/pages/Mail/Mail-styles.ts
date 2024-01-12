@@ -153,6 +153,15 @@ export const SelectInstanceContainerInner = styled(Box)(({ theme }) => ({
     background: "#434448",
   },
 }));
+export const SelectInstanceContainerFilterInner = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: "3px",
+  cursor: "pointer",
+  padding: "8px",
+  transition: "all 0.2s"
+}));
+
 
 export const InstanceLabel = styled(Typography)(({ theme }) => ({
   fontSize: "16px",
@@ -401,7 +410,7 @@ export const NewMessageCloseImg = styled("img")({
   cursor: "pointer",
 });
 export const NewMessageHeaderP = styled(Typography)(({ theme }) => ({
-  fontSize: "23px",
+  fontSize: "18px",
   fontWeight: 600,
 }));
 
@@ -738,3 +747,51 @@ font-style: normal;
 font-weight: 400;
 line-height: normal;
 `;
+
+export const GroupContainer = styled(Box)`
+position: relative;
+        overflow: auto;
+        width: 100%;
+&::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+&::-webkit-scrollbar-track:hover {
+  background-color: transparent;
+}
+
+&::-webkit-scrollbar {
+  width: 16px;
+  height: 10px;
+  background-color: white;
+}
+
+&::-webkit-scrollbar-thumb {
+  background-color: #838eee;
+  border-radius: 8px;
+  background-clip: content-box;
+  border: 4px solid transparent;
+}
+
+&::-webkit-scrollbar-thumb:hover {
+  background-color: #6270f0;
+}
+
+`
+
+export const CloseContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  width: "50px",
+  overflow: "hidden",
+  alignItems: "center",
+  cursor: "pointer",
+  transition: "0.2s background-color",
+  justifyContent: "center",
+  position: 'absolute',
+  top: '0px',
+  right: '0px',
+  height: '50px',
+  borderRadius: '0px 12px 0px 0px',
+  "&:hover": {
+    backgroundColor: "rgba(162, 31, 31, 1)",
+  },
+}));

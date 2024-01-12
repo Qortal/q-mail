@@ -65,7 +65,6 @@ export const ShowMessage = ({
    cleanHTML = DOMPurify.sanitize(message.htmlContent);
  }
 
- console.log({message})
   return (
     <Box
       sx={{

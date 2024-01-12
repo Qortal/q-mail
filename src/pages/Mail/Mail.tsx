@@ -24,6 +24,7 @@ import GroupSVG from "../../assets/svgs/Group.svg";
 import AddAliasSVG from "../../assets/svgs/AddAlias.svg";
 import HomeSVG from "../../assets/svgs/Home.svg";
 import ReturnSVG from "../../assets/svgs/Return.svg";
+import SortSVG from "../../assets/svgs/Sort.svg";
 
 import { styled } from "@mui/system";
 import {
@@ -80,6 +81,7 @@ import {
   MailIconImg,
   MessagesContainer,
   SelectInstanceContainer,
+  SelectInstanceContainerFilterInner,
   SelectInstanceContainerInner,
   ShowMessageButton,
   ShowMessageReturnButton,
@@ -90,6 +92,8 @@ import { CloseSVG } from "../../assets/svgs/CloseSVG";
 import { objectToBase64 } from "../../utils/toBase64";
 import { ShowMessageV2 } from "./ShowMessageV2";
 import { executeEvent } from "../../utils/events";
+
+const filterOptions = ["Recently active", "Newest", "Oldest"];
 
 const steps: Step[] = [
   {
@@ -201,7 +205,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isOpenInstanceList, setIsOpenInstanceList] = useState<boolean>(false);
+  const [isOpenFilterList, setIsOpenFilterList] = useState<boolean>(false);
+
   const anchorElInstance = useRef<any>(null);
+  const anchorElInstanceFilter = useRef<any>(null);
   const [message, setMessage] = useState<any>(null);
   const [replyTo, setReplyTo] = useState<any>(null);
   const [forwardInfo, setForwardInfo] = useState<any>(null);
@@ -214,7 +221,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const [aliasValue, setAliasValue] = useState("");
   const [alias, setAlias] = useState<string[]>([]);
   const [run, setRun] = useState(false);
-
+  const [filterMode, setFilterMode] = useState<string>("Recently active");
   const [selectedAlias, setSelectedAlias] = useState<string | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const privateGroups = useSelector(
@@ -319,7 +326,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
         identifier: messageIdentifier,
         name: user,
         service: MAIL_SERVICE_TYPE,
-        to
+        to,
       });
       const res: any = await show();
       setMailInfo(null);
@@ -463,6 +470,9 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const handleCloseInstanceList = () => {
     setIsOpenInstanceList(false);
   };
+  const handleCloseThreadFilterList = () => {
+    setIsOpenFilterList(false);
+  };
 
   const addAlias = () => {
     if (!aliasValue) return;
@@ -486,36 +496,33 @@ export const Mail = ({ isFromTo }: MailProps) => {
     }
   };
 
-  const openNewThread = ()=> {
-    if(currentThread){
-      executeEvent('openNewThreadMessageModal', {})
-      return
+  const openNewThread = () => {
+    if (currentThread) {
+      executeEvent("openNewThreadMessageModal", {});
+      return;
     }
-    executeEvent('openNewThreadModal', {})
-  }
+    executeEvent("openNewThreadModal", {});
+  };
 
   return (
-    <MailContainer sx={{
-      height: selectedGroup && 'auto'
-    }}>
+    <MailContainer>
       <InstanceContainer>
         {selectedGroup ? (
-           <ComposeContainer           onClick={openNewThread}
-           >
-           <ComposeIcon src={ComposeIconSVG} />
-           <ComposeP>{currentThread ? 'New Post' : 'New Thread'}</ComposeP>
-         </ComposeContainer>
+          <ComposeContainer onClick={openNewThread}>
+            <ComposeIcon src={ComposeIconSVG} />
+            <ComposeP>{currentThread ? "New Post" : "New Thread"}</ComposeP>
+          </ComposeContainer>
         ) : (
           <NewMessage
-          isFromTo={isFromTo}
-          replyTo={replyTo}
-          setReplyTo={setReplyTo}
-          setForwardInfo={setForwardInfo}
-          forwardInfo={forwardInfo}
-          alias={selectedAlias || ""}
-        />
+            isFromTo={isFromTo}
+            replyTo={replyTo}
+            setReplyTo={setReplyTo}
+            setForwardInfo={setForwardInfo}
+            forwardInfo={forwardInfo}
+            alias={selectedAlias || ""}
+          />
         )}
-        
+
         <SelectInstanceContainer>
           <InstanceLabel>Current Instance:</InstanceLabel>
           <SelectInstanceContainerInner
@@ -546,7 +553,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
             vertical: "top",
             horizontal: "center",
           }}
-          style={{ marginTop: "28px" }} // Adjust this value as needed
+          style={{ marginTop: "8px" }} // Adjust this value as needed
         >
           <InstanceListParent>
             <InstanceListHeader>
@@ -596,8 +603,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
                       setSelectedAlias(alia);
                       setSelectedGroup(null);
                       handleCloseInstanceList();
-                      setIsOpen(false)
-                      setMessage(null)
+                      setIsOpen(false);
+                      setMessage(null);
                     }}
                   >
                     <InstanceListContainerRowCheck>
@@ -656,9 +663,9 @@ export const Mail = ({ isFromTo }: MailProps) => {
                     key={group?.id}
                   >
                     <InstanceListContainerRowCheck>
-                      {/* {!selectedAlias && (
-                    <InstanceListContainerRowCheckIcon src={CheckSVG} />
-                  )} */}
+                      {group?.id === selectedGroup?.id && (
+                        <InstanceListContainerRowCheckIcon src={CheckSVG} />
+                      )}
                     </InstanceListContainerRowCheck>
                     <InstanceListContainerRowMain>
                       <InstanceListContainerRowMainP>
@@ -708,10 +715,86 @@ export const Mail = ({ isFromTo }: MailProps) => {
           </InstanceListParent>
           {/* <InstanceList /> */}
         </Popover>
-        <ComposeContainerBlank></ComposeContainerBlank>
+        <Popover
+          open={isOpenFilterList}
+          anchorEl={anchorElInstanceFilter.current}
+          onClose={handleCloseThreadFilterList}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+        >
+          <InstanceListParent
+            sx={{
+              minHeight: "unset",
+              width: "auto",
+              padding: '0px'
+            }}
+          >
+            <InstanceListHeader></InstanceListHeader>
+            <InstanceListContainer>
+              {filterOptions?.map(filter => {
+                return (
+                  <InstanceListContainerRow
+                    onClick={() => {
+                      setFilterMode(filter);
+                      handleCloseThreadFilterList();
+                    }}
+                    sx={{
+                      backgroundColor:
+                        filterMode === filter
+                          ? "rgba(74, 158, 244, 1)"
+                          : "unset",
+                    }}
+                    key={filter}
+                  >
+                    <InstanceListContainerRowCheck>
+                      {filter === filterMode && (
+                        <InstanceListContainerRowCheckIcon src={CheckSVG} />
+                      )}
+                    </InstanceListContainerRowCheck>
+                    <InstanceListContainerRowMain>
+                      <InstanceListContainerRowMainP>
+                        {filter}
+                      </InstanceListContainerRowMainP>
+                    </InstanceListContainerRowMain>
+                  </InstanceListContainerRow>
+                );
+              })}
+            </InstanceListContainer>
+            <InstanceFooter></InstanceFooter>
+          </InstanceListParent>
+        </Popover>
+        <ComposeContainerBlank>
+          {selectedGroup && !currentThread && (
+            <ComposeContainer
+              onClick={() => {
+                setIsOpenFilterList(true);
+              }}
+              ref={anchorElInstanceFilter}
+            >
+              <ComposeIcon src={SortSVG} />
+
+              <SelectInstanceContainerFilterInner>
+                <ComposeP>Sort by</ComposeP>
+                <ArrowDownIcon src={ArrowDownSVG} />
+              </SelectInstanceContainerFilterInner>
+            </ComposeContainer>
+          )}
+        </ComposeContainerBlank>
       </InstanceContainer>
       {selectedGroup ? (
-        <GroupMail groupInfo={selectedGroup} currentThread={currentThread} setCurrentThread={setCurrentThread} />
+        <GroupMail
+          groupInfo={selectedGroup}
+          currentThread={currentThread}
+          setCurrentThread={setCurrentThread}
+          filterMode={filterMode}
+          setFilterMode={setFilterMode}
+        />
       ) : (
         <MailBody>
           <MailBodyInner>
@@ -733,7 +816,6 @@ export const Mail = ({ isFromTo }: MailProps) => {
                   alignItems: "center",
                 }}
               >
-              
                 {!selectedAlias && (
                   <MessagesContainer>
                     {fullMailMessages.map(item => {
@@ -760,7 +842,13 @@ export const Mail = ({ isFromTo }: MailProps) => {
                   </MessagesContainer>
                 )}
 
-                {selectedAlias && <AliasMail value={selectedAlias} onOpen={openMessage}  messageOpenedId={message?.id} />}
+                {selectedAlias && (
+                  <AliasMail
+                    value={selectedAlias}
+                    onOpen={openMessage}
+                    messageOpenedId={message?.id}
+                  />
+                )}
                 <Joyride
                   steps={steps}
                   run={run}
@@ -784,10 +872,12 @@ export const Mail = ({ isFromTo }: MailProps) => {
             {isOpen && message && (
               <>
                 <MailBodyInnerHeader>
-                  <ShowMessageReturnButton onClick={() => {
-                    setIsOpen(false)
-                    setMessage(null)
-                  }}>
+                  <ShowMessageReturnButton
+                    onClick={() => {
+                      setIsOpen(false);
+                      setMessage(null);
+                    }}
+                  >
                     <MailIconImg src={ReturnSVG} />
                     <ComposeP>Return to Sent</ComposeP>
                   </ShowMessageReturnButton>

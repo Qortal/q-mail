@@ -43,7 +43,6 @@ const uid = new ShortUniqueId();
 export const ShowMessageV2Replies = ({
   message,
 }: any) => {
-  console.log({message})
   const username = useSelector((state: RootState) => state.auth?.user?.name);
   const [expandAttachments, setExpandAttachments] = useState<boolean>(false);
 
@@ -62,7 +61,6 @@ export const ShowMessageV2Replies = ({
     cleanHTML = DOMPurify.sanitize(message.htmlContent);
   }
 
-  console.log({ message });
   return (
     <Box sx={{
       padding: !isUser ? '0px 15px' : 'unset',

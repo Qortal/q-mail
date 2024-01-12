@@ -67,7 +67,6 @@ export default function MailThreadWithoutCalling({
 }: {
   thread: IThread[];
 }) {
-  console.log({ thread });
   const [expanded, setExpanded] = React.useState<string | false>("panel1");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const dispatch = useDispatch();
