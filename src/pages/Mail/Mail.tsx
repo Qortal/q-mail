@@ -122,7 +122,24 @@ const steps: Step[] = [
     placement: "center",
     target: ".step-1",
   },
-
+  {
+    target: ".step-3",
+    content: (
+      <div>
+        <h2>Changing instances</h2>
+       
+        <p
+          style={{
+            fontSize: "18px",
+            fontFamily: "Arial",
+          }}
+        >
+         Toggle between your main inbox, alias' and private groups.
+        </p>
+      </div>
+    ),
+    placement: "bottom",
+  },
   {
     target: ".step-2",
     content: (
@@ -135,7 +152,7 @@ const steps: Step[] = [
             fontFamily: "Arial",
           }}
         >
-          Compose a secure message featuring encrypted attachments (up to 25MB
+          Compose a secure message featuring encrypted attachments (up to 40MB
           per attachment).
         </p>
         <p
@@ -151,6 +168,7 @@ const steps: Step[] = [
     ),
     placement: "bottom",
   },
+ 
   {
     target: ".step-3",
     content: (
@@ -181,8 +199,7 @@ const steps: Step[] = [
             fontFamily: "Arial",
           }}
         >
-          To access messages sent to that alias, simply enter 'FrederickGreat'
-          in the provided input field and click the '+ Alias' button.
+          To access messages sent to that alias, simply add the alias as an instance.
         </p>
       </div>
     ),
@@ -523,7 +540,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
           />
         )}
 
-        <SelectInstanceContainer>
+        <SelectInstanceContainer className="step-3">
           <InstanceLabel>Current Instance:</InstanceLabel>
           <SelectInstanceContainerInner
             onClick={() => {

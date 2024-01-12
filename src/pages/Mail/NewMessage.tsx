@@ -434,7 +434,7 @@ export const NewMessage = ({
       }}
     >
       {!hideButton && (
-       <ComposeContainer           onClick={openModal}
+       <ComposeContainer className='step-2'          onClick={openModal}
        >
        <ComposeIcon src={ComposeIconSVG} />
        <ComposeP>Compose</ComposeP>
