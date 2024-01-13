@@ -105,6 +105,7 @@ export const ShowMessageV2 = ({
     cleanHTML = DOMPurify.sanitize(message.htmlContent);
   }
 
+
   return (
     <Box
       sx={{
@@ -298,9 +299,16 @@ export const ShowMessageV2 = ({
         {message?.htmlContent && (
             <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />
           )}
+        <Box sx={{
+          width: '100%',
+          padding: '15px'
+        }}>
+
+        
         {message?.textContent && (
             <ReadOnlySlate content={message.textContent} mode="mail" />
           )}
+          </Box>
       </Box>
     </Box>
   );

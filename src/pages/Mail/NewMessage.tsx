@@ -146,7 +146,6 @@ export const NewMessage = ({
     }
   })
 
-
   const openModal = () => {
     setIsOpen(true)
 
@@ -184,6 +183,9 @@ export const NewMessage = ({
     if (replyTo) {
       setIsOpen(true)
       setDestinationName(replyTo?.user || '')
+      if(replyTo?.subject){
+        setSubject(replyTo.subject)
+      }
     }
   }, [replyTo])
 
