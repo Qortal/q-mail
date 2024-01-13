@@ -175,3 +175,10 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 
+.qortal-link {
+  color: #24A1FF;
+}
+
+.reply-other .qortal-link {
+  color: #005EA5
+}

@@ -39,6 +39,7 @@ interface QortalRequestOptions {
   message?: string
   query?: string
   prefix?: boolean
+  qortalLink?: string
 }
 
 declare function qortalRequest(options: QortalRequestOptions): Promise<any>

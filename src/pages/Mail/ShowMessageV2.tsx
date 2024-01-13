@@ -105,7 +105,6 @@ export const ShowMessageV2 = ({
     cleanHTML = DOMPurify.sanitize(message.htmlContent);
   }
 
-
   return (
     <Box
       sx={{
@@ -292,10 +291,18 @@ export const ShowMessageV2 = ({
           gap: "8px",
         }}
       >
-        {message?.generalData?.threadV2?.map((msg: any) => {
-          if (!msg?.data) return null;
-          return <ShowMessageV2Replies message={msg?.data} />;
-        })}
+           {[...message?.generalData?.threadV2] // Create a copy of the array
+      .sort((a, b) => {
+        // Sort messages based on createdAt in descending order
+        if (!a.data || !b.data) return 0;
+        return b.data.createdAt - a.data.createdAt;
+      })
+      .map(msg => {
+        // Render each message using a component
+        if (!msg?.data) return null;
+        return <ShowMessageV2Replies key={msg.data.id} message={msg.data} />;
+      })
+    }
         {message?.htmlContent && (
             <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />
           )}

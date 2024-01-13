@@ -66,7 +66,9 @@ export const ShowMessageV2Replies = ({
       padding: !isUser ? '0px 15px' : 'unset',
       flexShrink: 0,
       width: '100%'
-    }}>
+    }}
+    className={isUser ? "" : "reply-other"}
+    >
     <Box
       sx={{
         display: "flex",
