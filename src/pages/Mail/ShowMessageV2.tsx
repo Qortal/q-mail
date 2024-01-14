@@ -105,6 +105,7 @@ export const ShowMessageV2 = ({
     cleanHTML = DOMPurify.sanitize(message.htmlContent);
   }
 
+
   return (
     <Box
       sx={{
@@ -291,7 +292,7 @@ export const ShowMessageV2 = ({
           gap: "8px",
         }}
       >
-           {[...message?.generalData?.threadV2] // Create a copy of the array
+           {message?.generalData?.threadV2 && [...(message?.generalData?.threadV2 || [])] // Create a copy of the array
       .sort((a, b) => {
         // Sort messages based on createdAt in descending order
         if (!a.data || !b.data) return 0;
