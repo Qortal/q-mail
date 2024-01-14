@@ -296,7 +296,7 @@ export const ShowMessageV2 = ({
       .sort((a, b) => {
         // Sort messages based on createdAt in descending order
         if (!a.data || !b.data) return 0;
-        return b.data.createdAt - a.data.createdAt;
+        return a.data.createdAt - b.data.createdAt;
       })
       .map(msg => {
         // Render each message using a component
