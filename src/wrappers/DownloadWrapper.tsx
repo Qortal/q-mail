@@ -170,6 +170,16 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
           })
         )
       }
+      if (res?.status === 'MISSING_DATA') {
+        dispatch(
+          updateDownloads({
+            name,
+            service,
+            identifier,
+            status: res
+          })
+        )
+      }
     }, 5000) // 1 second interval
 
     fetchVideoUrl({

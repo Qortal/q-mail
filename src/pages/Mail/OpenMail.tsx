@@ -183,6 +183,7 @@ const [isValid, setIsValid] = React.useState<boolean>(true)
   useEffect(()=> {
     handleDownloadMail()
   }, [])
+
   return (
     <Dialog
       open={open}
@@ -214,6 +215,7 @@ const [isValid, setIsValid] = React.useState<boolean>(true)
                 Message has an invalid format
                 </Typography>
             )}
+            {}
             {!resourceStatus.status && (isValid && !unableToDecrypt) && (
                   <Box
               
@@ -271,7 +273,9 @@ const [isValid, setIsValid] = React.useState<boolean>(true)
                     </>
                   ) : resourceStatus?.status === "DOWNLOADED" ? (
                     <>Download Completed: building message...</>
-                  ) : resourceStatus?.status === "DOWNLOADING" ? (
+                  ) : resourceStatus?.status === "MISSING_DATA" ? (
+                    <>Missing Data: make sure the sender has their Core turned on.</>
+                  )  :  resourceStatus?.status === "DOWNLOADING" ? (
                     <>Downloading Message</>
                   ) : resourceStatus?.status !== "READY" ? (
                     <>
