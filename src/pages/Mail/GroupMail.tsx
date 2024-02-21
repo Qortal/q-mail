@@ -90,7 +90,22 @@ export const GroupMail = ({ groupInfo, setCurrentThread, currentThread, filterMo
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-
+  const getAvatar = async (user: string) => {
+    try {
+      let url = await qortalRequest({
+        action: 'GET_QDN_RESOURCE_URL',
+        name: user,
+        service: 'THUMBNAIL',
+        identifier: 'qortal_avatar'
+      })
+      dispatch(
+        setUserAvatarHash({
+          name: user,
+          url
+        })
+      )
+    } catch (error) {}
+  }
 
   const getAllThreads = React.useCallback(
     async (groupId: string, mode: string, isInitial?: boolean) => {
@@ -271,7 +286,7 @@ export const GroupMail = ({ groupInfo, setCurrentThread, currentThread, filterMo
                }
                 
               }
-              
+              await getAvatar(thread?.name);
             }
           } catch (error) {
             console.log(error)
