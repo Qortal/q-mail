@@ -30,6 +30,7 @@ export const MailBody = styled(Box)(({ theme }) => ({
   flexDirection: "row",
   width: "100%",
   height: "calc(100% - 59px)",
+  position: 'relative'
   // overflow: 'auto !important'
 }));
 export const MailBodyInner = styled(Box)(({ theme }) => ({
@@ -249,7 +250,7 @@ export const InstanceListParent = styled(Box)`
   width: 100%;
   min-height: 246px;
   max-height: 325px;
-  width: 425px;
+  max-width: 425px;
   padding: 10px 0px 7px 0px;
   background-color: var(--color-instance-popover-bg);
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -334,7 +335,6 @@ export const InstanceListContainerRowMain = styled(Box)(({ theme }) => ({
   justifyContent: "space-between",
   width: "100%",
   alignItems: "center",
-  paddingRight: "30px",
   overflow: "hidden",
 }));
 export const CloseParent = styled(Box)(({ theme }) => ({

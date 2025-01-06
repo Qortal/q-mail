@@ -1,6 +1,6 @@
 import React, { Dispatch, useCallback, useEffect, useState } from "react";
 import { ReusableModal } from "../../components/modals/ReusableModal";
-import { Box, Button, Input, Typography, useTheme } from "@mui/material";
+import { Box, Button, Input, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { BuilderButton } from "../CreatePost/CreatePost-styles";
 import BlogEditor from "../../components/editor/BlogEditor";
 import EmailIcon from "@mui/icons-material/Email";
@@ -97,6 +97,7 @@ export const NewThread = ({
   const [isOpenMultiplePublish, setIsOpenMultiplePublish] = useState(false);
   const [publishes, setPublishes] = useState<any>(null);
   const [callbackContent, setCallbackContent] = useState<any>(null);
+ const isMobile = useMediaQuery("(max-width:950px)");
 
 
   const theme = useTheme();
@@ -463,18 +464,19 @@ export const NewThread = ({
         customStyles={{
           maxHeight: "95vh",
           maxWidth: "950px",
-          height: "700px",
+          height: isMobile ? '95vh' : '700px',
           borderRadius: "12px 12px 0px 0px",
           background: "var(--Mail-Backgrund, #313338)",
           padding: "0px",
           gap: "0px",
+          width: isMobile ? '95%' : '75%'
         }}
       >
         <InstanceListHeader
           sx={{
             backgroundColor: "unset",
             height: "50px",
-            padding: "20px 42px",
+            padding: isMobile ? '10px' : '20px 42px',
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
@@ -490,7 +492,7 @@ export const NewThread = ({
         <InstanceListContainer
           sx={{
             backgroundColor: "rgba(217, 217, 217, 1)",
-            padding: "20px 42px",
+            padding: isMobile ? '10px' : '20px 42px',
             height: "calc(100% - 150px)",
             flexShrink: 0,
           }}
@@ -618,9 +620,9 @@ export const NewThread = ({
         <InstanceFooter
           sx={{
             backgroundColor: "rgba(217, 217, 217, 1)",
-            padding: "20px 42px",
+            padding: isMobile ? '5px' : '20px 42px',
             alignItems: "center",
-            height: "90px",
+            height: isMobile ? '35px' : '90px'
           }}
         >
           <NewMessageSendButton onClick={sendMail}>

@@ -17,6 +17,7 @@ import AttachmentSVG from '../../assets/svgs/Attachment.svg'
 import { useSelector } from "react-redux";
 import { RootState } from "../../state/store";
 import { base64ToUint8Array, uint8ArrayToObject } from "../../utils/toBase64";
+import { useMediaQuery } from "@mui/material";
 
 function parseQuery(query: string) {
   // Regular expression to match both possible formats
@@ -49,6 +50,8 @@ export const MailMessageRow = ({
   const [sentToNameInfo, setSentToNameInfo] = useState({
     name: ""
   })
+    const isMobile = useMediaQuery("(max-width:950px)");
+  
   const [alias, setAlias] = useState<null | string>(null)
 
   const identifier = useMemo(()=> {
@@ -149,7 +152,13 @@ const name = useMemo(()=> {
  
   return (
     <MailMessageRowContainer sx={{
-      background: isOpen ? '#434448' : 'unset'
+      background: isOpen ? '#434448' : 'unset',
+      flexDirection: isMobile ? 'column': 'row',
+      alignItems: isMobile ? 'flex-start' : 'center',
+      borderRadius: isMobile ? '10px' : "56px 5px 10px 56px",
+      padding: isMobile ? '5px' : 'center',
+      outline: isMobile ? '1px solid #434448' : 'none',
+      marginTop: isMobile ? '10px' : '0px'
     }} onClick={()=> {
         openMessage(messageData?.user, messageData?.id, messageData, isFromSent ?  (alias || name) : username) 
     }}>

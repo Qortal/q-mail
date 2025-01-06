@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../state/store";
 import EditIcon from "@mui/icons-material/Edit";
-import { Box, Button, Input, Typography, formLabelClasses, useTheme } from "@mui/material";
+import { Box, Button, Input, Typography, formLabelClasses, useMediaQuery, useTheme } from "@mui/material";
 import { useFetchPosts } from "../../hooks/useFetchPosts";
 import LazyLoad from "../../components/common/LazyLoad";
 import { removePrefix } from "../../utils/blogIdformats";
@@ -59,6 +59,7 @@ export const GroupMail = ({ groupInfo, setCurrentThread, currentThread, filterMo
   const [replyTo, setReplyTo] = useState<any>(null);
   const [valueTab, setValueTab] = React.useState(0);
   const [viewedThreads, setViewedThreads] = React.useState<any>({});
+ const isMobile = useMediaQuery("(max-width:950px)");
 
   const [aliasValue, setAliasValue] = useState("");
   const [alias, setAlias] = useState<string[]>([]);
@@ -452,6 +453,60 @@ export const GroupMail = ({ groupInfo, setCurrentThread, currentThread, filterMo
               {listOfThreadsToDisplay.map(thread => {
                 const hasViewedRecent = viewedThreads[`qmail_threads_${thread?.threadData?.groupId}_${thread?.threadId}`]
                 const shouldAppearLighter = hasViewedRecent && filterMode === 'Recently active' && thread?.threadData?.createdAt < hasViewedRecent?.timestamp
+                if(isMobile){
+                  return (
+                    <SingleThreadParent
+                      onClick={() => {
+                        setCurrentThread(thread);
+                      }}
+                     sx={{
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      height: 'auto'
+                     }}
+                    >
+                      <Box sx={{
+                        display: 'flex',
+                        gap: '10px',
+                        
+                      }}>
+                      <AvatarWrapper isAlias={false} height="50px" user={thread?.threadData?.name} fallback={thread?.threadData?.name}></AvatarWrapper>
+                      <ThreadInfoColumn>
+                      <ThreadInfoColumnNameP><ThreadInfoColumnbyP>by </ThreadInfoColumnbyP>{thread?.threadData?.name}</ThreadInfoColumnNameP>
+                      <ThreadInfoColumnTime>{formatTimestamp(thread?.threadData?.createdAt)}</ThreadInfoColumnTime>
+                      </ThreadInfoColumn>
+                      </Box>
+                     
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <ThreadSingleTitle sx={{
+                          fontWeight: shouldAppearLighter && 300
+                        }}>{thread?.threadData?.title}</ThreadSingleTitle>
+                        {filterMode === 'Recently active' && (
+                           <div
+                           style={{
+                             display: "flex",
+                             alignItems: "center",
+                           }}
+                         >
+                           <ThreadSingleLastMessageP
+                          
+                           >
+                             <ThreadSingleLastMessageSpanP>last message: </ThreadSingleLastMessageSpanP>
+                             {formatDate(thread?.created)}
+                           </ThreadSingleLastMessageP>
+                         </div>
+                        )}
+                       
+                      </div>
+                    </SingleThreadParent>
+                  )
+                }
             return (
               <SingleThreadParent
                 onClick={() => {

@@ -37,6 +37,8 @@ import {
   CircularProgress,
   Popover,
   TextField,
+  useMediaQuery,
+  ButtonBase,
 } from "@mui/material";
 import LazyLoad from "../../components/common/LazyLoad";
 import { NewMessage } from "./NewMessage";
@@ -92,6 +94,7 @@ import { CloseSVG } from "../../assets/svgs/CloseSVG";
 import { objectToBase64 } from "../../utils/toBase64";
 import { ShowMessageV2 } from "./ShowMessageV2";
 import { executeEvent } from "../../utils/events";
+import { Spacer } from "../../components/common/Spacer";
 
 const filterOptions = ["Recently active", "Newest", "Oldest"];
 
@@ -127,14 +130,14 @@ const steps: Step[] = [
     content: (
       <div>
         <h2>Changing instances</h2>
-       
+
         <p
           style={{
             fontSize: "18px",
             fontFamily: "Arial",
           }}
         >
-         Toggle between your main inbox, alias' and private groups.
+          Toggle between your main inbox, alias' and private groups.
         </p>
       </div>
     ),
@@ -168,7 +171,7 @@ const steps: Step[] = [
     ),
     placement: "bottom",
   },
- 
+
   {
     target: ".step-3",
     content: (
@@ -199,7 +202,8 @@ const steps: Step[] = [
             fontFamily: "Arial",
           }}
         >
-          To access messages sent to that alias, simply add the alias as an instance.
+          To access messages sent to that alias, simply add the alias as an
+          instance.
         </p>
       </div>
     ),
@@ -245,6 +249,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
     (state: RootState) => state.global.privateGroups
   );
   const [mailInfo, setMailInfo] = useState<any>(null);
+  const isMobile = useMediaQuery("(max-width:950px)");
+  const [mobileMode, setMobileMode] = useState("inbox");
   const hasFetchedPrivateGroups = useSelector(
     (state: RootState) => state.global.hasFetchedPrivateGroups
   );
@@ -523,9 +529,19 @@ export const Mail = ({ isFromTo }: MailProps) => {
 
   return (
     <MailContainer>
-      <InstanceContainer>
+      <InstanceContainer sx={{
+        flexDirection: isMobile ? 'column' : 'row',
+        padding: isMobile ? '10px' : '0px',
+        height: 'auto',
+        minHeight: '59px'
+      }}>
         {selectedGroup ? (
-          <ComposeContainer onClick={openNewThread}>
+          <ComposeContainer onClick={openNewThread} sx={
+            {
+              marginBottom: '10px',
+              padding: '10px'
+            }
+          }>
             <ComposeIcon src={ComposeIconSVG} />
             <ComposeP>{currentThread ? "New Post" : "New Thread"}</ComposeP>
           </ComposeContainer>
@@ -749,7 +765,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
             sx={{
               minHeight: "unset",
               width: "auto",
-              padding: '0px'
+              padding: "0px",
             }}
           >
             <InstanceListHeader></InstanceListHeader>
@@ -813,95 +829,17 @@ export const Mail = ({ isFromTo }: MailProps) => {
           setFilterMode={setFilterMode}
         />
       ) : (
-        <MailBody>
-          <MailBodyInner>
-            <MailBodyInnerHeader>
-              <MailIconImg src={MailSVG} />
-              <ComposeP>Inbox</ComposeP>
-            </MailBodyInnerHeader>
-            <MailBodyInnerScroll
-              sx={{
-                borderRight: "1px solid rgba(85, 84, 84, 0.4)",
-              }}
-            >
-              <Box
-                className="step-1"
-                sx={{
-                  display: "flex",
-                  width: "100%",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                {!selectedAlias && (
-                  <MessagesContainer>
-                    {fullMailMessages.map(item => {
-                      return (
-                        <MailMessageRow
-                          messageData={item}
-                          openMessage={openMessage}
-                          isOpen={message?.id === item?.id}
-                        />
-                      );
-                    })}
-                    <LazyLoad onLoadMore={getMessages}></LazyLoad>
-                    {isLoading && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          width: "100%",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <CircularProgress />
-                      </Box>
-                    )}
-                  </MessagesContainer>
-                )}
-
-                {selectedAlias && (
-                  <AliasMail
-                    value={selectedAlias}
-                    onOpen={openMessage}
-                    messageOpenedId={message?.id}
-                  />
-                )}
-                <Joyride
-                  steps={steps}
-                  run={run}
-                  callback={handleJoyrideCallback}
-                  continuous={true}
-                  scrollToFirstStep={true}
-                  showProgress={true}
-                  showSkipButton={true}
-                />
-                {mailInfo && isShow && (
-                  <OpenMail
-                    open={isShow}
-                    handleClose={onOk}
-                    fileInfo={mailInfo}
-                  />
-                )}
-              </Box>
-            </MailBodyInnerScroll>
-          </MailBodyInner>
-          <MailBodyInner>
-            {isOpen && message && (
-              <>
+        <>
+          {!isMobile && (
+            <MailBody>
+              <MailBodyInner>
                 <MailBodyInnerHeader>
-                  <ShowMessageReturnButton
-                    onClick={() => {
-                      setIsOpen(false);
-                      setMessage(null);
-                    }}
-                  >
-                    <MailIconImg src={ReturnSVG} />
-                    <ComposeP>Return to Sent</ComposeP>
-                  </ShowMessageReturnButton>
+                  <MailIconImg src={MailSVG} />
+                  <ComposeP>Inbox</ComposeP>
                 </MailBodyInnerHeader>
                 <MailBodyInnerScroll
                   sx={{
-                    direction: "rtl",
+                    borderRight: "1px solid rgba(85, 84, 84, 0.4)",
                   }}
                 >
                   <Box
@@ -911,52 +849,396 @@ export const Mail = ({ isFromTo }: MailProps) => {
                       width: "100%",
                       flexDirection: "column",
                       alignItems: "center",
-                      direction: "ltr",
                     }}
                   >
-                    <ShowMessageV2
-                      isOpen={isOpen}
-                      setIsOpen={setIsOpen}
-                      message={message}
-                      setReplyTo={setReplyTo}
-                      setForwardInfo={setForwardInfo}
-                      alias={selectedAlias}
+                    {!selectedAlias && (
+                      <MessagesContainer>
+                        {fullMailMessages.map(item => {
+                          return (
+                            <MailMessageRow
+                              messageData={item}
+                              openMessage={openMessage}
+                              isOpen={message?.id === item?.id}
+                            />
+                          );
+                        })}
+                        <LazyLoad onLoadMore={getMessages}></LazyLoad>
+                        {isLoading && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              width: "100%",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <CircularProgress />
+                          </Box>
+                        )}
+                      </MessagesContainer>
+                    )}
+
+                    {selectedAlias && (
+                      <AliasMail
+                        value={selectedAlias}
+                        onOpen={openMessage}
+                        messageOpenedId={message?.id}
+                      />
+                    )}
+                    <Joyride
+                      steps={steps}
+                      run={run}
+                      callback={handleJoyrideCallback}
+                      continuous={true}
+                      scrollToFirstStep={true}
+                      showProgress={true}
+                      showSkipButton={true}
                     />
+                    {mailInfo && isShow && (
+                      <OpenMail
+                        open={isShow}
+                        handleClose={onOk}
+                        fileInfo={mailInfo}
+                      />
+                    )}
                   </Box>
                 </MailBodyInnerScroll>
-              </>
-            )}
-            <>
-              <MailBodyInnerHeader
-                sx={{
-                  display: isOpen && message ? "none" : "flex",
-                }}
-              >
-                <MailIconImg src={SendSVG} />
-                <ComposeP>Sent</ComposeP>
-              </MailBodyInnerHeader>
-              <MailBodyInnerScroll
-                sx={{
-                  direction: "rtl",
-                  display: isOpen && message ? "none" : "flex",
-                }}
-              >
+              </MailBodyInner>
+              <MailBodyInner>
+                {isOpen && message && (
+                  <>
+                    <MailBodyInnerHeader>
+                      <ShowMessageReturnButton
+                        onClick={() => {
+                          setIsOpen(false);
+                          setMessage(null);
+                        }}
+                      >
+                        <MailIconImg src={ReturnSVG} />
+                        <ComposeP>Return to Sent</ComposeP>
+                      </ShowMessageReturnButton>
+                    </MailBodyInnerHeader>
+                    <MailBodyInnerScroll
+                      sx={{
+                        direction: "rtl",
+                      }}
+                    >
+                      <Box
+                        className="step-1"
+                        sx={{
+                          display: "flex",
+                          width: "100%",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          direction: "ltr",
+                        }}
+                      >
+                        <ShowMessageV2
+                          isOpen={isOpen}
+                          setIsOpen={setIsOpen}
+                          message={message}
+                          setReplyTo={setReplyTo}
+                          setForwardInfo={setForwardInfo}
+                          alias={selectedAlias}
+                        />
+                      </Box>
+                    </MailBodyInnerScroll>
+                  </>
+                )}
+                <>
+                  <MailBodyInnerHeader
+                    sx={{
+                      display: isOpen && message ? "none" : "flex",
+                    }}
+                  >
+                    <MailIconImg src={SendSVG} />
+                    <ComposeP>Sent</ComposeP>
+                  </MailBodyInnerHeader>
+                  <MailBodyInnerScroll
+                    sx={{
+                      direction: "rtl",
+                      display: isOpen && message ? "none" : "flex",
+                    }}
+                  >
+                    <Box
+                      className="step-1"
+                      sx={{
+                        display: "flex",
+                        width: "100%",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        direction: "ltr",
+                      }}
+                    >
+                      <SentMail onOpen={openMessage} />
+                    </Box>
+                  </MailBodyInnerScroll>
+                </>
+              </MailBodyInner>
+            </MailBody>
+          )}
+          {isMobile && (
+            <MailBody sx={{
+              height: "calc(100% - 115px)"
+            }}>
+              {isOpen && message && (
                 <Box
-                  className="step-1"
                   sx={{
-                    display: "flex",
-                    width: "100%",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    direction: "ltr",
+                    position: "absolute",
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 5,
+                    backgroundColor: "var(--Mail-Background)",
                   }}
                 >
-                  <SentMail onOpen={openMessage} />
+                  <MailBodyInnerHeader sx={{
+                    marginTop: '25px',
+                    marginBottom: '25px'
+                  }}>
+                    <ShowMessageReturnButton
+                      onClick={() => {
+                        setIsOpen(false);
+                        setMessage(null);
+                      }}
+                    >
+                      <MailIconImg src={ReturnSVG} />
+                      <ComposeP>Return</ComposeP>
+                    </ShowMessageReturnButton>
+                  </MailBodyInnerHeader>
+                  <MailBodyInnerScroll
+                    sx={{
+                      direction: "rtl",
+                      height: 'calc(100% - 75px)'
+                    }}
+                  >
+                    <Box
+                      className="step-1"
+                      sx={{
+                        display: "flex",
+                        width: "100%",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        direction: "ltr",
+                      }}
+                    >
+                      <ShowMessageV2
+                        isOpen={isOpen}
+                        setIsOpen={setIsOpen}
+                        message={message}
+                        setReplyTo={setReplyTo}
+                        setForwardInfo={setForwardInfo}
+                        alias={selectedAlias}
+                      />
+                    </Box>
+                  </MailBodyInnerScroll>
                 </Box>
-              </MailBodyInnerScroll>
-            </>
-          </MailBodyInner>
-        </MailBody>
+              )}
+                {selectedAlias && (
+                        <AliasMail
+                          value={selectedAlias}
+                          onOpen={openMessage}
+                          messageOpenedId={message?.id}
+                        />
+                      )}
+                      {mailInfo && isShow && (
+                        <OpenMail
+                          open={isShow}
+                          handleClose={onOk}
+                          fileInfo={mailInfo}
+                        />
+                      )}
+
+              {mobileMode === "inbox" && (
+                <MailBodyInner
+                  sx={{
+                    width: "100%",
+                  }}
+                >
+                  <Spacer height="15px" />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: "20px",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <ButtonBase
+                      onClick={() => {
+                        setMobileMode("inbox");
+                      }}
+                      sx={{
+                        height: '40px'
+                      }}
+                    >
+                      <MailBodyInnerHeader sx={{
+                        marginTop: '0px',
+                        marginBottom: '0px',
+                        outline: '1px solid white',
+                        padding: '4px 8px',
+                        borderRadius: '5px',
+                        height: '100%'
+                      }}>
+                        <MailIconImg src={MailSVG} />
+                        <ComposeP>Inbox</ComposeP>
+                      </MailBodyInnerHeader>
+                    </ButtonBase>
+                    <ButtonBase
+                      onClick={() => {
+                        setMobileMode("sent");
+                      }}
+                      sx={{
+                        height: '40px'
+                      }}
+                    >
+                      <MailBodyInnerHeader sx={{
+                        marginTop: '0px',
+                        marginBottom: '0px',
+                        outline:  'none',
+                        padding: '4px 8px',
+                        borderRadius: '5px',
+                        height: '100%'
+                      }}>
+                        <MailIconImg src={SendSVG} />
+                        <ComposeP>Sent</ComposeP>
+                      </MailBodyInnerHeader>
+                    </ButtonBase>
+                  </Box>
+                  <Spacer height="15px" />
+
+                  <MailBodyInnerScroll
+                    sx={{
+                      borderRight: "1px solid rgba(85, 84, 84, 0.4)",
+                      height: 'calc(100% - 75px)'
+                    }}
+                  >
+                    <Box
+                      className="step-1"
+                      sx={{
+                        display: "flex",
+                        width: "100%",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      {!selectedAlias && (
+                        <MessagesContainer>
+                          {fullMailMessages.map(item => {
+                            return (
+                              <MailMessageRow
+                                messageData={item}
+                                openMessage={openMessage}
+                                isOpen={message?.id === item?.id}
+                              />
+                            );
+                          })}
+                          <LazyLoad onLoadMore={getMessages}></LazyLoad>
+                          {isLoading && (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                width: "100%",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <CircularProgress />
+                            </Box>
+                          )}
+                        </MessagesContainer>
+                      )}
+
+                    
+                    </Box>
+                  </MailBodyInnerScroll>
+                </MailBodyInner>
+              )}
+
+              {mobileMode === "sent" && (
+                <MailBodyInner
+                  sx={{
+                    width: "100%",
+                  }}
+                >
+                  <>
+                  <Spacer height="15px" />
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: "20px",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <ButtonBase
+                        onClick={() => {
+                          setMobileMode("inbox");
+                        }}
+                        sx={{
+                          height: '40px'
+                        }}
+                      >
+                       <MailBodyInnerHeader sx={{
+                        marginTop: '0px',
+                        marginBottom: '0px',
+                        outline:  'none',
+                        padding: '4px 8px',
+                        borderRadius: '5px',
+                        height: '100%'
+                      }}>
+                          <MailIconImg src={MailSVG} />
+                          <ComposeP>Inbox</ComposeP>
+                        </MailBodyInnerHeader>
+                      </ButtonBase>
+                      <ButtonBase
+                        onClick={() => {
+                          setMobileMode("sent");
+                        }}
+
+                        sx={{
+                          height: '40px'
+                        }}
+                      >
+                         <MailBodyInnerHeader sx={{
+                        marginTop: '0px',
+                        marginBottom: '0px',
+                        outline: '1px solid white',
+                        padding: '4px 8px',
+                        borderRadius: '5px',
+                        height: '100%'
+                      }}>
+                          <MailIconImg src={SendSVG} />
+                          <ComposeP>Sent</ComposeP>
+                        </MailBodyInnerHeader>
+                      </ButtonBase>
+                    </Box>
+                    <Spacer height="15px" />
+                    <MailBodyInnerScroll
+                      sx={{
+                        direction: "rtl",
+                        display: isOpen && message ? "none" : "flex",
+                        height: 'calc(100% - 75px)'
+                      }}
+                    >
+                      <Box
+                        className="step-1"
+                        sx={{
+                          display: "flex",
+                          width: "100%",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          direction: "ltr",
+                        }}
+                      >
+                        <SentMail onOpen={openMessage} />
+                      </Box>
+                    </MailBodyInnerScroll>
+                  </>
+                </MailBodyInner>
+              )}
+            </MailBody>
+          )}
+        </>
       )}
     </MailContainer>
   );
