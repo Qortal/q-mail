@@ -1,4 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+import {
+  getAccountNames,
+  getPrimaryAccountName,
+  NameRecord,
+} from "../utils/qortalRequestFunctions";
 import { useDispatch, useSelector } from "react-redux";
 
 import { addUser } from "../state/features/authSlice";
@@ -12,7 +17,7 @@ import ConsentModal from "../components/modals/ConsentModal";
 import { AudioPlayer } from "../components/common/AudioPlayer";
 import { setPrivateGroups } from "../state/features/globalSlice";
 import { LoaderBar } from "../components/common/LoaderBar";
-import { addAllHashMapSubject } from "../state/features/mailSlice";
+import { addAllHashMapSubject, clearMessages } from "../state/features/mailSlice";
 interface Props {
   children: React.ReactNode;
 }
@@ -62,22 +67,21 @@ const GlobalWrapper: React.FC<Props> = ({ children }) => {
     }
   };
 
+  const switchActiveName = React.useCallback(
+    async (newName: string) => {
+      if (!user) return;
+      dispatch(addUser({ ...user, name: newName }));
+      getLocalSubjects(newName);
+    },
+    [user]
+  );
+
   const isLoadingGlobal = useSelector(
     (state: RootState) => state.global.isLoadingGlobal
   );
   const isLoadingCustom = useSelector(
     (state: RootState) => state.global.isLoadingCustom
   );
-  async function getNameInfo(address: string) {
-    const response = await fetch("/names/address/" + address);
-    const nameData = await response.json();
-
-    if (nameData?.length > 0) {
-      return nameData[0].name;
-    } else {
-      return "";
-    }
-  }
 
   const privateGroupsRef = React.useRef<any>({});
 
@@ -245,12 +249,13 @@ const GlobalWrapper: React.FC<Props> = ({ children }) => {
         action: "GET_USER_ACCOUNT",
       });
 
-      const name = await getNameInfo(account.address);
-      dispatch(addUser({ ...account, name }));
+      const names = await getAccountNames(account.address);
+      const primary = await getPrimaryAccountName(account.address);
+      dispatch(addUser({ ...account, name: primary, names }));
       getGroups(account.address);
       checkGroupMembers(account.address);
-      if (name) {
-        getLocalSubjects(name);
+      if (primary) {
+        getLocalSubjects(primary);
       }
     } catch (error) {
       console.error(error);
@@ -268,6 +273,11 @@ const GlobalWrapper: React.FC<Props> = ({ children }) => {
       <NavBar
         isAuthenticated={!!user}
         userName={user?.name || ""}
+        accountNames={user?.names || []}
+        setActiveName={(name: string) => {
+          dispatch(clearMessages());
+          dispatch(addUser({ ...user, name }));
+        }}
         userAvatar={userAvatar}
         authenticate={askForAccountInformation}
       />

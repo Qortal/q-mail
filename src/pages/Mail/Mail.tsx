@@ -46,6 +46,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { useFetchMail } from "../../hooks/useFetchMail";
 import { ShowMessage } from "./ShowMessage";
+import { clearMessages } from '../../state/features/mailSlice'
 
 import SimpleTable from "./MailTable";
 import { AliasMail } from "./AliasMail";
@@ -364,12 +365,16 @@ export const Mail = ({ isFromTo }: MailProps) => {
   };
 
   const firstMount = useRef(false);
+  const prevName = useRef<string>();
   useEffect(() => {
-    if (user?.name && !firstMount.current) {
+    if (!user?.name) return;
+    if (!firstMount.current || prevName.current !== user.name) {
+      dispatch(clearMessages());
       getMessages(true);
       firstMount.current = true;
     }
-  }, [user]);
+    prevName.current = user.name;
+  }, [user?.name]);
 
   function a11yProps(index: number) {
     return {

@@ -202,6 +202,10 @@ export const mailSlice = createSlice({
       const subject = action.payload
       state.hashMapSavedSubjects[subject.id] = subject
     },
+    clearMessages: (state) => {
+      state.mailMessages = [];
+      state.hashMapMailMessages = {};
+    },
     updateInHashMap: (state, action) => {
       const { id } = action.payload
       const post = action.payload
@@ -359,7 +363,8 @@ export const {
   addToHashMapMail,
   upsertMessagesBeginning,
   addAllHashMapSubject,
-  addToHashMapSubject
+  addToHashMapSubject,
+  clearMessages
 } = mailSlice.actions
 
 export default mailSlice.reducer

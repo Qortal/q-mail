@@ -19,7 +19,7 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import { useFetchMail } from '../../hooks/useFetchMail'
 import { ShowMessage } from './ShowMessage'
-import { addToHashMapMail } from '../../state/features/mailSlice'
+import { addToHashMapMail, clearMessages } from '../../state/features/mailSlice'
 import {
   setIsLoadingGlobal,
   setUserAvatarHash
@@ -269,6 +269,7 @@ export const AliasMail = ({ value, onOpen, messageOpenedId}: AliasMailProps) => 
   const firstMount = useRef<null | string>(null)
   useEffect(() => {
     if (user?.name && (!firstMount.current || firstMount.current !== value)) {
+      dispatch(clearMessages());
       setMailMessages([])
       setTimeout(() => {
         getMessages()

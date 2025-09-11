@@ -33,13 +33,17 @@ interface Props {
   userName: string | null
   userAvatar: string
   authenticate: () => void
+  accountNames: { name: string }[]
+  setActiveName: (name: string) => void
 }
 
 const NavBar: React.FC<Props> = ({
   isAuthenticated,
   userName,
   userAvatar,
-  authenticate
+  authenticate,
+  accountNames,
+  setActiveName
 }) => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -134,6 +138,21 @@ const NavBar: React.FC<Props> = ({
               horizontal: 'left'
             }}
           >
+            {accountNames
+              .filter(n => n.name)
+              .map(n => (
+                <DropdownContainer
+                  key={n.name}
+                  onClick={() => {
+                    setActiveName(n.name)
+                    handleClose()
+                  }}
+                >
+                  <DropdownText>
+                    {n.name === userName ? "✔︎ " : ""}{n.name}
+                  </DropdownText>
+                </DropdownContainer>
+              ))}
             <DropdownContainer
               onClick={() => {
                 setIsOpenModal(true)
