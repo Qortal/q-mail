@@ -112,9 +112,8 @@ export const DownloadTaskManager: React.FC = () => {
         >
           <Typography
             sx={{
-              fontFamily: 'Arial',
               color: theme.palette.text.primary,
-              fontSize: '14px'
+              fontSize: '0.875rem'
             }}
           >
             Downloads
@@ -204,7 +203,6 @@ export const DownloadTaskManager: React.FC = () => {
                       </Box>
                       <Typography
                         sx={{
-                          fontFamily: 'Arial',
                           color: theme.palette.text.primary
                         }}
                         variant="caption"
@@ -216,10 +214,9 @@ export const DownloadTaskManager: React.FC = () => {
                     </Box>
                     <Typography
                       sx={{
-                        fontSize: '10px',
+                        fontSize: '0.625rem',
                         width: '100%',
                         textAlign: 'end',
-                        fontFamily: 'Arial',
                         color: theme.palette.text.primary
                       }}
                     >
@@ -274,7 +271,7 @@ export const DownloadTaskManager: React.FC = () => {
                 <ListItemText
                   primary={downloadObj?.identifier}
                   sx={{
-                    fontSize: '14px',
+                    fontSize: '0.875rem',
                     width: '100%',
                     textAlign: 'end'
                   }}

@@ -1,14 +1,12 @@
 import { createTheme } from '@mui/material/styles'
 
+
+// Extend the Theme interface
+
 const commonThemeOptions = {
   typography: {
     fontFamily: [
-      'CambonLight',
-      'Raleway, sans-serif',
-      'Oxygen',
-      'Catamaran',
-      'Cairo',
-      'Arial'
+      "var(--qapp-font-sans, 'Lexend', sans-serif)"
     ].join(','),
     h1: {
       fontSize: '2rem',
@@ -35,16 +33,14 @@ const commonThemeOptions = {
       fontWeight: 500
     },
     body1: {
-      fontSize: '23px',
-      fontFamily: 'Raleway',
+      fontSize: '1rem',
       fontWeight: 400,
       lineHeight: 1.5,
       letterSpacing: '0.5px'
     },
 
     body2: {
-      fontSize: '18px',
-      fontFamily: 'Raleway, Arial',
+      fontSize: '0.875rem',
       fontWeight: 400,
       lineHeight: 1.4,
       letterSpacing: '0.2px'
@@ -95,34 +91,34 @@ const lightTheme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#f4f4fb',
-      dark: '#eaecf4',
-      light: '#f9f9fd'
+      main: '#dce9ff',
+      dark: '#c6dcff',
+      light: '#eff5ff'
     },
     secondary: {
-      main: '#1EAAF1'
+      main: '#1b74c2'
     },
     background: {
-      default: '#fafafa',
-      paper: '#f0f0f0'
+      default: '#e7f0ff',
+      paper: '#f3f8ff'
     },
     text: {
-      primary: '#000000',
-      secondary: '#525252'
+      primary: '#132744',
+      secondary: '#3f5678'
     }
   },
+
   components: {
     MuiCard: {
       styleOverrides: {
         root: {
           boxShadow:
-            'rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;',
+            '0 8px 24px rgba(21, 43, 72, 0.09)',
           borderRadius: '8px',
           transition: 'all 0.3s ease-in-out',
           '&:hover': {
             cursor: 'pointer',
-            boxShadow:
-              'rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;'
+            boxShadow: '0 12px 26px rgba(21, 43, 72, 0.13)'
           }
         }
       }
@@ -130,7 +126,7 @@ const lightTheme = createTheme({
     MuiIcon: {
       defaultProps: {
         style: {
-          color: '#000000'
+          color: '#132744'
         }
       }
     }
@@ -142,34 +138,33 @@ const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#2e3d60',
-      dark: "#1a2744",
-      light: "#3f4b66",
+      main: '#15233b',
+      dark: '#0f1a31',
+      light: '#22385a'
     },
     secondary: {
-      main: '#45adff'
+      main: '#39afff'
     },
 
     background: {
-      default: '#313338',
-      paper: "#1e1e20"
+      default: '#0b1220',
+      paper: '#131f35'
     },
     text: {
-      primary: '#ffffff',
-      secondary: '#b3b3b3'
+      primary: '#e9f2ff',
+      secondary: '#a8bfdc'
     }
   },
   components: {
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: "none",
+          boxShadow: '0 12px 30px rgba(0, 0, 0, 0.34)',
           borderRadius: '8px',
           transition: 'all 0.3s ease-in-out',
           '&:hover': {
             cursor: 'pointer',
-            boxShadow:
-              ' 0px 3px 4px 0px hsla(0,0%,0%,0.14), 0px 3px 3px -2px hsla(0,0%,0%,0.12), 0px 1px 8px 0px hsla(0,0%,0%,0.2);'
+            boxShadow: '0 14px 34px rgba(0, 0, 0, 0.42)'
           }
         }
       }
@@ -177,7 +172,7 @@ const darkTheme = createTheme({
     MuiIcon: {
       defaultProps: {
         style: {
-          color: '#ffffff'
+          color: '#e9f2ff'
         }
       }
     }

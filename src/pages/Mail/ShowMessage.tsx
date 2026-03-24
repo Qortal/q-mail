@@ -20,8 +20,10 @@ import {
 import ReadOnlySlate from '../../components/editor/ReadOnlySlate'
 import MailThread from './MailThread'
 import { AvatarWrapper } from './MailTable'
-import { formatTimestamp } from '../../utils/time'
+import { formatFullTimestamp } from '../../utils/time'
 import FileElement from '../../components/FileElement'
+import MailThreadWithoutCalling from './MailThreadWithoutCalling'
+import { DisplayHtml } from '../../components/common/TextEditor/DisplayHtml'
 const initialValue: Descendant[] = [
   {
     type: 'paragraph',
@@ -141,6 +143,13 @@ export const ShowMessage = ({
                 otherUser={message?.user}
               />
             )}
+
+            {message?.generalData?.threadV2 && (
+              <MailThreadWithoutCalling
+              thread={message?.generalData?.threadV2}
+              
+            />
+            )}
           <Box
             sx={{
               display: 'flex',
@@ -160,7 +169,7 @@ export const ShowMessage = ({
               <AvatarWrapper user={message?.user} />
               <Typography
                 sx={{
-                  fontSize: '16px'
+                  fontSize: '1rem'
                 }}
               >
                 {message?.user}
@@ -175,17 +184,17 @@ export const ShowMessage = ({
             >
               <Typography
                 sx={{
-                  fontSize: '16px'
+                  fontSize: '1rem'
                 }}
               >
                 {message?.subject}
               </Typography>
               <Typography
                 sx={{
-                  fontSize: '16px'
+                  fontSize: '1rem'
                 }}
               >
-                {formatTimestamp(message?.createdAt)}
+                {formatFullTimestamp(message?.createdAt)}
               </Typography>
             </Box>
           </Box>
@@ -216,7 +225,7 @@ export const ShowMessage = ({
                       }}
                     >
                       <FileElement
-                        fileInfo={file}
+                        fileInfo={{...file, mimeTypeSaved: file?.type}}
                         title={file?.filename}
                         mode="mail"
                         otherUser={message?.user}
@@ -229,7 +238,7 @@ export const ShowMessage = ({
                         ></AttachFileIcon>
                         <Typography
                           sx={{
-                            fontSize: '16px'
+                            fontSize: '1rem'
                           }}
                         >
                           {file?.originalFilename || file?.filename}
@@ -244,6 +253,9 @@ export const ShowMessage = ({
 
           {message?.textContent && (
             <ReadOnlySlate content={message.textContent} mode="mail" />
+          )}
+          {message?.textContentV2 && (
+              <DisplayHtml html={message?.textContentV2} />
           )}
           {message?.htmlContent && (
             <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />

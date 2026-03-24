@@ -20,7 +20,7 @@ import {
 import ReadOnlySlate from '../../components/editor/ReadOnlySlate'
 import MailThread from './MailThread'
 import { AvatarWrapper } from './MailTable'
-import { formatTimestamp } from '../../utils/time'
+import { formatFullTimestamp } from '../../utils/time'
 import FileElement from '../../components/FileElement'
 const initialValue: Descendant[] = [
   {
@@ -80,7 +80,7 @@ export const ShowChatMessage = ({ message }: any) => {
             <AvatarWrapper user={message?.senderName} />
             <Typography
               sx={{
-                fontSize: '16px'
+                fontSize: '1rem'
               }}
             >
               {message?.senderName}
@@ -95,10 +95,10 @@ export const ShowChatMessage = ({ message }: any) => {
           >
             <Typography
               sx={{
-                fontSize: '16px'
+                fontSize: '1rem'
               }}
             >
-              {formatTimestamp(message?.timestamp)}
+              {formatFullTimestamp(message?.timestamp)}
             </Typography>
           </Box>
         </Box>

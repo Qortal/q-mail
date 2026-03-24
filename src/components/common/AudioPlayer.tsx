@@ -147,7 +147,7 @@ export const AudioPlayer: React.FC<VideoPlayerProps> = ({ currAudio }) => {
       >
         <Typography
           sx={{
-            fontSize: '10px'
+            fontSize: '0.625rem'
           }}
         >
           Loading playlist...

@@ -8,7 +8,8 @@ import {
 } from '@mui/material'
 
 export const CustomAppBar = styled(AppBar)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === "light" ? theme.palette.background.default : "#19191b",
+  backgroundColor: "var(--qmail-shell-top-bg)",
+  borderBottom: "1px solid var(--qmail-shell-border)",
   color: theme.palette.text.primary
 }))
 
@@ -20,8 +21,8 @@ export const CustomToolbar = styled(Toolbar)({
 
 export const CustomTitle = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.primary,
-  fontFamily: 'Raleway, Arial',
-  fontSize: '18px'
+  fontFamily: "var(--qapp-font-sans, 'Lexend', sans-serif)",
+  fontSize: '1.125rem'
 }))
 
 export const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -44,8 +45,8 @@ export const StyledMenuItem = styled(MenuItem)(({ theme }) => ({
   maxWidth: '300px',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  fontSize: "16px",
-  fontFamily: "Arial",
+  fontSize: "1rem",
+  fontFamily: "var(--qapp-font-sans, 'Lexend', sans-serif)",
   padding: "12px 10px",
   transition: "all 0.3s ease-in-out",
   "&:hover": {

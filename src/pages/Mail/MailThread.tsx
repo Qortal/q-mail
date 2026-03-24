@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography'
 import { Box, CircularProgress } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
-import { formatTimestamp } from '../../utils/time'
+import { formatFullTimestamp } from '../../utils/time'
 import ReadOnlySlate from '../../components/editor/ReadOnlySlate'
 import { fetchAndEvaluateMail } from '../../utils/fetchMail'
 import { addToHashMapMail } from '../../state/features/mailSlice'
@@ -37,10 +37,7 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
     {...props}
   />
 ))(({ theme }) => ({
-  backgroundColor:
-    theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, .05)'
-      : 'rgba(0, 0, 0, .03)',
+  backgroundColor: 'var(--qmail-thread-summary-bg)',
   flexDirection: 'row-reverse',
   '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
     transform: 'rotate(90deg)'
@@ -52,7 +49,7 @@ const AccordionSummary = styled((props: AccordionSummaryProps) => (
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
   padding: theme.spacing(2),
-  borderTop: '1px solid rgba(0, 0, 0, .125)'
+  borderTop: '1px solid var(--qmail-thread-divider)'
 }))
 
 interface IThread {
@@ -88,8 +85,22 @@ export default function MailThread({
         if (existingMessage) {
         } else {
           try {
-            const query = msgId?.identifier
-            const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${query}&limit=20&includemetadata=true&offset=0&reverse=true&excludeblocked=true&name=${msgId?.name}&exactmatchnames=true&`
+            const query = msgId?.identifier || ''
+            const params = new URLSearchParams({
+              mode: 'ALL',
+              service: MAIL_SERVICE_TYPE,
+              query,
+              limit: '20',
+              includemetadata: 'true',
+              offset: '0',
+              reverse: 'true',
+              excludeblocked: 'true',
+              exactmatchnames: 'true'
+            })
+            if (msgId?.name) {
+              params.set('name', msgId.name)
+            }
+            const url = `/arbitrary/resources/search?${params.toString()}`
             const response = await fetch(url, {
               method: 'GET',
               headers: {
@@ -151,7 +162,7 @@ export default function MailThread({
               aria-controls="panel1d-content"
               id="panel1d-header"
               sx={{
-                fontSize: '16px',
+                fontSize: '1rem',
                 height: '36px'
               }}
             >
@@ -173,7 +184,7 @@ export default function MailThread({
                   <AvatarWrapper user={findMessage?.user} />
                   <Typography
                     sx={{
-                      fontSize: '16px'
+                      fontSize: '1rem'
                     }}
                   >
                     {findMessage?.user}
@@ -188,10 +199,10 @@ export default function MailThread({
                 >
                   <Typography
                     sx={{
-                      fontSize: '16px'
+                      fontSize: '1rem'
                     }}
                   >
-                    {formatTimestamp(findMessage?.createdAt)}
+                    {formatFullTimestamp(findMessage?.createdAt)}
                   </Typography>
                 </Box>
               </Box>
@@ -226,7 +237,7 @@ export default function MailThread({
                             }}
                           >
                             <FileElement
-                              fileInfo={file}
+                            fileInfo={{...file, mimeTypeSaved: file?.type}}
                               title={file?.filename}
                               mode="mail"
                               otherUser={otherUser}
@@ -239,7 +250,7 @@ export default function MailThread({
                               ></AttachFileIcon>
                               <Typography
                                 sx={{
-                                  fontSize: '16px'
+                                  fontSize: '1rem'
                                 }}
                               >
                                 {file?.originalFilename || file?.filename}

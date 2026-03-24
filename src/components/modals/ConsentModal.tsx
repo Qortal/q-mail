@@ -55,8 +55,7 @@ export default function ConsentModal() {
           <Button
             sx={{
               backgroundColor: theme.palette.primary.light,
-              color: theme.palette.text.primary,
-              fontFamily: 'Arial'
+              color: theme.palette.text.primary
             }}
             onClick={handleClose}
             autoFocus

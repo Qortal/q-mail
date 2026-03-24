@@ -37,6 +37,9 @@ interface QortalRequestOptions {
   before?: number
   groupId?: string | number
   message?: string
+  query?: string
+  prefix?: boolean
+  qortalLink?: string
 }
 
 declare function qortalRequest(options: QortalRequestOptions): Promise<any>
@@ -59,3 +62,5 @@ declare global {
     ) => Promise<FileSystemFileHandle>
   }
 }
+
+declare module 'quill-image-resize-module-react' {}

@@ -62,7 +62,7 @@ const Notification = () => {
         draggable
         pauseOnHover
         theme="light"
-        toastStyle={{ fontSize: '16px' }}
+        toastStyle={{ fontSize: '1rem' }}
         transition={Slide}
       />
     )

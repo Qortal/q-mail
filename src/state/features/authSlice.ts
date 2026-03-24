@@ -1,13 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+export interface NameRecord {
+  name: string;
+  owner: string;
+}
+
+interface User {
+  address: string;
+  publicKey: string;
+  name?: string;
+  names?: NameRecord[];
+}
 
 interface AuthState {
-  user: {
-    address: string;
-    publicKey: string;
-    name?: string;
-  } | null;
+  user: User | null;
 }
+
 const initialState: AuthState = {
   user: null
 };

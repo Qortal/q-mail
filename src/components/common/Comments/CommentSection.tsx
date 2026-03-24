@@ -69,9 +69,18 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
       if (isNewMessages && numberOfComments) {
         offset = numberOfComments
       }
-      const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_COMMENT&query=qcomment_v1_qblog_${postId.slice(
-        -12
-      )}&limit=20&includemetadata=true&offset=${offset}&reverse=false&excludeblocked=true`
+      const query = `qcomment_v1_qblog_${postId.slice(-12)}`
+      const params = new URLSearchParams({
+        mode: 'ALL',
+        service: 'BLOG_COMMENT',
+        query,
+        limit: '20',
+        includemetadata: 'true',
+        offset: String(offset),
+        reverse: 'false',
+        excludeblocked: 'true'
+      })
+      const url = `/arbitrary/resources/search?${params.toString()}`
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -82,7 +91,9 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
       let comments: any[] = []
       for (const comment of responseData) {
         if (comment.identifier && comment.name) {
-          const url = `/arbitrary/BLOG_COMMENT/${comment.name}/${comment.identifier}`
+          const url = `/arbitrary/BLOG_COMMENT/${encodeURIComponent(
+            comment.name
+          )}/${encodeURIComponent(comment.identifier)}`
           const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -136,9 +147,18 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
   const checkNewComments = useCallback(async () => {
     try {
       const offset = listComments.length
-      const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_COMMENT&query=qcomment_v1_qblog_${postId.slice(
-        -12
-      )}&limit=20&includemetadata=true&offset=${offset}&reverse=false&excludeblocked=true`
+      const query = `qcomment_v1_qblog_${postId.slice(-12)}`
+      const params = new URLSearchParams({
+        mode: 'ALL',
+        service: 'BLOG_COMMENT',
+        query,
+        limit: '20',
+        includemetadata: 'true',
+        offset: String(offset),
+        reverse: 'false',
+        excludeblocked: 'true'
+      })
+      const url = `/arbitrary/resources/search?${params.toString()}`
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -188,7 +208,7 @@ export const CommentSection = ({ postId }: CommentSectionProps) => {
         {listComments?.length > 0 && (
           <Box
             sx={{
-              fontSize: '12px',
+              fontSize: '0.75rem',
               background: theme.palette.mode === 'dark' ? 'white' : 'black',
               color: theme.palette.mode === 'dark' ? 'black' : 'white',
               borderRadius: '50%',

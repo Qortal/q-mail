@@ -1,31 +1,19 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 
-import { addUser } from '../state/features/authSlice'
-import ShortUniqueId from 'short-unique-id'
-import { RootState } from '../state/store'
-import PublishBlogModal from '../components/modals/PublishBlogModal'
-import EditBlogModal from '../components/modals/EditBlogModal'
 
 import {
   setAddToDownloads,
-  setCurrentBlog,
-  setIsLoadingGlobal,
-  toggleEditBlogModal,
-  togglePublishBlogModal,
   updateDownloads
 } from '../state/features/globalSlice'
 
-import { useFetchPosts } from '../hooks/useFetchPosts'
-import { setNotification } from '../state/features/notificationsSlice'
 import { DownloadTaskManager } from '../components/common/DownloadTaskManager'
+import { RootState } from '../state/store'
 
 interface Props {
   children: React.ReactNode
 }
 
-const uid = new ShortUniqueId()
 
 const defaultValues: MyContextInterface = {
   downloadVideo: () => {}
@@ -34,48 +22,24 @@ interface IDownloadVideoParams {
   name: string
   service: string
   identifier: string
-  blogPost: any
+  properties?: any
+  blogPost?: any
 }
 interface MyContextInterface {
   downloadVideo: ({
     name,
     service,
     identifier,
+    properties,
     blogPost
   }: IDownloadVideoParams) => void
 }
 export const MyContext = React.createContext<MyContextInterface>(defaultValues)
 
 const DownloadWrapper: React.FC<Props> = ({ children }) => {
-  const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { user } = useSelector((state: RootState) => state.auth)
-  const { audios, currAudio } = useSelector((state: RootState) => state.global)
-  const { getBlogPosts } = useFetchPosts()
-  const { downloads, currentBlog, isLoadingGlobal, isOpenEditBlogModal } =
-    useSelector((state: RootState) => state.global)
+  const downloads  = useSelector((state: RootState) => state.global?.downloads);
 
-  const addToPile = async ({
-    name,
-    service,
-    identifier,
-    blogPost
-  }: IDownloadVideoParams) => {
-    try {
-      const res = await qortalRequest({
-        action: 'GET_QDN_RESOURCE_STATUS',
-        name: name,
-        service: service,
-        identifier: identifier
-      })
-      if (
-        res?.status === 'READY' ||
-        (res.percentLoaded > 75 && res.totalChunkCount < 100)
-      ) {
-        return false
-      }
-    } catch (error) {}
-  }
 
   const fetchResource = async ({ name, service, identifier }: any) => {
     try {
@@ -114,21 +78,23 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
     name,
     service,
     identifier,
+    properties,
     blogPost
   }: IDownloadVideoParams) => {
+    if(downloads[identifier]) return
+    const resourceProperties = properties ?? blogPost ?? {}
     dispatch(
       setAddToDownloads({
         name,
         service,
         identifier,
-        blogPost
+        properties: resourceProperties
       })
     )
 
-    const url = `/arbitrary/${service}/${name}/${identifier}`
     let isCalling = false
     let percentLoaded = 0
-    let timer = 25
+    let timer = 24
     const intervalId = setInterval(async () => {
       if (isCalling) return
       isCalling = true
@@ -138,6 +104,17 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
         service: service,
         identifier: identifier
       })
+      if(res?.status === 'NOT_PUBLISHED'){
+        dispatch(
+          updateDownloads({
+            name,
+            service,
+            identifier,
+            status: res
+          })
+        )
+        clearInterval(intervalId)
+      }
       isCalling = false
       if (res.localChunkCount) {
         if (res.percentLoaded) {
@@ -145,12 +122,12 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
             res.percentLoaded === percentLoaded &&
             res.percentLoaded !== 100
           ) {
-            timer = timer - 3
+            timer = timer - 5
           } else {
-            timer = 25
+            timer = 24
           }
           if (timer < 0) {
-            timer = 25
+            timer = 24
             isCalling = true
             dispatch(
               updateDownloads({
@@ -170,7 +147,7 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
                 service,
                 identifier
               })
-            }, 120000)
+            }, 25000)
             return
           }
           percentLoaded = res.percentLoaded
@@ -197,21 +174,30 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
           })
         )
       }
-    }, 3000) // 1 second interval
+      if (res?.status === 'MISSING_DATA') {
+        dispatch(
+          updateDownloads({
+            name,
+            service,
+            identifier,
+            status: res
+          })
+        )
+      }
+    }, 5000) // 1 second interval
 
     fetchVideoUrl({
       name,
       service,
       identifier
     })
- 
   }
 
   const downloadVideo = async ({
     name,
     service,
     identifier,
-    blogPost
+    properties
   }: IDownloadVideoParams) => {
     try {
 
@@ -220,7 +206,7 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
         name,
         service,
         identifier,
-        blogPost
+        properties
       })
       return 'addedToList'
     } catch (error) {
@@ -231,7 +217,7 @@ const DownloadWrapper: React.FC<Props> = ({ children }) => {
   return (
     <>
       <MyContext.Provider value={{ downloadVideo }}>
-        <DownloadTaskManager />
+        {/* <DownloadTaskManager /> */}
         {children}
       </MyContext.Provider>
     </>
