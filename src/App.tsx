@@ -1,5 +1,6 @@
 // @ts-nocheck
 
+import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
 import { ThemeProvider } from '@mui/material/styles'
@@ -12,15 +13,38 @@ import DownloadWrapper from './wrappers/DownloadWrapper'
 import Notification from './components/common/Notification/Notification'
 import { Mail } from './pages/Mail/Mail'
 
+type ThemeMode = 'light' | 'dark'
+
+const normalizeTheme = (value?: string | null): ThemeMode | null => {
+  if (!value) return null
+  const theme = String(value).toLowerCase()
+  return theme === 'light' || theme === 'dark' ? (theme as ThemeMode) : null
+}
+
+const getInitialTheme = (): ThemeMode => {
+  const qdnTheme = normalizeTheme(window?._qdnTheme)
+  if (qdnTheme) return qdnTheme
+
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const queryTheme = normalizeTheme(params.get('theme'))
+    if (queryTheme) return queryTheme
+  } catch {
+    /* ignore */
+  }
+
+  return 'dark'
+}
+
 function App() {
-  const themeColor = window._qdnTheme
+  const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme())
 
   return (
     <Provider store={store}>
-      <ThemeProvider theme={darkTheme}>
+      <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
         <Notification />
         <DownloadWrapper>
-          <GlobalWrapper>
+          <GlobalWrapper setTheme={setTheme}>
             <CssBaseline />
 
             <Routes>

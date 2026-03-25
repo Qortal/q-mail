@@ -44,7 +44,6 @@ export const ChatInput = ({ onSendMessage }: any) => {
         value={message}
         onChange={handleInputChange}
         placeholder="Type a message..."
-        inputProps={{ style: { fontFamily: 'system-ui' } }} // Using system font
         multiline
         onKeyDown={handleKeyDown}
       />

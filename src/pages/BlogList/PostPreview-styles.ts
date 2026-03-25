@@ -81,19 +81,19 @@ export const TitleText = styled(Typography)({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   width: '100%',
-  fontFamily: 'Cairo, sans-serif',
-  fontSize: '22px',
+  fontFamily: "var(--qapp-font-sans, 'Lexend', sans-serif)",
+  fontSize: '1.375rem',
   lineHeight: '1.2'
 })
 
 export const AuthorText = styled(Typography)({
-  fontFamily: 'Raleway, sans-serif',
-  fontSize: '16px',
+  fontFamily: "var(--qapp-font-sans, 'Lexend', sans-serif)",
+  fontSize: '1rem',
   lineHeight: '1.2'
 })
 export const AuthorTextComment = styled(Typography)({
-  fontFamily: 'Raleway, sans-serif',
-  fontSize: '16px',
+  fontFamily: "var(--qapp-font-sans, 'Lexend', sans-serif)",
+  fontSize: '1rem',
   lineHeight: '1.2'
 })
 export const IconsBox = styled(Box)({

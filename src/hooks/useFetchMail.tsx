@@ -101,7 +101,8 @@ export const useFetchMail = () => {
           0,
           20
         )}_${recipientAddress.slice(-6)}_mail_`
-        const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${query}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
+        const encodedQuery = encodeURIComponent(query)
+        const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${encodedQuery}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -256,17 +257,85 @@ export const useFetchMail = () => {
       )
     } catch (error) {}
   }
+
+  const mapMailResources = (resources: any[]): BlogPost[] => {
+    return resources.map((post: any): BlogPost => {
+      return {
+        title: post?.metadata?.title,
+        category: post?.metadata?.category,
+        categoryName: post?.metadata?.categoryName,
+        tags: post?.metadata?.tags || [],
+        description: post?.metadata?.description,
+        createdAt: post?.created,
+        updated: post?.updated,
+        user: post.name,
+        id: post.identifier
+      }
+    })
+  }
+
+  const getAllMailMessages = React.useCallback(
+    async (recipientName: string, recipientAddress: string) => {
+      try {
+        const query = `qortal_qmail_${recipientName.slice(
+          0,
+          20
+        )}_${recipientAddress.slice(-6)}_mail_`
+        const encodedQuery = encodeURIComponent(query)
+        const pageSize = 200
+        let offset = 0
+        let hasMore = true
+        const allMessages: BlogPost[] = []
+
+        while (hasMore) {
+          const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${encodedQuery}&limit=${pageSize}&includemetadata=false&offset=${offset}&reverse=true&excludeblocked=true`
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          const responseData = await response.json()
+          if (!Array.isArray(responseData) || responseData.length === 0) {
+            break
+          }
+
+          const structureData = mapMailResources(responseData)
+          allMessages.push(...structureData)
+
+          if (responseData.length < pageSize) {
+            hasMore = false
+          } else {
+            offset += responseData.length
+          }
+        }
+
+        dispatch(upsertMessages(allMessages))
+
+        for (const content of allMessages) {
+          if (content.user && content.id) {
+            getAvatar(content.user)
+          }
+        }
+      } catch (error) {
+      } finally {
+      }
+    },
+    [dispatch]
+  )
+
   const getMailMessages = React.useCallback(
     async (recipientName: string, recipientAddress: string) => {
       try {
         const offset = mailMessages.length
 
-        dispatch(setIsLoadingGlobal(true))
+        // dispatch(setIsLoadingGlobal(true))
         const query = `qortal_qmail_${recipientName.slice(
           0,
           20
         )}_${recipientAddress.slice(-6)}_mail_`
-        const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${query}&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true`
+        const encodedQuery = encodeURIComponent(query)
+        const url = `/arbitrary/resources/search?mode=ALL&service=${MAIL_SERVICE_TYPE}&query=${encodedQuery}&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -274,19 +343,7 @@ export const useFetchMail = () => {
           }
         })
         const responseData = await response.json()
-        const structureData = responseData.map((post: any): BlogPost => {
-          return {
-            title: post?.metadata?.title,
-            category: post?.metadata?.category,
-            categoryName: post?.metadata?.categoryName,
-            tags: post?.metadata?.tags || [],
-            description: post?.metadata?.description,
-            createdAt: post?.created,
-            updated: post?.updated,
-            user: post.name,
-            id: post.identifier
-          }
-        })
+        const structureData = mapMailResources(responseData)
         dispatch(upsertMessages(structureData))
 
         for (const content of structureData) {
@@ -296,7 +353,7 @@ export const useFetchMail = () => {
         }
       } catch (error) {
       } finally {
-        dispatch(setIsLoadingGlobal(false))
+        // dispatch(setIsLoadingGlobal(false))
       }
     },
     [mailMessages, hashMapMailMessages]
@@ -307,7 +364,8 @@ export const useFetchMail = () => {
         const offset = filteredPosts.length
 
         dispatch(setIsLoadingGlobal(true))
-        const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&query=q-blog-&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true&name=${filterValue}`
+        const encodedFilterValue = encodeURIComponent(filterValue)
+        const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&query=q-blog-&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true&name=${encodedFilterValue}`
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -352,7 +410,8 @@ export const useFetchMail = () => {
       try {
         const offset = subscriptionPosts.length
         dispatch(setIsLoadingGlobal(true))
-        const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&query=q-blog-&limit=20&includemetadata=true&offset=${offset}&reverse=true&namefilter=q-blog-subscriptions-${username}&excludeblocked=true`
+        const encodedNameFilter = encodeURIComponent(`q-blog-subscriptions-${username}`)
+        const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&query=q-blog-&limit=20&includemetadata=true&offset=${offset}&reverse=true&namefilter=${encodedNameFilter}&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -413,7 +472,8 @@ export const useFetchMail = () => {
           //     reverse: true
           // });
           //TODO - NAME SHOULD BE EXACT
-          const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&identifier=${item.id}&exactmatchnames=true&name=${item.user}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
+          const encodedUserName = encodeURIComponent(item.user)
+          const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&identifier=${item.id}&exactmatchnames=true&name=${encodedUserName}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
           const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -464,6 +524,7 @@ export const useFetchMail = () => {
     checkNewMessages,
     getNewPosts,
     getBlogFilteredPosts,
-    getMailMessages
+    getMailMessages,
+    getAllMailMessages
   }
 }

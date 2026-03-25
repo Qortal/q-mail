@@ -22,7 +22,7 @@ export const ModalContent = styled(Box)(({ theme }) => ({
 }))
 
 export const ModalText = styled(Typography)(({ theme }) => ({
-  fontFamily: "Raleway",
-  fontSize: "25px",
+  fontFamily: "var(--qapp-font-sans, 'Lexend', sans-serif)",
+  fontSize: "1.5625rem",
   color: theme.palette.text.primary,
 }));

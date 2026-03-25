@@ -23,6 +23,16 @@ export const ReusableModal: React.FC<MyModalProps> = ({
       onClose={onClose}
       aria-labelledby="modal-title"
       aria-describedby="modal-description"
+      componentsProps={{
+        backdrop: {
+          style: {
+            backdropFilter: 'blur(3px)',
+          },
+        },
+      }}
+      disableAutoFocus
+  disableEnforceFocus
+  disableRestoreFocus
     >
       <Box
         sx={{

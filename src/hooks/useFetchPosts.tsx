@@ -201,7 +201,8 @@ export const useFetchPosts = () => {
         const offset = filteredPosts.length
 
         dispatch(setIsLoadingGlobal(true))
-        const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&query=q-blog-&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true&name=${filterValue}`
+        const encodedFilterValue = encodeURIComponent(filterValue)
+        const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&query=q-blog-&limit=20&includemetadata=true&offset=${offset}&reverse=true&excludeblocked=true&name=${encodedFilterValue}`
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -246,7 +247,8 @@ export const useFetchPosts = () => {
       try {
         const offset = subscriptionPosts.length
         dispatch(setIsLoadingGlobal(true))
-        const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&query=q-blog-&limit=20&includemetadata=true&offset=${offset}&reverse=true&namefilter=q-blog-subscriptions-${username}&excludeblocked=true`
+        const encodedNameFilter = encodeURIComponent(`q-blog-subscriptions-${username}`)
+        const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&query=q-blog-&limit=20&includemetadata=true&offset=${offset}&reverse=true&namefilter=${encodedNameFilter}&excludeblocked=true`
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -307,7 +309,8 @@ export const useFetchPosts = () => {
           //     reverse: true
           // });
           //TODO - NAME SHOULD BE EXACT
-          const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&identifier=${item.id}&exactmatchnames=true&name=${item.user}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
+          const encodedUserName = encodeURIComponent(item.user)
+          const url = `/arbitrary/resources/search?mode=ALL&service=BLOG_POST&identifier=${item.id}&exactmatchnames=true&name=${encodedUserName}&limit=20&includemetadata=true&reverse=true&excludeblocked=true`
           const response = await fetch(url, {
             method: 'GET',
             headers: {

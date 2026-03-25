@@ -28,7 +28,7 @@ export const BlockedNamesModal: React.FC<PostModalProps> = ({
   const theme = useTheme()
   const getBlockedNames = React.useCallback(async () => {
     try {
-      const listName = `blockedNames_q-blog`
+      const listName = `blockedNames`
       const response = await qortalRequest({
         action: 'GET_LIST_ITEMS',
         list_name: listName
@@ -47,7 +47,7 @@ export const BlockedNamesModal: React.FC<PostModalProps> = ({
     try {
       const response = await qortalRequest({
         action: 'DELETE_LIST_ITEM',
-        list_name: 'blockedNames_q-blog',
+        list_name: 'blockedNames',
         item: name
       })
 
@@ -81,8 +81,7 @@ export const BlockedNamesModal: React.FC<PostModalProps> = ({
               <Button
                 sx={{
                   backgroundColor: theme.palette.primary.light,
-                  color: theme.palette.text.primary,
-                  fontFamily: 'Arial'
+                  color: theme.palette.text.primary
                 }}
                 onClick={() => removeFromBlockList(name)}
               >

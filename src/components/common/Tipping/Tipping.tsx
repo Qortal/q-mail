@@ -174,7 +174,7 @@ export const Tipping = ({
           {!onlyIcon && (
             <Typography
               sx={{
-                fontSize: '14px'
+                fontSize: '0.875rem'
               }}
             >
               Support

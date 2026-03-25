@@ -1,27 +1,22 @@
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
-import legacy from '@vitejs/plugin-legacy'
+import react from '@vitejs/plugin-react'
 
-export default defineConfig(({ mode }) => {
-  const config = {
-    build: {
-      target: 'es2015'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@qortal/qapp-lib': path.resolve(__dirname, 'src/qapp-lib'),
     },
-    plugins: [
-      react(),
-      legacy({
-        targets: [
-          'chrome >= 64',
-          'edge >= 79',
-          'safari >= 11.1',
-          'firefox >= 67'
-        ],
-        ignoreBrowserslistConfig: true,
-        renderLegacyChunks: false,
-        modernPolyfills: ['es/global-this']
-      })
-    ],
-    base: ''
-  }
-  return config
+  },
+  base: "",
+  build: {
+    commonjsOptions: {
+      esmExternals: true
+    },
+  },
 })

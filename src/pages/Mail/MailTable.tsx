@@ -9,8 +9,9 @@ import Paper from '@mui/material/Paper'
 import { Avatar, Box } from '@mui/material'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
-import { formatTimestamp } from '../../utils/time'
-
+import { formatFullTimestamp } from '../../utils/time'
+import AliasAvatar from '../../assets/svgs/AliasAvatar.svg'
+import { AliasAvatarImg } from './Mail-styles'
 const tableCellFontSize = '16px'
 
 interface Data {
@@ -113,7 +114,7 @@ function rowContent(_index: number, row: Data, openMessage: any) {
             {column.dataKey !== 'user' && (
               <>
                 {column.dataKey === 'createdAt'
-                  ? formatTimestamp(row[column.dataKey])
+                  ? formatFullTimestamp(row[column.dataKey])
                   : column.dataKey === 'description'
                   ? subject
                   : row[column.dataKey]}
@@ -156,7 +157,7 @@ export default function SimpleTable({
   )
 }
 
-export const AvatarWrapper = ({ user }: any) => {
+export const AvatarWrapper = ({ user, height , fallback, isAlias}: any) => {
   const userAvatarHash = useSelector(
     (state: RootState) => state.global.userAvatarHash
   )
@@ -167,5 +168,10 @@ export const AvatarWrapper = ({ user }: any) => {
     return findUserAvatar
   }, [userAvatarHash, user])
 
-  return <Avatar src={avatarLink} alt={`${user}'s avatar`} />
+if(isAlias) return <AliasAvatarImg sx={{
+  width: height,
+  height: height
+}}  src={AliasAvatar}/>
+if(!fallback) return <Avatar  sx={{ width: height, height: height }} src={avatarLink} alt={user} />
+  return <Avatar  sx={{ width: height, height: height }} src={avatarLink} alt={fallback} >{fallback?.charAt(0)}</Avatar>
 }

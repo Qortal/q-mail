@@ -1,56 +1,80 @@
-import React, { useRef, useState } from 'react'
-import { Box, Popover, useTheme } from '@mui/material'
-import ExitToAppIcon from '@mui/icons-material/ExitToApp'
-import { useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
+import React from 'react'
+import {
+  Box,
+  IconButton,
+  Popover,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme
+} from '@mui/material'
+import { useSelector } from 'react-redux'
 import { RootState } from '../../../state/store'
+import { AppMenu } from '@qortal/qapp-lib/app-shell/react'
+import type {
+  AppShellController,
+  AppShellState
+} from '@qortal/qapp-lib/app-shell/core'
 import { UserNavbar } from '../../common/UserNavbar/UserNavbar'
 import { removePrefix } from '../../../utils/blogIdformats'
 import { useLocation } from 'react-router-dom'
 import { BlockedNamesModal } from '../../common/BlockedNamesModal/BlockedNamesModal'
-
+import Logo from '../../../assets/svgs/Logo.svg'
+import LogoLight from '../../../assets/svgs/LogoLight.svg'
+import packageJson from '../../../../package.json'
 import {
-  AvatarContainer,
   CustomAppBar,
   CustomToolbar,
   DropdownContainer,
   DropdownText,
-  QblogLogoContainer,
-  AuthenticateButton,
-  NavbarName
+  QblogLogoContainer
 } from './Navbar-styles'
-import { AccountCircleSVG } from '../../../assets/svgs/AccountCircleSVG'
-import QMailLogo from '../../../assets/img/qmaillogo.png'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import PersonOffIcon from '@mui/icons-material/PersonOff'
-import {
-  addFilteredPosts,
-  setFilterValue,
-  setIsFiltering
-} from '../../../state/features/blogSlice'
+import MenuIcon from '@mui/icons-material/Menu'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import { executeEvent, subscribeToEvent, unsubscribeFromEvent } from '../../../utils/events'
 interface Props {
   isAuthenticated: boolean
   userName: string | null
   userAvatar: string
-  authenticate: () => void
+  accountNames: { name: string }[]
+  setActiveName: (name: string) => void
+  appShellController: AppShellController
+  appShellState: AppShellState
 }
+
+const AppMenuCompat = AppMenu as unknown as React.ComponentType<any>
 
 const NavBar: React.FC<Props> = ({
   isAuthenticated,
   userName,
   userAvatar,
-  authenticate
+  accountNames,
+  setActiveName,
+  appShellController,
+  appShellState
 }) => {
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
   const theme = useTheme()
+  const isMobile = useMediaQuery('(max-width:950px)')
+  const logoSrc = theme.palette.mode === 'light' ? LogoLight : Logo
+  const appVersion = packageJson.version
   const { visitingBlog } = useSelector((state: RootState) => state.global)
   const location = useLocation()
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
   const [isOpenModal, setIsOpenModal] = React.useState<boolean>(false)
-  const searchValRef = useRef('')
-  const inputRef = useRef<HTMLInputElement>(null)
   const stripBlogId = removePrefix(visitingBlog?.blogId || '')
+
+  React.useEffect(() => {
+    const onAuthenticate = () => {
+      void appShellController.authenticate()
+    }
+
+    subscribeToEvent('qmail:authenticate', onAuthenticate)
+    return () => {
+      unsubscribeFromEvent('qmail:authenticate', onAuthenticate)
+    }
+  }, [appShellController])
+
   if (visitingBlog?.navbarConfig && location?.pathname?.includes(stripBlogId)) {
     return (
       <UserNavbar
@@ -62,100 +86,224 @@ const NavBar: React.FC<Props> = ({
     )
   }
 
-  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    const target = event.currentTarget as unknown as HTMLButtonElement | null
-    setAnchorEl(target)
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget)
   }
 
-  const handleClose = () => {
+  const handleCloseUserDropdown = () => {
     setAnchorEl(null)
+    appShellController.closeMenu()
   }
   const onClose = () => {
     setIsOpenModal(false)
   }
-  const open = Boolean(anchorEl)
+
+  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    handleClick(event)
+    appShellController.openMenu()
+  }
+
+  const handleSidebarAnchorClick = () => {
+    executeEvent('qmail:left-sidebar-anchor-click', {})
+  }
+
+  const handleSidebarAnchorPointerEnter = () => {
+    executeEvent('qmail:left-sidebar-anchor-pointer-enter', {})
+  }
+
+  const handleSidebarAnchorPointerLeave = () => {
+    executeEvent('qmail:left-sidebar-anchor-pointer-leave', {})
+  }
+
+  const open = Boolean(anchorEl) && appShellState.ui.menuOpen
   const id = open ? 'simple-popover' : undefined
 
   return (
     <CustomAppBar position="sticky" elevation={2}>
       <CustomToolbar variant="dense">
-        <QblogLogoContainer
-          style={{
-            height: '32px'
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
           }}
-          src={QMailLogo}
-          alt="Q-Mail Logo"
-          onClick={() => {
-            navigate(`/`)
-            dispatch(setIsFiltering(false))
-            dispatch(setFilterValue(''))
-            dispatch(addFilteredPosts([]))
-            searchValRef.current = ''
-            if (!inputRef.current) return
-            inputRef.current.value = ''
-          }}
-        />
+        >
+          <IconButton
+            className='qapp-lib-top-bar-icon qmail-sidebar-anchor-button'
+            onClick={handleSidebarAnchorClick}
+            onPointerEnter={handleSidebarAnchorPointerEnter}
+            onPointerLeave={handleSidebarAnchorPointerLeave}
+            aria-label={isMobile ? 'Open mailboxes' : 'Toggle sidebar mode'}
+            disableRipple
+            sx={{
+              borderRadius: '14px',
+              padding: isMobile ? '6px 10px' : '4px',
+              margin: '-4px',
+              gap: isMobile ? '10px' : 0,
+              '&:hover': {
+                background: 'var(--qmail-shell-hover)'
+              }
+            }}
+          >
+            <QblogLogoContainer
+              style={{
+                height: '54px'
+              }}
+              src={logoSrc}
+              alt='Q-Mail Logo'
+            />
+            {isMobile && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  lineHeight: 1
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: 'var(--qmail-thread-text)'
+                  }}
+                >
+                  Mailboxes
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: '0.68rem',
+                    opacity: 0.72,
+                    color: 'var(--qmail-thread-text)'
+                  }}
+                >
+                  Tap to open
+                </Typography>
+              </Box>
+            )}
+            {isMobile && (
+              <MenuIcon
+                sx={{
+                  color: 'var(--qmail-thread-text)',
+                  fontSize: '1.1rem'
+                }}
+              />
+            )}
+          </IconButton>
+          <Typography
+            sx={{
+              display: isMobile ? 'none' : 'block',
+              fontSize: '1rem',
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              color: 'var(--qmail-thread-text)'
+            }}
+          >
+            v{appVersion}
+          </Typography>
+          <Tooltip title='Changelog'>
+            <IconButton
+              className='qapp-shell-icon-button qapp-shell-info-button'
+              onClick={() => {
+                executeEvent('qmail:toggle-changelog', {})
+              }}
+              aria-label='Changelog'
+              sx={{
+                color: theme.palette.text.primary,
+                borderRadius: '8px',
+                border: '1px solid var(--qmail-compose-button-border)',
+                background: 'var(--qmail-compose-button-bg)',
+                '&:hover': {
+                  background: 'var(--qmail-compose-button-hover-bg)',
+                  borderColor: 'var(--qmail-shell-border)',
+                },
+              }}
+            >
+              <InfoOutlinedIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
+        </Box>
 
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            gap: isMobile ? '6px' : 0
           }}
         >
-          {/* Add isAuthenticated && before username and wrap StyledButton in this condition*/}
-          {!isAuthenticated && (
-            <AuthenticateButton onClick={authenticate}>
-              <ExitToAppIcon />
-              Authenticate
-            </AuthenticateButton>
-          )}
-
-          {isAuthenticated && userName && (
-            <AvatarContainer onClick={handleClick}>
-              <NavbarName>{userName}</NavbarName>
-              {!userAvatar ? (
-                <AccountCircleSVG
-                  color={theme.palette.text.primary}
-                  width="32"
-                  height="32"
-                />
-              ) : (
-                <img
-                  src={userAvatar}
-                  alt="User Avatar"
-                  width="32"
-                  height="32"
-                  style={{
-                    borderRadius: '50%'
-                  }}
-                />
-              )}
-              <ExpandMoreIcon id="expand-icon" sx={{ color: '#ACB6BF' }} />
-            </AvatarContainer>
-          )}
+          <IconButton
+            className='qapp-shell-icon-button qapp-shell-menu-button'
+            onClick={handleOpenUserMenu}
+            aria-label='Menu'
+            title='Menu'
+            sx={{ color: theme.palette.text.primary }}
+          >
+            <MenuIcon />
+          </IconButton>
           <Popover
             id={id}
             open={open}
             anchorEl={anchorEl}
-            onClose={handleClose}
+            onClose={handleCloseUserDropdown}
+            PaperProps={{
+              sx: {
+                minWidth: '280px',
+                backgroundColor: 'var(--qmail-shell-popover-bg)',
+                border: '1px solid var(--qmail-shell-border)',
+                color: 'var(--qmail-thread-text)'
+              }
+            }}
             anchorOrigin={{
               vertical: 'bottom',
               horizontal: 'left'
             }}
           >
-            <DropdownContainer
-              onClick={() => {
-                setIsOpenModal(true)
-                handleClose()
-              }}
-            >
-              <PersonOffIcon
+            <Box className='qmail-user-menu-content'>
+              <Box
                 sx={{
-                  color: '#e35050'
+                  borderTop: 'none'
                 }}
-              />
-              <DropdownText>Blocked Names</DropdownText>
-            </DropdownContainer>
+              >
+                <AppMenuCompat
+                  state={appShellState}
+                  controller={appShellController}
+                  sections={['auth', 'settings', 'rating']}
+                  labels={{
+                    authSectionTitle: 'Authentication',
+                    authenticateButton: 'Authenticate',
+                    authenticatingButton: 'Authenticating',
+                    settingsSectionTitle: 'Settings',
+                    textSizeLabel: 'Text size',
+                    themeModeLabel: 'Theme mode',
+                    authOnStartupLabel: 'Authenticate on startup',
+                    ratingSectionTitle: 'Rate this app',
+                    ratingNoRatingsLabel: 'No ratings yet',
+                    ratingRefreshButton: 'Refresh'
+                  }}
+                />
+              </Box>
+              {isAuthenticated && (
+                <Box
+                  sx={{
+                    borderTop: `1px solid ${theme.palette.divider}`
+                  }}
+                >
+                  <DropdownContainer
+                    onClick={() => {
+                      setIsOpenModal(true)
+                      handleCloseUserDropdown()
+                    }}
+                  >
+                    <PersonOffIcon
+                      sx={{
+                        color: 'var(--qmail-danger-text)'
+                      }}
+                    />
+                    <DropdownText>Blocked Names</DropdownText>
+                  </DropdownContainer>
+                </Box>
+              )}
+            </Box>
           </Popover>
           {isOpenModal && (
             <BlockedNamesModal open={isOpenModal} onClose={onClose} />

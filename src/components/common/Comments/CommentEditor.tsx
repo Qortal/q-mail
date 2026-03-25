@@ -157,10 +157,10 @@ export const CommentEditor = ({
         inputProps={{
           maxLength: 200,
           style: {
-            fontSize: '16px'
+            fontSize: '1rem'
           }
         }}
-        InputLabelProps={{ style: { fontSize: '18px' } }}
+        InputLabelProps={{ style: { fontSize: '1.125rem' } }}
         onChange={(e) => setValue(e.target.value)}
       />
 
