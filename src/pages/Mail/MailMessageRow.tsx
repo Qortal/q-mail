@@ -150,6 +150,9 @@ export const MailMessageRow = ({
   let isEncrypted = true;
   let hasAttachments = null
   let subject = ""
+  const isMarkedRead = Array.isArray(messageData?.generalData?.threadV2)
+    ? messageData.generalData.threadV2.length > 0
+    : false;
   if(subjectInHashDecrypted !== null){
     subject = subjectInHashDecrypted || "- no subject"
     hasAttachments = hasAttachment || false
@@ -198,6 +201,8 @@ const name = useMemo(()=> {
   const createdAtLabel = useMemo(() => {
     return formatFullTimestamp(messageData?.createdAt)
   }, [messageData?.createdAt])
+
+  const shouldBoldUnread = !isFromSent && isEncrypted && !isMarkedRead;
 
   const handleDeleteClick = useCallback(
     async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -251,7 +256,7 @@ const name = useMemo(()=> {
           {subject ? (
             <MailMessageRowInfoStatusRead
               sx={{
-                fontWeight: isEncrypted ? 600 : 300,
+                fontWeight: shouldBoldUnread ? 600 : 300,
                 textOverflow: "ellipsis",
                 overflow: "hidden",
                 whiteSpace: "nowrap",
@@ -260,7 +265,11 @@ const name = useMemo(()=> {
               {subject}
             </MailMessageRowInfoStatusRead>
           ) : isEncrypted ? (
-            <MailMessageRowInfoStatusNotDecrypted>
+            <MailMessageRowInfoStatusNotDecrypted
+              sx={{
+                fontWeight: shouldBoldUnread ? 900 : 300,
+              }}
+            >
               ACCESS TO DECRYPT
             </MailMessageRowInfoStatusNotDecrypted>
           ) : null}
@@ -324,7 +333,7 @@ const name = useMemo(()=> {
         <AvatarWrapper isAlias={!!alias} height="50px" user={name} fallback={alias || name}></AvatarWrapper>
         <MessageExtraInfo>
           <MessageExtraName sx={{
-            fontWeight: isFromSent ? '300' : isEncrypted  ? '900' : '300'
+            fontWeight: shouldBoldUnread ? "900" : "300"
           }}>{isFromSent ? "To: " : ""} {alias || name}</MessageExtraName>
           <MessageExtraDate>{createdAtLabel}</MessageExtraDate>
         </MessageExtraInfo>
@@ -334,9 +343,21 @@ const name = useMemo(()=> {
        
 
         {subject ? (
-          <MailMessageRowInfoStatusRead>{subject}</MailMessageRowInfoStatusRead>
+          <MailMessageRowInfoStatusRead
+            sx={{
+              fontWeight: shouldBoldUnread ? 600 : 300,
+            }}
+          >
+            {subject}
+          </MailMessageRowInfoStatusRead>
         )  : isEncrypted ? (
-          <MailMessageRowInfoStatusNotDecrypted>ACCESS TO DECRYPT</MailMessageRowInfoStatusNotDecrypted>
+          <MailMessageRowInfoStatusNotDecrypted
+            sx={{
+              fontWeight: shouldBoldUnread ? 900 : 300,
+            }}
+          >
+            ACCESS TO DECRYPT
+          </MailMessageRowInfoStatusNotDecrypted>
         ) : null}
       </MailMessageRowInfo>
       {isFromSent && onDeleteMessage && (

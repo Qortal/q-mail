@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Checkbox, Button } from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
 import { formatFullTimestamp } from "../../utils/time";
 import { MailMessageRow } from "./MailMessageRow";
 import { AvatarWrapper } from "./MailTable";
@@ -24,6 +25,8 @@ interface GroupedMailboxListProps {
   openedMessageId?: string | number | null;
   onDeleteMessage?: (message: any) => void | boolean | Promise<void | boolean>;
   isDeletingMessage?: (messageId: string) => boolean;
+  onMarkAsRead?: (messages: any[]) => void | Promise<void>;
+  onMarkAsUnread?: (messages: any[]) => void | Promise<void>;
 }
 
 interface MessageGroup {
@@ -42,6 +45,17 @@ const sortMessagesByCreatedDescending = (a: any, b: any): number => {
   return toTimestamp(b?.createdAt) - toTimestamp(a?.createdAt);
 };
 
+const getMessageId = (message: any): string => {
+  const value = message?.id ?? message?.identifier;
+  if (value === undefined || value === null) return "";
+  return String(value);
+};
+
+const isMessageMarkedRead = (message: any): boolean => {
+  const thread = message?.generalData?.threadV2;
+  return Array.isArray(thread) && thread.length > 0;
+};
+
 export const GroupedMailboxList = ({
   messages,
   mailboxType,
@@ -49,12 +63,21 @@ export const GroupedMailboxList = ({
   openedMessageId,
   onDeleteMessage,
   isDeletingMessage,
+  onMarkAsRead,
+  onMarkAsUnread,
 }: GroupedMailboxListProps) => {
+  const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
+    {}
+  );
+
   const groupedMessages = useMemo(() => {
     const groupMap = new Map<string, MessageGroup>();
 
     messages.forEach(message => {
-      const identifier = message?.id || message?.identifier;
+      const identifier = getMessageId(message);
       if (!identifier) return;
 
       let key = "";
@@ -64,7 +87,8 @@ export const GroupedMailboxList = ({
         key = getSentRecipientGroupKey(identifier);
         label = getSentRecipientDisplayLabel(identifier);
       } else {
-        const sender = typeof message?.user === "string" ? message.user.trim() : "";
+        const sender =
+          typeof message?.user === "string" ? message.user.trim() : "";
         key = sender ? `sender:${sender.toLowerCase()}` : "sender:unknown";
         label = sender || "Unknown sender";
       }
@@ -72,7 +96,10 @@ export const GroupedMailboxList = ({
       const existingGroup = groupMap.get(key);
       if (existingGroup) {
         existingGroup.messages.push(message);
-        if (toTimestamp(message?.createdAt) > toTimestamp(existingGroup.latestCreatedAt)) {
+        if (
+          toTimestamp(message?.createdAt) >
+          toTimestamp(existingGroup.latestCreatedAt)
+        ) {
           existingGroup.latestCreatedAt = message?.createdAt || 0;
         }
         return;
@@ -91,53 +118,86 @@ export const GroupedMailboxList = ({
       messages: [...group.messages].sort(sortMessagesByCreatedDescending),
     }));
 
-    groups.sort((a, b) => toTimestamp(b.latestCreatedAt) - toTimestamp(a.latestCreatedAt));
+    groups.sort(
+      (a, b) => toTimestamp(b.latestCreatedAt) - toTimestamp(a.latestCreatedAt)
+    );
     return groups;
   }, [messages, mailboxType]);
 
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const handleToggleMessage = (messageId: string) => {
+    if (!messageId) return;
+    setSelectedMessageIds(previous => {
+      const newSet = new Set(previous);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleToggleAll = (groupKey: string) => {
+    const group = groupedMessages.find(g => g.key === groupKey);
+    if (!group) return;
+
+    setSelectedMessageIds(previous => {
+      const newSet = new Set(previous);
+      const groupMessageIds = group.messages
+        .map(getMessageId)
+        .filter(Boolean) as string[];
+      const isAllSelected = groupMessageIds.every(id => newSet.has(id));
+
+      groupMessageIds.forEach(id => {
+        if (isAllSelected) {
+          newSet.delete(id);
+          return;
+        }
+        newSet.add(id);
+      });
+      return newSet;
+    });
+  };
+
+  const handleMarkAsRead = async () => {
+    if (selectedMessageIds.size === 0 || !onMarkAsRead) return;
+    await onMarkAsRead(
+      Array.from(selectedMessageIds)
+        .map(id => {
+          const message = messages.find(m => getMessageId(m) === id);
+          return message || null;
+        })
+        .filter(Boolean)
+    );
+    setSelectedMessageIds(new Set());
+  };
+
+  const handleMarkAsUnread = async () => {
+    if (selectedMessageIds.size === 0 || !onMarkAsUnread) return;
+    await onMarkAsUnread(
+      Array.from(selectedMessageIds)
+        .map(id => {
+          const message = messages.find(m => getMessageId(m) === id);
+          return message || null;
+        })
+        .filter(Boolean)
+    );
+    setSelectedMessageIds(new Set());
+  };
 
   useEffect(() => {
-    setExpandedGroups(previousState => {
-      const nextState: Record<string, boolean> = {};
-      groupedMessages.forEach(group => {
-        if (previousState[group.key]) {
-          nextState[group.key] = true;
-        }
+    const groupedMessageIds = new Set<string>();
+    groupedMessages.forEach(group => {
+      group.messages.forEach(message => {
+        const messageId = getMessageId(message);
+        if (messageId) groupedMessageIds.add(messageId);
       });
-      return nextState;
+    });
+
+    setSelectedMessageIds(previous => {
+      return new Set(Array.from(previous).filter(id => groupedMessageIds.has(id)));
     });
   }, [groupedMessages]);
-
-  useEffect(() => {
-    if (!openedMessageId) return;
-
-    const normalizedOpenId = String(openedMessageId);
-    const groupToExpand = groupedMessages.find(group => {
-      if (group.messages.length <= 1) return false;
-      return group.messages.some(message => {
-        const messageId = message?.id || message?.identifier;
-        return String(messageId) === normalizedOpenId;
-      });
-    });
-
-    if (!groupToExpand) return;
-
-    setExpandedGroups(previousState => {
-      if (previousState[groupToExpand.key]) return previousState;
-      return {
-        ...previousState,
-        [groupToExpand.key]: true,
-      };
-    });
-  }, [groupedMessages, openedMessageId]);
-
-  const onToggleGroup = (groupKey: string) => {
-    setExpandedGroups(previousState => ({
-      ...previousState,
-      [groupKey]: !previousState[groupKey],
-    }));
-  };
 
   if (!groupedMessages.length) {
     return (
@@ -161,36 +221,25 @@ export const GroupedMailboxList = ({
   return (
     <MessagesContainer>
       {groupedMessages.map(group => {
-        if (group.messages.length === 1) {
-          const singleMessage = group.messages[0];
-          const singleId = singleMessage?.id || singleMessage?.identifier;
-
-          return (
-            <MailMessageRow
-              key={singleId}
-              messageData={singleMessage}
-              openMessage={openMessage}
-              isFromSent={mailboxType === "sent"}
-              useFullTimestamp
-              onDeleteMessage={mailboxType === "sent" ? onDeleteMessage : undefined}
-              isDeleting={
-                mailboxType === "sent" && Boolean(singleId) && isDeletingMessage
-                  ? isDeletingMessage(String(singleId))
-                  : false
-              }
-              isOpen={
-                openedMessageId !== null &&
-                openedMessageId !== undefined &&
-                String(openedMessageId) === String(singleId)
-              }
-            />
-          );
-        }
-
+        const isExpandableGroup = group.messages.length > 1;
         const isExpanded = Boolean(expandedGroups[group.key]);
         const latestMessage = group.messages[0];
         const latestMessageDate = formatFullTimestamp(latestMessage?.createdAt);
-        const isAliasGroup = mailboxType === "sent" && group.key.startsWith("alias:");
+        const isAliasGroup =
+          mailboxType === "sent" && group.key.startsWith("alias:");
+        const groupMessageIds = group.messages
+          .map(getMessageId)
+          .filter(Boolean) as string[];
+        const groupHasUnread = group.messages.some(
+          message => !isMessageMarkedRead(message)
+        );
+        const selectedCount = groupMessageIds.filter(id =>
+          selectedMessageIds.has(id)
+        ).length;
+        const isGroupChecked =
+          groupMessageIds.length > 0 && selectedCount === groupMessageIds.length;
+        const isGroupIndeterminate =
+          selectedCount > 0 && selectedCount < groupMessageIds.length;
 
         return (
           <Box
@@ -204,7 +253,22 @@ export const GroupedMailboxList = ({
           >
             <Box
               onClick={() => {
-                onToggleGroup(group.key);
+                if (!isExpandableGroup) {
+                  const onlyMessage = group.messages[0];
+                  const messageId = getMessageId(onlyMessage);
+                  if (!messageId) return;
+                  openMessage(
+                    onlyMessage?.user,
+                    messageId,
+                    onlyMessage,
+                    mailboxType === "sent" ? group.label : undefined
+                  );
+                  return;
+                }
+                setExpandedGroups(prev => ({
+                  ...prev,
+                  [group.key]: !prev[group.key],
+                }));
               }}
               sx={{
                 display: "flex",
@@ -231,6 +295,20 @@ export const GroupedMailboxList = ({
                   overflow: "hidden",
                 }}
               >
+                <Checkbox
+                  checked={isGroupChecked}
+                  indeterminate={isGroupIndeterminate}
+                  onClick={event => {
+                    event.stopPropagation();
+                  }}
+                  onChange={() => handleToggleAll(group.key)}
+                  sx={{
+                    color: "var(--qmail-action-primary-text)",
+                    "&.Mui-checked": {
+                      color: "var(--qmail-action-primary-text)",
+                    },
+                  }}
+                />
                 <AvatarWrapper
                   isAlias={isAliasGroup}
                   height="50px"
@@ -247,7 +325,12 @@ export const GroupedMailboxList = ({
                   <Typography
                     sx={{
                       fontSize: "1rem",
-                      fontWeight: 700,
+                      fontWeight:
+                        mailboxType === "sent"
+                          ? 300
+                          : groupHasUnread
+                          ? 700
+                          : 300,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -266,19 +349,23 @@ export const GroupedMailboxList = ({
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {group.messages.length} messages • {latestMessageDate}
+                    {group.messages.length} message
+                    {group.messages.length === 1 ? "" : "s"} •{" "}
+                    {latestMessageDate}
                   </Typography>
                 </Box>
               </Box>
-              <ExpandMoreIcon
-                sx={{
-                  color: "var(--qmail-thread-subtle-text)",
-                  transform: isExpanded ? "rotate(180deg)" : "rotate(90deg)",
-                  transition: "transform 0.2s ease",
-                }}
-              />
+              {isExpandableGroup && (
+                <ExpandMoreIcon
+                  sx={{
+                    color: "var(--qmail-thread-subtle-text)",
+                    transform: isExpanded ? "rotate(180deg)" : "rotate(90deg)",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              )}
             </Box>
-            {isExpanded && (
+            {isExpandableGroup && isExpanded && (
               <Box
                 sx={{
                   width: "100%",
@@ -292,29 +379,64 @@ export const GroupedMailboxList = ({
                 }}
               >
                 {group.messages.map(message => {
-                  const messageId = message?.id || message?.identifier;
+                  const messageId = getMessageId(message);
+                  const isMessageSelected = selectedMessageIds.has(messageId);
+
                   return (
-                    <MailMessageRow
+                    <Box
                       key={messageId}
-                      messageData={message}
-                      openMessage={openMessage}
-                      isFromSent={mailboxType === "sent"}
-                      compact
-                      useFullTimestamp
-                      onDeleteMessage={
-                        mailboxType === "sent" ? onDeleteMessage : undefined
-                      }
-                      isDeleting={
-                        mailboxType === "sent" && Boolean(messageId) && isDeletingMessage
-                          ? isDeletingMessage(String(messageId))
-                          : false
-                      }
-                      isOpen={
-                        openedMessageId !== null &&
-                        openedMessageId !== undefined &&
-                        String(openedMessageId) === String(messageId)
-                      }
-                    />
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        width: "100%",
+                        borderRadius: "8px",
+                        padding: "6px 8px",
+                        cursor: "pointer",
+                        border: "1px solid var(--qmail-shell-border)",
+                        background: "var(--qmail-shell-hover)",
+                        "&:hover": {
+                          background: "var(--qmail-shell-hover-strong)",
+                        },
+                      }}
+                      onClick={() => handleToggleMessage(messageId)}
+                    >
+                      <Checkbox
+                        checked={isMessageSelected}
+                        onClick={event => {
+                          event.stopPropagation();
+                        }}
+                        onChange={() => handleToggleMessage(messageId)}
+                        sx={{
+                          color: "var(--qmail-action-primary-text)",
+                          "&.Mui-checked": {
+                            color: "var(--qmail-action-primary-text)",
+                          },
+                        }}
+                      />
+                      <MailMessageRow
+                        messageData={message}
+                        openMessage={openMessage}
+                        isFromSent={mailboxType === "sent"}
+                        compact
+                        useFullTimestamp
+                        onDeleteMessage={
+                          mailboxType === "sent" ? onDeleteMessage : undefined
+                        }
+                        isDeleting={
+                          mailboxType === "sent" &&
+                          Boolean(messageId) &&
+                          isDeletingMessage
+                            ? isDeletingMessage(String(messageId))
+                            : false
+                        }
+                        isOpen={
+                          openedMessageId !== null &&
+                          openedMessageId !== undefined &&
+                          String(openedMessageId) === String(messageId)
+                        }
+                      />
+                    </Box>
                   );
                 })}
               </Box>
@@ -322,6 +444,59 @@ export const GroupedMailboxList = ({
           </Box>
         );
       })}
+      {selectedMessageIds.size > 0 && (onMarkAsRead || onMarkAsUnread) && (
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "10px",
+            position: "sticky",
+            bottom: 0,
+            padding: "12px 16px",
+            background:
+              "linear-gradient(to top, var(--qmail-shell-bg), rgba(0,0,0,0))",
+            zIndex: 2,
+          }}
+        >
+          {onMarkAsUnread && (
+            <Button
+              onClick={handleMarkAsUnread}
+              variant="outlined"
+              sx={{
+                fontWeight: 700,
+                textTransform: "none",
+                borderColor: "var(--qmail-shell-border)",
+                color: "var(--qmail-thread-text)",
+                background: "var(--qmail-shell-hover)",
+                "&:hover": {
+                  background: "var(--qmail-shell-hover-strong)",
+                },
+              }}
+            >
+              Mark as Unread ({selectedMessageIds.size})
+            </Button>
+          )}
+          {onMarkAsRead && (
+            <Button
+              onClick={handleMarkAsRead}
+              startIcon={<CheckIcon />}
+              variant="contained"
+              sx={{
+                fontWeight: 700,
+                textTransform: "none",
+                color: "var(--qmail-action-primary-text)",
+                background: "var(--qmail-action-primary-bg)",
+                "&:hover": {
+                  background: "var(--qmail-action-primary-hover-bg)",
+                },
+              }}
+            >
+              Mark as Read ({selectedMessageIds.size})
+            </Button>
+          )}
+        </Box>
+      )}
     </MessagesContainer>
   );
 };

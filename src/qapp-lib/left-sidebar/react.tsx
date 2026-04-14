@@ -377,6 +377,7 @@ export const LeftSidebar = ({
             const isNested = item.id.includes(':')
             const isComposeItem = item.id === 'compose'
             const isSectionItem = !isNested
+            const hasWarningState = item.badgeText === '!'
             return (
               <ButtonBase
                 key={item.id}
@@ -403,15 +404,21 @@ export const LeftSidebar = ({
                     ? 'var(--qmail-shell-selected-bg, rgba(255,255,255,0.1))'
                     : isComposeItem
                       ? 'var(--qmail-compose-button-bg, rgba(255,255,255,0.08))'
-                      : 'transparent',
+                      : hasWarningState
+                        ? 'var(--qmail-warning-bg, rgba(255, 153, 0, 0.18))'
+                        : 'transparent',
                   border: isActive
                     ? '1px solid var(--qmail-brand-strong, rgba(103,195,255,0.85))'
                     : isComposeItem
                       ? '1px solid var(--qmail-compose-button-border, rgba(255,255,255,0.16))'
-                      : '1px solid transparent',
+                      : hasWarningState
+                        ? '1px solid var(--qmail-warning-border, rgba(255, 171, 64, 0.95))'
+                        : '1px solid transparent',
                   outline: isActive
                     ? '2px solid var(--qmail-brand-strong, #67c3ff)'
-                    : '2px solid transparent',
+                    : hasWarningState
+                      ? '2px solid var(--qmail-warning-border, rgba(255, 171, 64, 0.95))'
+                      : '2px solid transparent',
                   outlineOffset: '-1px',
                   boxShadow: isActive
                     ? '0 0 0 0.1rem var(--qmail-brand-soft, rgba(57,175,255,0.2))'
@@ -421,7 +428,9 @@ export const LeftSidebar = ({
                   '&:hover': {
                     backgroundColor: isComposeItem
                       ? 'var(--qmail-compose-button-hover-bg, rgba(255,255,255,0.12))'
-                      : 'var(--qmail-shell-hover, rgba(255,255,255,0.06))',
+                      : hasWarningState
+                        ? 'var(--qmail-warning-hover-bg, rgba(255, 153, 0, 0.24))'
+                        : 'var(--qmail-shell-hover, rgba(255,255,255,0.06))',
                   },
                 }}
               >
@@ -477,9 +486,13 @@ export const LeftSidebar = ({
                   <Typography
                     variant='caption'
                     sx={{
-                      opacity: 0.8,
+                      opacity: 1,
                       flexShrink: 0,
                       fontSize: isComposeItem ? '0.8rem' : '0.7rem',
+                      color: hasWarningState
+                        ? 'var(--qmail-warning-border, rgba(255, 171, 64, 0.95))'
+                        : 'inherit',
+                      fontWeight: hasWarningState ? 800 : 500,
                     }}
                   >
                     {item.badgeText}

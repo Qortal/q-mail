@@ -9,6 +9,17 @@ type ChangelogEntry = {
 
 const changelogEntries: ChangelogEntry[] = [
   {
+    version: "v3.1.1",
+    date: "April 14, 2026",
+    highlights: [
+      "Fixed grouped inbox selection so bulk Mark as Read appears reliably when messages are selected.",
+      "Fixed read-state rendering so marked messages (including ACCESS TO DECRYPT rows) no longer stay bold as unread.",
+      "Added publish/load Q-Mail state support using DOCUMENT_PRIVATE, with merged per-message read and subject state across sessions.",
+      "Added a high-visibility warning style for pending Publish Q-Mail State changes and a new bulk Mark as Unread action.",
+      "Updated grouped sender labels so group headers only appear bold when the group still has unread messages.",
+    ],
+  },
+  {
     version: "v3.1.0",
     date: "March 24, 2026",
     highlights: [

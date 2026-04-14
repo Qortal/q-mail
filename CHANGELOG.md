@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.1.1 - April 14, 2026
+
+- **Fixed:** Grouped inbox selection now keeps checked messages selected so the bulk `Mark as Read` action appears and works as expected (impact: users selecting messages inside expanded sender/recipient groups).
+- **Fixed:** `Mark as Read` now updates mailbox message state via Redux so marked messages stop rendering as unread/bold in the inbox UI (impact: users marking messages without opening each one).
+- **Added:** Sidebar action to publish Q-Mail read-state to QDN, plus a startup prompt to load published state for the authenticated account (how to use: click `Publish Q-Mail State` in the left sidebar, then accept the load prompt on another node).
+- **Changed:** Published Q-Mail state now tracks per-message `read` and `subject` independently and merges newly discovered subject/read updates across sessions (migration/notes: sidebar `Publish Q-Mail State` now shows a `!` badge when there are unpublished state changes).
+- **Changed:** Pending `Publish Q-Mail State` now uses a high-visibility warning treatment (orange background, orange border/outline, and orange icon) to make unpublished state changes obvious.
+- **Fixed:** Grouped sender labels now match read state and no longer stay bold after all messages in a group are marked read (impact: unread emphasis in inbox groups is now consistent with message rows).
+- **Added:** Bulk `Mark as Unread` action for selected inbox messages/groups (how to use: select messages with checkboxes, then click `Mark as Unread` in the sticky action bar).
+
 ## 3.1.0 - March 24, 2026
 
 - Improved small-screen usability with a clearer mobile menu trigger, a visible/tappable mobile send button, a larger top-level Compose action, and a more responsive sidebar that avoids horizontal scrolling.

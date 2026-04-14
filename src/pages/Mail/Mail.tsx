@@ -36,7 +36,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import { useFetchMail } from "../../hooks/useFetchMail";
 import { ShowMessage } from "./ShowMessage";
-import { clearMessages } from "../../state/features/mailSlice";
+import { clearMessages, upsertMessages } from "../../state/features/mailSlice";
 import { setUserAvatarHash } from "../../state/features/globalSlice";
 import { setNotification } from "../../state/features/notificationsSlice";
 
@@ -74,8 +74,13 @@ import {
   isSentMailIdentifier,
   parseSentRecipientFromIdentifier,
 } from "./mailIdentifier";
-import { base64ToUint8Array, uint8ArrayToObject } from "../../utils/toBase64";
+import {
+  base64ToUint8Array,
+  objectToBase64,
+  uint8ArrayToObject,
+} from "../../utils/toBase64";
 import { formatFullTimestamp } from "../../utils/time";
+import PublishIcon from "@mui/icons-material/Publish";
 import {
   LeftSidebar,
   useLeftSidebarController,
@@ -104,6 +109,9 @@ const ALIASES_INSTANCE_ITEM_PREFIX = "aliases-instance:";
 const SENT_INSTANCE_ITEM_PREFIX = "sent-instance:";
 const THREAD_GROUP_ITEM_PREFIX = "threads-group:";
 const ALIAS_COMPOSE_ITEM_ID = "alias-compose";
+const PUBLISH_STATE_ITEM_ID = "publish-mail-state";
+const MAIL_STATE_DOCUMENT_SERVICE = "DOCUMENT_PRIVATE";
+const MAIL_STATE_DOCUMENT_IDENTIFIER = "qmail_state_v1";
 
 const encodeSidebarInstanceName = (name: string): string => {
   return encodeURIComponent(name);
@@ -318,6 +326,20 @@ const sortOwnedNamesForDisplay = (
   });
 };
 
+interface QMailPublishedStateEntry {
+  read?: boolean;
+  updatedAt?: number;
+  subject?: string;
+}
+
+interface QMailPublishedStateDocument {
+  version: number;
+  updatedAt: number;
+  ownerAddress: string;
+  names: string[];
+  messages: Record<string, QMailPublishedStateEntry>;
+}
+
 interface BuildSidebarItemsInput {
   inboxNames: string[];
   aliasesNames: string[];
@@ -327,7 +349,61 @@ interface BuildSidebarItemsInput {
   isThreadsSectionExpanded: boolean;
   selectedAliasInboxName?: string | null;
   primaryName?: string | null;
+  canPublishState?: boolean;
+  isPublishingState?: boolean;
+  hasPendingStateChanges?: boolean;
 }
+
+const getMessageIdentifier = (message: any): string => {
+  const value = message?.id ?? message?.identifier;
+  if (value === undefined || value === null) return "";
+  return String(value);
+};
+
+const normalizePublishedStateEntry = (
+  entry: QMailPublishedStateEntry | null | undefined
+): QMailPublishedStateEntry => {
+  const read = Boolean(entry?.read);
+  const subject =
+    typeof entry?.subject === "string" ? entry.subject.trim() : "";
+  const updatedAt = Number(entry?.updatedAt || 0);
+  const normalized: QMailPublishedStateEntry = {};
+  if (read) normalized.read = true;
+  if (subject) normalized.subject = subject;
+  if (Number.isFinite(updatedAt) && updatedAt > 0) {
+    normalized.updatedAt = updatedAt;
+  }
+  return normalized;
+};
+
+const mergePublishedStateEntries = (
+  base: QMailPublishedStateEntry | null | undefined,
+  incoming: QMailPublishedStateEntry | null | undefined
+): QMailPublishedStateEntry => {
+  const normalizedBase = normalizePublishedStateEntry(base);
+  const normalizedIncoming = normalizePublishedStateEntry(incoming);
+  return {
+    read: Boolean(normalizedBase.read || normalizedIncoming.read) || undefined,
+    subject: normalizedIncoming.subject || normalizedBase.subject || undefined,
+    updatedAt:
+      Math.max(
+        Number(normalizedBase.updatedAt || 0),
+        Number(normalizedIncoming.updatedAt || 0)
+      ) || undefined,
+  };
+};
+
+const arePublishedStateEntriesEqual = (
+  a: QMailPublishedStateEntry | null | undefined,
+  b: QMailPublishedStateEntry | null | undefined
+): boolean => {
+  const normalizedA = normalizePublishedStateEntry(a);
+  const normalizedB = normalizePublishedStateEntry(b);
+  return (
+    Boolean(normalizedA.read) === Boolean(normalizedB.read) &&
+    (normalizedA.subject || "") === (normalizedB.subject || "")
+  );
+};
 
 const buildSidebarItems = ({
   inboxNames,
@@ -338,6 +414,9 @@ const buildSidebarItems = ({
   isThreadsSectionExpanded,
   selectedAliasInboxName,
   primaryName,
+  canPublishState,
+  isPublishingState,
+  hasPendingStateChanges,
 }: BuildSidebarItemsInput): LeftSidebarItem[] => {
   const items: LeftSidebarItem[] = [{ id: "compose", label: "Compose" }];
   const normalizedSelectedAliasInboxName = (
@@ -397,6 +476,14 @@ const buildSidebarItems = ({
         hidden: !isThreadsSectionExpanded,
       });
     });
+  if (canPublishState) {
+    items.push({
+      id: PUBLISH_STATE_ITEM_ID,
+      label: isPublishingState ? "Publishing State..." : "Publish Q-Mail State",
+      disabled: Boolean(isPublishingState),
+      badgeText: hasPendingStateChanges ? "!" : undefined,
+    });
+  }
   return items;
 };
 
@@ -991,6 +1078,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
     useState(false);
   const [composeDefaultReplyAlias, setComposeDefaultReplyAlias] = useState("");
   const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+  const [isPublishingMailState, setIsPublishingMailState] = useState(false);
+  const [publishedMailStateById, setPublishedMailStateById] = useState<
+    Record<string, QMailPublishedStateEntry>
+  >({});
   const [inboxSearchQuery, setInboxSearchQuery] = useState("");
   const [combinedAliasInboxMessages, setCombinedAliasInboxMessages] = useState<
     Record<string, any[]>
@@ -1000,6 +1091,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const [aliasReplyLinks, setAliasReplyLinks] = useState<
     Record<string, string>
   >({});
+  const hasPromptedForPublishedMailStateRef = useRef<string | null>(null);
   const userAvatarHash = useSelector(
     (state: RootState) => state.global.userAvatarHash
   );
@@ -2219,6 +2311,338 @@ export const Mail = ({ isFromTo }: MailProps) => {
     watchedAliasOwnerAddress,
   ]);
 
+  const applyReadStateToMessages = useCallback(
+    (messagesToUpdate: any[], readIdSet: Set<string>): any[] => {
+      return messagesToUpdate.map(message => {
+        const identifier = getMessageIdentifier(message);
+        if (!identifier || !readIdSet.has(identifier)) return message;
+
+        const updatedMessage = structuredClone(message);
+        updatedMessage.generalData = updatedMessage.generalData || {};
+        const existingThread = Array.isArray(updatedMessage.generalData.threadV2)
+          ? updatedMessage.generalData.threadV2
+          : [];
+        if (existingThread.length > 0) return updatedMessage;
+
+        updatedMessage.generalData.threadV2 = [
+          {
+            reference: {
+              identifier,
+              name: updatedMessage?.user,
+              service: MAIL_SERVICE_TYPE,
+            },
+            data: {
+              markedAsReadLocally: true,
+              createdAt: Date.now(),
+            },
+          },
+        ];
+        return updatedMessage;
+      });
+    },
+    []
+  );
+
+  const applyReadStateToCombinedMap = useCallback(
+    (
+      messageMap: Record<string, any[]>,
+      readIdSet: Set<string>
+    ): Record<string, any[]> => {
+      let didChange = false;
+      const nextMap = Object.entries(messageMap).reduce<Record<string, any[]>>(
+        (accumulator, [name, entries]) => {
+          const updatedEntries = applyReadStateToMessages(entries || [], readIdSet);
+          accumulator[name] = updatedEntries;
+          if (updatedEntries !== entries) {
+            didChange = true;
+          }
+          return accumulator;
+        },
+        {}
+      );
+      return didChange ? nextMap : messageMap;
+    },
+    [applyReadStateToMessages]
+  );
+
+  const applyUnreadStateToMessages = useCallback((messagesToUpdate: any[], unreadIdSet: Set<string>): any[] => {
+    return messagesToUpdate.map(message => {
+      const identifier = getMessageIdentifier(message);
+      if (!identifier || !unreadIdSet.has(identifier)) return message;
+
+      const updatedMessage = structuredClone(message);
+      updatedMessage.generalData = updatedMessage.generalData || {};
+      updatedMessage.generalData.threadV2 = [];
+      return updatedMessage;
+    });
+  }, []);
+
+  const applyUnreadStateToCombinedMap = useCallback(
+    (
+      messageMap: Record<string, any[]>,
+      unreadIdSet: Set<string>
+    ): Record<string, any[]> => {
+      let didChange = false;
+      const nextMap = Object.entries(messageMap).reduce<Record<string, any[]>>(
+        (accumulator, [name, entries]) => {
+          const updatedEntries = applyUnreadStateToMessages(entries || [], unreadIdSet);
+          accumulator[name] = updatedEntries;
+          if (updatedEntries !== entries) {
+            didChange = true;
+          }
+          return accumulator;
+        },
+        {}
+      );
+      return didChange ? nextMap : messageMap;
+    },
+    [applyUnreadStateToMessages]
+  );
+
+  const localMailStateById = useMemo(() => {
+    const collectedState: Record<string, QMailPublishedStateEntry> = {};
+
+    const collectFromMessage = (message: any) => {
+      const identifier = getMessageIdentifier(message);
+      if (!identifier) return;
+
+      const relatedHashMessage: any = hashMapMailMessages[identifier] || {};
+      const isRead =
+        (Array.isArray(message?.generalData?.threadV2) &&
+          message.generalData.threadV2.length > 0) ||
+        (Array.isArray(relatedHashMessage?.generalData?.threadV2) &&
+          relatedHashMessage.generalData.threadV2.length > 0);
+
+      const subjectCandidates = [
+        relatedHashMessage?.subject,
+        message?.subject,
+      ].filter(value => typeof value === "string") as string[];
+      const subject =
+        subjectCandidates.find(value => value.trim().length > 0)?.trim() || "";
+
+      if (!isRead && !subject) return;
+      collectedState[identifier] = mergePublishedStateEntries(
+        collectedState[identifier],
+        {
+          read: isRead || undefined,
+          subject: subject || undefined,
+        }
+      );
+    };
+
+    mailMessages.forEach(collectFromMessage);
+    Object.values(combinedAliasInboxMessages).forEach(messages => {
+      messages.forEach(collectFromMessage);
+    });
+    Object.values(hashMapMailMessages).forEach(collectFromMessage);
+
+    return collectedState;
+  }, [combinedAliasInboxMessages, hashMapMailMessages, mailMessages]);
+
+  const hasPendingStateChanges = useMemo(() => {
+    return Object.keys(localMailStateById).some(identifier => {
+      return !arePublishedStateEntriesEqual(
+        localMailStateById[identifier],
+        publishedMailStateById[identifier]
+      );
+    });
+  }, [localMailStateById, publishedMailStateById]);
+
+  const markMessagesAsRead = useCallback(
+    async (messages: any[]) => {
+      if (!messages.length) return;
+      try {
+        const readIdentifiers = messages
+          .map(message => getMessageIdentifier(message))
+          .filter(Boolean);
+        if (!readIdentifiers.length) return;
+
+        const readIdSet = new Set(readIdentifiers);
+        const updatedMailMessages = applyReadStateToMessages(mailMessages, readIdSet);
+        dispatch(upsertMessages(updatedMailMessages));
+        setCombinedAliasInboxMessages(previous => {
+          return applyReadStateToCombinedMap(previous, readIdSet);
+        });
+      } catch (error) {
+        console.error("Failed to mark messages as read:", error);
+      }
+    },
+    [
+      applyReadStateToCombinedMap,
+      applyReadStateToMessages,
+      dispatch,
+      mailMessages,
+    ]
+  );
+
+  const markMessagesAsUnread = useCallback(
+    async (messages: any[]) => {
+      if (!messages.length) return;
+      try {
+        const unreadIdentifiers = messages
+          .map(message => getMessageIdentifier(message))
+          .filter(Boolean);
+        if (!unreadIdentifiers.length) return;
+
+        const unreadIdSet = new Set(unreadIdentifiers);
+        const updatedMailMessages = applyUnreadStateToMessages(
+          mailMessages,
+          unreadIdSet
+        );
+        dispatch(upsertMessages(updatedMailMessages));
+        setCombinedAliasInboxMessages(previous => {
+          return applyUnreadStateToCombinedMap(previous, unreadIdSet);
+        });
+      } catch (error) {
+        console.error("Failed to mark messages as unread:", error);
+      }
+    },
+    [
+      applyUnreadStateToCombinedMap,
+      applyUnreadStateToMessages,
+      dispatch,
+      mailMessages,
+    ]
+  );
+
+  const publishMailStateToQdn = useCallback(async () => {
+    if (!user?.name || !user?.address) return;
+    try {
+      setIsPublishingMailState(true);
+      const mergedStateEntries: Record<string, QMailPublishedStateEntry> = {
+        ...publishedMailStateById,
+      };
+      Object.entries(localMailStateById).forEach(([identifier, entry]) => {
+        mergedStateEntries[identifier] = mergePublishedStateEntries(
+          mergedStateEntries[identifier],
+          {
+            ...entry,
+            updatedAt: Date.now(),
+          }
+        );
+      });
+
+      const payload: QMailPublishedStateDocument = {
+        version: 1,
+        updatedAt: Date.now(),
+        ownerAddress: user.address,
+        names: ownedNameCandidates,
+        messages: mergedStateEntries,
+      };
+      const encoded = await objectToBase64(payload);
+      await qortalRequest({
+        action: "PUBLISH_QDN_RESOURCE",
+        name: user.name,
+        service: MAIL_STATE_DOCUMENT_SERVICE,
+        identifier: MAIL_STATE_DOCUMENT_IDENTIFIER,
+        data64: encoded,
+      });
+
+      dispatch(
+        setNotification({
+          msg: "Published Q-Mail read state",
+          alertType: "success",
+        })
+      );
+      setPublishedMailStateById(mergedStateEntries);
+    } catch (error: any) {
+      const messageText =
+        typeof error?.message === "string"
+          ? error.message
+          : "Failed to publish Q-Mail state";
+      dispatch(
+        setNotification({
+          msg: messageText,
+          alertType: "error",
+        })
+      );
+    } finally {
+      setIsPublishingMailState(false);
+    }
+  }, [
+    dispatch,
+    localMailStateById,
+    ownedNameCandidates,
+    publishedMailStateById,
+    user?.address,
+    user?.name,
+  ]);
+
+  const loadPublishedMailStateFromQdn = useCallback(async () => {
+    if (!user?.name) return;
+    try {
+      const encodedResource = await qortalRequest({
+        action: "FETCH_QDN_RESOURCE",
+        name: user.name,
+        service: MAIL_STATE_DOCUMENT_SERVICE,
+        identifier: MAIL_STATE_DOCUMENT_IDENTIFIER,
+        encoding: "base64",
+      });
+
+      if (!encodedResource) return;
+
+      let decodedObject: any = null;
+      try {
+        const decryptRequestBody: any = {
+          action: "DECRYPT_DATA",
+          encryptedData: encodedResource,
+        };
+        const decrypted = await qortalRequest(decryptRequestBody);
+        decodedObject = uint8ArrayToObject(base64ToUint8Array(decrypted));
+      } catch {
+        decodedObject = uint8ArrayToObject(base64ToUint8Array(encodedResource));
+      }
+
+      if (!decodedObject || typeof decodedObject !== "object") return;
+      const maybeMessages = decodedObject.messages;
+      if (!maybeMessages || typeof maybeMessages !== "object") return;
+
+      const normalizedPublishedStateById: Record<
+        string,
+        QMailPublishedStateEntry
+      > = {};
+      const readIdSet = new Set<string>();
+      Object.entries(maybeMessages).forEach(([identifier, entry]) => {
+        if (!identifier || typeof entry !== "object" || !entry) return;
+        const normalizedEntry = normalizePublishedStateEntry(
+          entry as QMailPublishedStateEntry
+        );
+        if (!normalizedEntry.read && !normalizedEntry.subject) return;
+        normalizedPublishedStateById[identifier] = normalizedEntry;
+        if (normalizedEntry.read) {
+          readIdSet.add(identifier);
+        }
+      });
+
+      if (!Object.keys(normalizedPublishedStateById).length) return;
+      const shouldLoad = window.confirm(
+        `Load published Q-Mail state for ${user.name}?`
+      );
+      if (!shouldLoad) return;
+
+      const updatedMailMessages = applyReadStateToMessages(mailMessages, readIdSet);
+      dispatch(upsertMessages(updatedMailMessages));
+      setCombinedAliasInboxMessages(previous => {
+        return applyReadStateToCombinedMap(previous, readIdSet);
+      });
+      setPublishedMailStateById(normalizedPublishedStateById);
+      dispatch(
+        setNotification({
+          msg: `Loaded published state for ${readIdSet.size} messages`,
+          alertType: "success",
+        })
+      );
+    } catch {
+      // Ignore missing resources and permission errors.
+    }
+  }, [
+    applyReadStateToCombinedMap,
+    applyReadStateToMessages,
+    dispatch,
+    mailMessages,
+    user?.name,
+  ]);
+
   const renderAuthenticationPrompt = useCallback(
     (mailboxLabel: "Inbox" | "Sent" | "Threads") => {
       return (
@@ -2292,14 +2716,19 @@ export const Mail = ({ isFromTo }: MailProps) => {
         ? selectedAliasInboxName
         : null,
       primaryName: user?.name,
+      canPublishState: hasAuthenticatedIdentity,
+      isPublishingState: isPublishingMailState,
+      hasPendingStateChanges,
     });
   }, [
     aliasSidebarNames,
     aliasReplyLinks,
     groupOptionsWithThreads,
     hasAuthenticatedIdentity,
+    hasPendingStateChanges,
     inboxSidebarNames,
     isThreadsSectionExpanded,
+    isPublishingMailState,
     ownedSentNames,
     selectedAliasInboxName,
     user?.name,
@@ -2462,6 +2891,20 @@ export const Mail = ({ isFromTo }: MailProps) => {
         return <img src={ReplySVG} alt="" style={iconStyle} />;
       }
 
+      if (item.id === PUBLISH_STATE_ITEM_ID) {
+        const hasPendingChanges = item.badgeText === "!";
+        return (
+          <PublishIcon
+            sx={{
+              fontSize: "1rem",
+              color: hasPendingChanges
+                ? "var(--qmail-warning-border, rgba(255, 171, 64, 0.95))"
+                : "inherit",
+            }}
+          />
+        );
+      }
+
       return null;
     },
     [avatarUrlByNameLowercase, groupAvatarUrlById, groupOptionsById]
@@ -2525,6 +2968,12 @@ export const Mail = ({ isFromTo }: MailProps) => {
         setCurrentThread(null);
         setIsOpen(false);
         setMessage(null);
+        closeSidebarIfTransient();
+        return;
+      }
+
+      if (itemId === PUBLISH_STATE_ITEM_ID) {
+        void publishMailStateToQdn();
         closeSidebarIfTransient();
         return;
       }
@@ -2640,9 +3089,31 @@ export const Mail = ({ isFromTo }: MailProps) => {
       aliasReplyLinks,
       groupOptionsById,
       leftSidebarController,
+      publishMailStateToQdn,
       selectedAliasInboxName,
     ]
   );
+
+  useEffect(() => {
+    setPublishedMailStateById({});
+  }, [user?.address, user?.name]);
+
+  useEffect(() => {
+    const identityKey = `${user?.name || ""}:${user?.address || ""}`;
+    if (!hasAuthenticatedIdentity || !identityKey || !mailMessages.length) {
+      hasPromptedForPublishedMailStateRef.current = null;
+      return;
+    }
+    if (hasPromptedForPublishedMailStateRef.current === identityKey) return;
+    hasPromptedForPublishedMailStateRef.current = identityKey;
+    void loadPublishedMailStateFromQdn();
+  }, [
+    hasAuthenticatedIdentity,
+    loadPublishedMailStateFromQdn,
+    mailMessages.length,
+    user?.address,
+    user?.name,
+  ]);
 
   useEffect(() => {
     const onToggleChangelog = () => {
@@ -2879,7 +3350,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
                       composePrefill={composePrefill}
                       onRequestClose={() => {
                         const shouldReturnToAliasInbox =
-                          composeMode === "alias" && Boolean(selectedAliasInboxName);
+                          composeMode === "alias" &&
+                          Boolean(selectedAliasInboxName);
                         setComposeRecipientAlias(null);
                         setComposeRequireReplyAlias(false);
                         setComposeDefaultReplyAlias("");
@@ -3142,6 +3614,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
                                     openedMessageId={
                                       message?.id || message?.identifier
                                     }
+                                    onMarkAsRead={markMessagesAsRead}
+                                    onMarkAsUnread={markMessagesAsUnread}
                                   />
                                   {isLoading && (
                                     <Box
@@ -3333,7 +3807,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
                     composePrefill={composePrefill}
                     onRequestClose={() => {
                       const shouldReturnToAliasInbox =
-                        composeMode === "alias" && Boolean(selectedAliasInboxName);
+                        composeMode === "alias" &&
+                        Boolean(selectedAliasInboxName);
                       setComposeRecipientAlias(null);
                       setComposeRequireReplyAlias(false);
                       setComposeDefaultReplyAlias("");
@@ -3566,6 +4041,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
                               openedMessageId={
                                 message?.id || message?.identifier
                               }
+                              onMarkAsRead={markMessagesAsRead}
+                              onMarkAsUnread={markMessagesAsUnread}
                             />
                             {isLoading && (
                               <Box
