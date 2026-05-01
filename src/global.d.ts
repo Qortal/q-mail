@@ -40,6 +40,8 @@ interface QortalRequestOptions {
   query?: string
   prefix?: boolean
   qortalLink?: string
+  encrypt?: boolean
+  publicKeys?: string[]
 }
 
 declare function qortalRequest(options: QortalRequestOptions): Promise<any>

@@ -2319,7 +2319,9 @@ export const Mail = ({ isFromTo }: MailProps) => {
 
         const updatedMessage = structuredClone(message);
         updatedMessage.generalData = updatedMessage.generalData || {};
-        const existingThread = Array.isArray(updatedMessage.generalData.threadV2)
+        const existingThread = Array.isArray(
+          updatedMessage.generalData.threadV2
+        )
           ? updatedMessage.generalData.threadV2
           : [];
         if (existingThread.length > 0) return updatedMessage;
@@ -2351,7 +2353,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
       let didChange = false;
       const nextMap = Object.entries(messageMap).reduce<Record<string, any[]>>(
         (accumulator, [name, entries]) => {
-          const updatedEntries = applyReadStateToMessages(entries || [], readIdSet);
+          const updatedEntries = applyReadStateToMessages(
+            entries || [],
+            readIdSet
+          );
           accumulator[name] = updatedEntries;
           if (updatedEntries !== entries) {
             didChange = true;
@@ -2365,17 +2370,20 @@ export const Mail = ({ isFromTo }: MailProps) => {
     [applyReadStateToMessages]
   );
 
-  const applyUnreadStateToMessages = useCallback((messagesToUpdate: any[], unreadIdSet: Set<string>): any[] => {
-    return messagesToUpdate.map(message => {
-      const identifier = getMessageIdentifier(message);
-      if (!identifier || !unreadIdSet.has(identifier)) return message;
+  const applyUnreadStateToMessages = useCallback(
+    (messagesToUpdate: any[], unreadIdSet: Set<string>): any[] => {
+      return messagesToUpdate.map(message => {
+        const identifier = getMessageIdentifier(message);
+        if (!identifier || !unreadIdSet.has(identifier)) return message;
 
-      const updatedMessage = structuredClone(message);
-      updatedMessage.generalData = updatedMessage.generalData || {};
-      updatedMessage.generalData.threadV2 = [];
-      return updatedMessage;
-    });
-  }, []);
+        const updatedMessage = structuredClone(message);
+        updatedMessage.generalData = updatedMessage.generalData || {};
+        updatedMessage.generalData.threadV2 = [];
+        return updatedMessage;
+      });
+    },
+    []
+  );
 
   const applyUnreadStateToCombinedMap = useCallback(
     (
@@ -2385,7 +2393,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
       let didChange = false;
       const nextMap = Object.entries(messageMap).reduce<Record<string, any[]>>(
         (accumulator, [name, entries]) => {
-          const updatedEntries = applyUnreadStateToMessages(entries || [], unreadIdSet);
+          const updatedEntries = applyUnreadStateToMessages(
+            entries || [],
+            unreadIdSet
+          );
           accumulator[name] = updatedEntries;
           if (updatedEntries !== entries) {
             didChange = true;
@@ -2458,7 +2469,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
         if (!readIdentifiers.length) return;
 
         const readIdSet = new Set(readIdentifiers);
-        const updatedMailMessages = applyReadStateToMessages(mailMessages, readIdSet);
+        const updatedMailMessages = applyReadStateToMessages(
+          mailMessages,
+          readIdSet
+        );
         dispatch(upsertMessages(updatedMailMessages));
         setCombinedAliasInboxMessages(previous => {
           return applyReadStateToCombinedMap(previous, readIdSet);
@@ -2530,12 +2544,30 @@ export const Mail = ({ isFromTo }: MailProps) => {
         messages: mergedStateEntries,
       };
       const encoded = await objectToBase64(payload);
+
+      // Get user's public key for encryption
+      const accountData = await qortalRequest({
+        action: "GET_ACCOUNT_DATA",
+        address: user.address,
+      });
+      const userPublicKey =
+        typeof accountData?.publicKey === "string" ? accountData.publicKey : "";
+
+      // Encrypt the data before publishing
+      // const encryptedData = await qortalRequest({
+      //   action: "ENCRYPT_DATA",
+      //   data64: encoded,
+      //   publicKeys: userPublicKey ? [userPublicKey] : [],
+      // });
+
       await qortalRequest({
         action: "PUBLISH_QDN_RESOURCE",
         name: user.name,
         service: MAIL_STATE_DOCUMENT_SERVICE,
         identifier: MAIL_STATE_DOCUMENT_IDENTIFIER,
         data64: encoded,
+        encrypt: true,
+        publicKeys: userPublicKey ? [userPublicKey] : [],
       });
 
       dispatch(
@@ -2620,7 +2652,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
       );
       if (!shouldLoad) return;
 
-      const updatedMailMessages = applyReadStateToMessages(mailMessages, readIdSet);
+      const updatedMailMessages = applyReadStateToMessages(
+        mailMessages,
+        readIdSet
+      );
       dispatch(upsertMessages(updatedMailMessages));
       setCombinedAliasInboxMessages(previous => {
         return applyReadStateToCombinedMap(previous, readIdSet);
