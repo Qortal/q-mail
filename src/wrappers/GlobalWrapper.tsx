@@ -55,7 +55,6 @@ const GlobalWrapper: React.FC<Props> = ({ children, setTheme }) => {
   useEffect(() => {
     qortalRequest({
       action: "NOTIFICATION_MARK_SEEN",
-      // @ts-ignore
       notificationIds: ["q-mail-notification"],
     }).catch(error => {
       console.log({ error });
