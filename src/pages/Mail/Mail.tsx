@@ -1018,6 +1018,7 @@ interface MailProps {
 }
 
 export const Mail = ({ isFromTo }: MailProps) => {
+  const { name: composeRouteName } = useParams();
   const { isShow, onCancel, onOk, show } = useModal();
   const { user } = useSelector((state: RootState) => state.auth);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -1562,6 +1563,31 @@ export const Mail = ({ isFromTo }: MailProps) => {
     }
     prevName.current = user.name;
   }, [user?.name]);
+
+  useEffect(() => {
+    if (!isFromTo || !composeRouteName || !hasAuthenticatedIdentity) {
+      return;
+    }
+
+    setIsChangelogOpen(false);
+    setReplyTo(null);
+    setForwardInfo(null);
+    setSelectedAlias(null);
+    setSelectedAliasScope(null);
+    setSelectedGroup(null);
+    setCurrentThread(null);
+    setMessage(null);
+    setIsOpen(false);
+    setComposePrefill(null);
+    setComposeReturnView("inbox");
+    setComposeReturnGroupId(null);
+    setComposeRecipientAlias(null);
+    setComposeRequireReplyAlias(false);
+    setComposeDefaultReplyAlias("");
+    setComposeMode("standard");
+    setActiveMailboxItem("compose");
+    setMobileMode("compose");
+  }, [composeRouteName, hasAuthenticatedIdentity, isFromTo]);
 
   useEffect(() => {
     const savedTourStatus = localStorage.getItem(TOUR_STATUS_STORAGE_KEY);

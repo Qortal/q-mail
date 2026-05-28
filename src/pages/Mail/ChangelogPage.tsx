@@ -9,6 +9,13 @@ type ChangelogEntry = {
 
 const changelogEntries: ChangelogEntry[] = [
   {
+    version: "v3.2.1",
+    date: "May 28, 2026",
+    highlights: [
+      "`/to/:name` links now open the composer automatically instead of landing in the inbox with a prefilled recipient.",
+    ],
+  },
+  {
     version: "v3.2.0",
     date: "May 28, 2026",
     highlights: [

@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.2.1 - May 28th 2026
+
+- **Fixed:** `/to/:name` links now open the composer automatically instead of landing in the inbox with a prefilled recipient (impact: users following mail-style deep links to start a message).
+
 ## 3.2.0 - May 28, 2026
 
 - **Added:** High-contrast top-of-mail loading banner with a prominent spinner and `Fetching mail and state...` text so users can clearly see when the inbox is still loading (how to use: just wait for the banner to clear before assuming QDN state failed).
