@@ -1,6 +1,9 @@
 import React from 'react'
 import {
   Box,
+  Checkbox,
+  Divider,
+  FormControlLabel,
   IconButton,
   Popover,
   Tooltip,
@@ -21,6 +24,10 @@ import { useLocation } from 'react-router-dom'
 import { BlockedNamesModal } from '../../common/BlockedNamesModal/BlockedNamesModal'
 import Logo from '../../../assets/svgs/Logo.svg'
 import LogoLight from '../../../assets/svgs/LogoLight.svg'
+import {
+  readAutoApplyQdnState,
+  writeAutoApplyQdnState
+} from '../../../utils/qdnStatePreference'
 import packageJson from '../../../../package.json'
 import {
   CustomAppBar,
@@ -58,11 +65,22 @@ const NavBar: React.FC<Props> = ({
   const isMobile = useMediaQuery('(max-width:950px)')
   const logoSrc = theme.palette.mode === 'light' ? LogoLight : Logo
   const appVersion = packageJson.version
+  const userAddress = useSelector(
+    (state: RootState) =>
+      state.auth?.user?.address || state.auth?.user?.name || ''
+  )
   const { visitingBlog } = useSelector((state: RootState) => state.global)
   const location = useLocation()
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
   const [isOpenModal, setIsOpenModal] = React.useState<boolean>(false)
+  const [autoApplyQdnState, setAutoApplyQdnState] = React.useState<boolean>(
+    () => readAutoApplyQdnState(userAddress)
+  )
   const stripBlogId = removePrefix(visitingBlog?.blogId || '')
+
+  React.useEffect(() => {
+    setAutoApplyQdnState(readAutoApplyQdnState(userAddress))
+  }, [userAddress])
 
   React.useEffect(() => {
     const onAuthenticate = () => {
@@ -282,6 +300,35 @@ const NavBar: React.FC<Props> = ({
                   }}
                 />
               </Box>
+              {isAuthenticated && userAddress && (
+                <>
+                  <Divider />
+                  <Box
+                    sx={{
+                      p: 2,
+                      display: 'grid',
+                      gap: 1
+                    }}
+                  >
+                    <Typography variant="subtitle2">
+                      QDN State
+                    </Typography>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={autoApplyQdnState}
+                          onChange={event => {
+                            const checked = event.target.checked
+                            setAutoApplyQdnState(checked)
+                            writeAutoApplyQdnState(userAddress, checked)
+                          }}
+                        />
+                      }
+                      label="Always fetch and apply QDN state"
+                    />
+                  </Box>
+                </>
+              )}
               {isAuthenticated && (
                 <Box
                   sx={{

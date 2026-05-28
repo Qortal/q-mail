@@ -9,6 +9,30 @@ type ChangelogEntry = {
 
 const changelogEntries: ChangelogEntry[] = [
   {
+    version: "v3.2.0",
+    date: "May 28, 2026",
+    highlights: [
+      "Added a high-contrast top-of-mail loading banner with a prominent spinner and Fetching mail and state... text so users can clearly see when the inbox is still loading.",
+      "Added a checkbox to the initial QDN state prompt so you can turn on Always fetch and apply QDN state without opening the side menu.",
+      "Opening an inbox or alias message now marks it read automatically, so sender groups unbold once every message under them has been read.",
+      "Fixed the QDN state prompt so it no longer flashes or remounts while mail data keeps loading in the background.",
+      "Added an Inbox Select all control for the visible grouped message list.",
+      "Changed published QDN state loading so Q-Mail prompts as soon as the state is discovered in search and keeps fetching in the background.",
+      "Added an Always fetch and apply QDN state preference in the right-side menu for automatic loading on this account.",
+    ],
+  },
+  {
+    version: "v3.1.1",
+    date: "April 14, 2026",
+    highlights: [
+      "Fixed grouped inbox selection so bulk Mark as Read appears reliably when messages are selected.",
+      "Fixed read-state rendering so marked messages (including ACCESS TO DECRYPT rows) no longer stay bold as unread.",
+      "Added publish/load Q-Mail state support using DOCUMENT_PRIVATE, with merged per-message read and subject state across sessions.",
+      "Added a high-visibility warning style for pending Publish Q-Mail State changes and a new bulk Mark as Unread action.",
+      "Updated grouped sender labels so group headers only appear bold when the group still has unread messages.",
+    ],
+  },
+  {
     version: "v3.1.0",
     date: "March 24, 2026",
     highlights: [

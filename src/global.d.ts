@@ -41,6 +41,8 @@ interface QortalRequestOptions {
   prefix?: boolean;
   qortalLink?: string;
   notificationIds?: string[];
+  encrypt?: boolean;
+  publicKeys?: string[];
 }
 
 declare function qortalRequest(options: QortalRequestOptions): Promise<any>;
