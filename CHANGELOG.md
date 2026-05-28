@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.1.2 - May 28, 2026
+
+- **Changed:** Merged PhilReact's upstream interface refresh and clear-notification action into Q-Mail's main branch (migration/notes: no action required).
+- **Fixed:** Kept the local state-publish updates intact while incorporating the upstream merge so existing read-state and publish flows continue to work.
+
 ## 3.1.1 - April 14, 2026
 
 - **Fixed:** Grouped inbox selection now keeps checked messages selected so the bulk `Mark as Read` action appears and works as expected (impact: users selecting messages inside expanded sender/recipient groups).
