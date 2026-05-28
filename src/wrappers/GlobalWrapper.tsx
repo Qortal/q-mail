@@ -16,7 +16,10 @@ import ConsentModal from "../components/modals/ConsentModal";
 import { AudioPlayer } from "../components/common/AudioPlayer";
 import { setPrivateGroups } from "../state/features/globalSlice";
 import { LoaderBar } from "../components/common/LoaderBar";
-import { addAllHashMapSubject, clearMessages } from "../state/features/mailSlice";
+import {
+  addAllHashMapSubject,
+  clearMessages,
+} from "../state/features/mailSlice";
 import { applyQAppTextSize } from "@qortal/qapp-lib/typography";
 import { useQMailAppShell } from "../app-shell/useQMailAppShell";
 interface Props {
@@ -49,6 +52,15 @@ const GlobalWrapper: React.FC<Props> = ({ children, setTheme }) => {
     getAvatar();
   }, [user?.name]);
 
+  useEffect(() => {
+    qortalRequest({
+      action: "NOTIFICATION_MARK_SEEN",
+      notificationIds: ["q-mail-notification"],
+    }).catch(error => {
+      console.log({ error });
+    });
+  }, []);
+
   const getAvatar = async () => {
     try {
       let url = await qortalRequest({
@@ -73,28 +85,31 @@ const GlobalWrapper: React.FC<Props> = ({ children, setTheme }) => {
     (state: RootState) => state.global.isLoadingCustom
   );
 
-  const getGroups = React.useCallback(async (address: string) => {
-    try {
-      const groups: any = {};
-      const response = await fetch(
-        "/groups/member/" + encodeURIComponent(address)
-      );
-      const groupData = await response.json();
-      const memberGroups = Array.isArray(groupData) ? groupData : [];
-      if (memberGroups.length > 0) {
-        for (const group of memberGroups) {
-          const groupNumber = group?.groupId;
-          if (groupNumber === undefined || groupNumber === null) continue;
-          groups[groupNumber] = {
-            ...group,
-          };
+  const getGroups = React.useCallback(
+    async (address: string) => {
+      try {
+        const groups: any = {};
+        const response = await fetch(
+          "/groups/member/" + encodeURIComponent(address)
+        );
+        const groupData = await response.json();
+        const memberGroups = Array.isArray(groupData) ? groupData : [];
+        if (memberGroups.length > 0) {
+          for (const group of memberGroups) {
+            const groupNumber = group?.groupId;
+            if (groupNumber === undefined || groupNumber === null) continue;
+            groups[groupNumber] = {
+              ...group,
+            };
+          }
         }
+        dispatch(setPrivateGroups(groups));
+      } catch (error) {
+        console.log({ error });
       }
-      dispatch(setPrivateGroups(groups));
-    } catch (error) {
-      console.log({ error });
-    }
-  }, [dispatch]);
+    },
+    [dispatch]
+  );
   // async function getGroups(address: string) {
   //   try {
   //     const groups: any = {};
@@ -280,7 +295,10 @@ const GlobalWrapper: React.FC<Props> = ({ children, setTheme }) => {
     });
 
   useEffect(() => {
-    applyQAppTextSize(document.documentElement, appShellState.settings.textSize);
+    applyQAppTextSize(
+      document.documentElement,
+      appShellState.settings.textSize
+    );
   }, [appShellState.settings.textSize]);
 
   return (
