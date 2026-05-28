@@ -9,6 +9,17 @@ type ChangelogEntry = {
 
 const changelogEntries: ChangelogEntry[] = [
   {
+    version: "v3.2.0",
+    date: "May 28, 2026",
+    highlights: [
+      "Opening an inbox or alias message now marks it read automatically, so sender groups unbold once every message under them has been read.",
+      "Fixed the QDN state prompt so it no longer flashes or remounts while mail data keeps loading in the background.",
+      "Added an Inbox Select all control for the visible grouped message list.",
+      "Changed published QDN state loading so Q-Mail prompts as soon as the state is discovered in search and keeps fetching in the background.",
+      "Added an Always fetch and apply QDN state preference in the right-side menu for automatic loading on this account.",
+    ],
+  },
+  {
     version: "v3.1.1",
     date: "April 14, 2026",
     highlights: [

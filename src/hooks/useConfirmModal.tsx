@@ -1,36 +1,59 @@
-import { useState } from 'react'
-import ConfirmationModal, {
-  ModalProps
-} from '../components/common/ConfirmationModal'
+import { useCallback, useRef, useState } from "react";
+import ConfirmationModal from "../components/common/ConfirmationModal";
 
-const useConfirmationModal = (props: any) => {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  const [resolvePromise, setResolvePromise] =
-    useState<(value: boolean) => void>()
+type ConfirmationModalContent = {
+  open: boolean;
+  title: string;
+  message: string;
+};
 
-  const showModal = async () => {
-    setIsModalOpen(true)
-    return new Promise<boolean>((resolve) => {
-      setResolvePromise(() => resolve)
-    })
-  }
+type UseConfirmationModalProps = {
+  title: string;
+  message: string;
+};
 
-  const handleUserAction = (userConfirmed: boolean) => {
-    setIsModalOpen(false)
-    resolvePromise?.(userConfirmed)
-  }
+const useConfirmationModal = (props: UseConfirmationModalProps) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const resolvePromiseRef = useRef<((value: boolean) => void) | null>(null);
+  const modalContentRef = useRef<ConfirmationModalContent>({
+    open: false,
+    title: props.title,
+    message: props.message,
+  });
 
-  const Modal = () => (
-    <ConfirmationModal
-      open={isModalOpen}
-      title={props.title}
-      message={props.message}
-      handleConfirm={() => handleUserAction(true)}
-      handleCancel={() => handleUserAction(false)}
-    />
-  )
+  modalContentRef.current = {
+    open: isModalOpen,
+    title: props.title,
+    message: props.message,
+  };
 
-  return { Modal, showModal }
-}
+  const handleUserAction = useCallback((userConfirmed: boolean) => {
+    setIsModalOpen(false);
+    resolvePromiseRef.current?.(userConfirmed);
+    resolvePromiseRef.current = null;
+  }, []);
 
-export default useConfirmationModal
+  const showModal = useCallback(async () => {
+    setIsModalOpen(true);
+    return new Promise<boolean>(resolve => {
+      resolvePromiseRef.current = resolve;
+    });
+  }, []);
+
+  const Modal = useCallback(() => {
+    const { open, title, message } = modalContentRef.current;
+    return (
+      <ConfirmationModal
+        open={open}
+        title={title}
+        message={message}
+        handleConfirm={() => handleUserAction(true)}
+        handleCancel={() => handleUserAction(false)}
+      />
+    );
+  }, [handleUserAction]);
+
+  return { Modal, showModal };
+};
+
+export default useConfirmationModal;

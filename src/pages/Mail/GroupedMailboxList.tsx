@@ -16,6 +16,7 @@ type MailboxType = "inbox" | "sent";
 interface GroupedMailboxListProps {
   messages: any[];
   mailboxType: MailboxType;
+  showSelectAll?: boolean;
   openMessage: (
     user: string,
     identifier: string,
@@ -63,6 +64,7 @@ export const GroupedMailboxList = ({
   openedMessageId,
   onDeleteMessage,
   isDeletingMessage,
+  showSelectAll = false,
   onMarkAsRead,
   onMarkAsUnread,
 }: GroupedMailboxListProps) => {
@@ -124,6 +126,24 @@ export const GroupedMailboxList = ({
     return groups;
   }, [messages, mailboxType]);
 
+  const allVisibleMessageIds = useMemo(() => {
+    return groupedMessages.flatMap(group =>
+      group.messages
+        .map(getMessageId)
+        .filter(Boolean) as string[]
+    );
+  }, [groupedMessages]);
+
+  const selectedVisibleCount = useMemo(() => {
+    return allVisibleMessageIds.filter(id => selectedMessageIds.has(id)).length;
+  }, [allVisibleMessageIds, selectedMessageIds]);
+
+  const areAllVisibleSelected =
+    allVisibleMessageIds.length > 0 &&
+    selectedVisibleCount === allVisibleMessageIds.length;
+  const isVisibleSelectionIndeterminate =
+    selectedVisibleCount > 0 && selectedVisibleCount < allVisibleMessageIds.length;
+
   const handleToggleMessage = (messageId: string) => {
     if (!messageId) return;
     setSelectedMessageIds(previous => {
@@ -133,6 +153,27 @@ export const GroupedMailboxList = ({
       } else {
         newSet.add(messageId);
       }
+      return newSet;
+    });
+  };
+
+  const handleToggleSelectAllVisible = () => {
+    if (!allVisibleMessageIds.length) return;
+
+    setSelectedMessageIds(previous => {
+      const newSet = new Set(previous);
+      const isAllSelected =
+        allVisibleMessageIds.length > 0 &&
+        allVisibleMessageIds.every(id => newSet.has(id));
+
+      allVisibleMessageIds.forEach(id => {
+        if (isAllSelected) {
+          newSet.delete(id);
+        } else {
+          newSet.add(id);
+        }
+      });
+
       return newSet;
     });
   };
@@ -220,6 +261,61 @@ export const GroupedMailboxList = ({
 
   return (
     <MessagesContainer>
+      {showSelectAll && allVisibleMessageIds.length > 0 && (
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            border: "1px solid var(--qmail-shell-border)",
+            borderRadius: "10px",
+            background: "var(--qmail-shell-hover)",
+            padding: "10px 14px",
+            marginBottom: "10px",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              minWidth: 0,
+            }}
+          >
+            <Checkbox
+              checked={areAllVisibleSelected}
+              indeterminate={isVisibleSelectionIndeterminate}
+              onChange={handleToggleSelectAllVisible}
+              sx={{
+                color: "var(--qmail-action-primary-text)",
+                "&.Mui-checked": {
+                  color: "var(--qmail-action-primary-text)",
+                },
+              }}
+            />
+            <Typography
+              sx={{
+                fontSize: "0.95rem",
+                fontWeight: 600,
+                color: "var(--qmail-thread-text)",
+              }}
+            >
+              Select all
+            </Typography>
+          </Box>
+          <Typography
+            sx={{
+              fontSize: "0.85rem",
+              color: "var(--qmail-thread-subtle-text)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {selectedVisibleCount}/{allVisibleMessageIds.length} selected
+          </Typography>
+        </Box>
+      )}
       {groupedMessages.map(group => {
         const isExpandableGroup = group.messages.length > 1;
         const isExpanded = Boolean(expandedGroups[group.key]);

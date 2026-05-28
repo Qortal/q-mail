@@ -45,6 +45,7 @@ import { AliasMail } from "./AliasMail";
 import { SentMail } from "./SentMail";
 import { GroupMail } from "./GroupMail";
 import { useModal } from "../../components/common/useModal";
+import useConfirmationModal from "../../hooks/useConfirmModal";
 import { OpenMail } from "./OpenMail";
 import { MAIL_SERVICE_TYPE, THREAD_SERVICE_TYPE } from "../../constants/mail";
 import {
@@ -79,6 +80,9 @@ import {
   objectToBase64,
   uint8ArrayToObject,
 } from "../../utils/toBase64";
+import {
+  readAutoApplyQdnState,
+} from "../../utils/qdnStatePreference";
 import { formatFullTimestamp } from "../../utils/time";
 import PublishIcon from "@mui/icons-material/Publish";
 import {
@@ -1092,6 +1096,16 @@ export const Mail = ({ isFromTo }: MailProps) => {
     Record<string, string>
   >({});
   const hasPromptedForPublishedMailStateRef = useRef<string | null>(null);
+  const markMessagesAsReadRef = useRef<
+    ((messages: any[]) => void | Promise<void>) | null
+  >(null);
+  const publishedMailStateApplyStatusRef = useRef<{
+    mailMessagesApplied: boolean;
+    combinedAliasInboxMessagesApplied: boolean;
+  }>({
+    mailMessagesApplied: false,
+    combinedAliasInboxMessagesApplied: false,
+  });
   const userAvatarHash = useSelector(
     (state: RootState) => state.global.userAvatarHash
   );
@@ -1122,6 +1136,12 @@ export const Mail = ({ isFromTo }: MailProps) => {
   const mailMessages = useSelector(
     (state: RootState) => state.mail.mailMessages
   );
+  const { Modal: LoadPublishedStateModal, showModal: showLoadPublishedStateModal } =
+    useConfirmationModal({
+      title: "Load published QDN state?",
+      message:
+        "Q-Mail found a published mailbox state for this account. Keep fetching it in the background and apply it when the download finishes?",
+    });
 
   const userName = useMemo(() => {
     if (!user?.name) return "";
@@ -1359,6 +1379,8 @@ export const Mail = ({ isFromTo }: MailProps) => {
   ) => {
     try {
       setIsChangelogOpen(false);
+      const shouldAutoMarkAsRead =
+        activeMailboxItem === "inbox" || activeMailboxItem === "aliases";
       const existingMessage: any = hashMapMailMessages[messageIdentifier];
       if (
         existingMessage &&
@@ -1367,6 +1389,15 @@ export const Mail = ({ isFromTo }: MailProps) => {
       ) {
         setMessage(existingMessage);
         setIsOpen(true);
+        if (shouldAutoMarkAsRead) {
+          void markMessagesAsReadRef.current?.([
+            {
+              id: messageIdentifier,
+              identifier: messageIdentifier,
+              user,
+            },
+          ]);
+        }
         return;
       }
       setMailInfo({
@@ -1380,6 +1411,15 @@ export const Mail = ({ isFromTo }: MailProps) => {
       if (res && res.isValid && !res.unableToDecrypt) {
         setMessage(res);
         setIsOpen(true);
+        if (shouldAutoMarkAsRead) {
+          void markMessagesAsReadRef.current?.([
+            {
+              id: messageIdentifier,
+              identifier: messageIdentifier,
+              user,
+            },
+          ]);
+        }
         return;
       }
     } catch (error) {
@@ -2313,18 +2353,21 @@ export const Mail = ({ isFromTo }: MailProps) => {
 
   const applyReadStateToMessages = useCallback(
     (messagesToUpdate: any[], readIdSet: Set<string>): any[] => {
-      return messagesToUpdate.map(message => {
+      let didChange = false;
+      const nextMessages = messagesToUpdate.map(message => {
         const identifier = getMessageIdentifier(message);
         if (!identifier || !readIdSet.has(identifier)) return message;
 
+        const existingThread = Array.isArray(
+          message?.generalData?.threadV2
+        )
+          ? message.generalData.threadV2
+          : [];
+        if (existingThread.length > 0) return message;
+
+        didChange = true;
         const updatedMessage = structuredClone(message);
         updatedMessage.generalData = updatedMessage.generalData || {};
-        const existingThread = Array.isArray(
-          updatedMessage.generalData.threadV2
-        )
-          ? updatedMessage.generalData.threadV2
-          : [];
-        if (existingThread.length > 0) return updatedMessage;
 
         updatedMessage.generalData.threadV2 = [
           {
@@ -2341,6 +2384,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
         ];
         return updatedMessage;
       });
+      return didChange ? nextMessages : messagesToUpdate;
     },
     []
   );
@@ -2372,15 +2416,23 @@ export const Mail = ({ isFromTo }: MailProps) => {
 
   const applyUnreadStateToMessages = useCallback(
     (messagesToUpdate: any[], unreadIdSet: Set<string>): any[] => {
-      return messagesToUpdate.map(message => {
+      let didChange = false;
+      const nextMessages = messagesToUpdate.map(message => {
         const identifier = getMessageIdentifier(message);
         if (!identifier || !unreadIdSet.has(identifier)) return message;
 
+        const existingThread = Array.isArray(message?.generalData?.threadV2)
+          ? message.generalData.threadV2
+          : [];
+        if (existingThread.length === 0) return message;
+
+        didChange = true;
         const updatedMessage = structuredClone(message);
         updatedMessage.generalData = updatedMessage.generalData || {};
         updatedMessage.generalData.threadV2 = [];
         return updatedMessage;
       });
+      return didChange ? nextMessages : messagesToUpdate;
     },
     []
   );
@@ -2488,6 +2540,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
       mailMessages,
     ]
   );
+
+  useEffect(() => {
+    markMessagesAsReadRef.current = markMessagesAsRead;
+  }, [markMessagesAsRead]);
 
   const markMessagesAsUnread = useCallback(
     async (messages: any[]) => {
@@ -2602,8 +2658,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
 
   const loadPublishedMailStateFromQdn = useCallback(async () => {
     if (!user?.name) return;
+    const qdnIdentity = user?.address || user?.name || "";
+    const shouldAutoApplyQdnState = readAutoApplyQdnState(qdnIdentity);
     try {
-      const encodedResource = await qortalRequest({
+      const fetchPromise = qortalRequest({
         action: "FETCH_QDN_RESOURCE",
         name: user.name,
         service: MAIL_STATE_DOCUMENT_SERVICE,
@@ -2611,6 +2669,41 @@ export const Mail = ({ isFromTo }: MailProps) => {
         encoding: "base64",
       });
 
+      void fetchPromise.catch(() => undefined);
+
+      if (!shouldAutoApplyQdnState) {
+        const searchParams = new URLSearchParams({
+          mode: "ALL",
+          service: MAIL_STATE_DOCUMENT_SERVICE,
+          identifier: MAIL_STATE_DOCUMENT_IDENTIFIER,
+          name: user.name,
+          exactmatchnames: "true",
+          limit: "1",
+          includemetadata: "false",
+          reverse: "true",
+          excludeblocked: "true",
+        });
+        const searchResponse = await fetch(
+          `/arbitrary/resources/search?${searchParams.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const searchData = await searchResponse.json();
+        if (!Array.isArray(searchData) || searchData.length === 0) {
+          return;
+        }
+
+        const shouldLoad = await showLoadPublishedStateModal();
+        if (!shouldLoad) {
+          return;
+        }
+      }
+
+      const encodedResource = await fetchPromise;
       if (!encodedResource) return;
 
       let decodedObject: any = null;
@@ -2633,7 +2726,6 @@ export const Mail = ({ isFromTo }: MailProps) => {
         string,
         QMailPublishedStateEntry
       > = {};
-      const readIdSet = new Set<string>();
       Object.entries(maybeMessages).forEach(([identifier, entry]) => {
         if (!identifier || typeof entry !== "object" || !entry) return;
         const normalizedEntry = normalizePublishedStateEntry(
@@ -2641,29 +2733,19 @@ export const Mail = ({ isFromTo }: MailProps) => {
         );
         if (!normalizedEntry.read && !normalizedEntry.subject) return;
         normalizedPublishedStateById[identifier] = normalizedEntry;
-        if (normalizedEntry.read) {
-          readIdSet.add(identifier);
-        }
       });
 
       if (!Object.keys(normalizedPublishedStateById).length) return;
-      const shouldLoad = window.confirm(
-        `Load published Q-Mail state for ${user.name}?`
-      );
-      if (!shouldLoad) return;
-
-      const updatedMailMessages = applyReadStateToMessages(
-        mailMessages,
-        readIdSet
-      );
-      dispatch(upsertMessages(updatedMailMessages));
-      setCombinedAliasInboxMessages(previous => {
-        return applyReadStateToCombinedMap(previous, readIdSet);
-      });
+      publishedMailStateApplyStatusRef.current = {
+        mailMessagesApplied: false,
+        combinedAliasInboxMessagesApplied: false,
+      };
       setPublishedMailStateById(normalizedPublishedStateById);
       dispatch(
         setNotification({
-          msg: `Loaded published state for ${readIdSet.size} messages`,
+          msg: `Loaded published state for ${Object.keys(
+            normalizedPublishedStateById
+          ).length} messages`,
           alertType: "success",
         })
       );
@@ -2671,11 +2753,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
       // Ignore missing resources and permission errors.
     }
   }, [
-    applyReadStateToCombinedMap,
-    applyReadStateToMessages,
     dispatch,
-    mailMessages,
+    showLoadPublishedStateModal,
     user?.name,
+    user?.address,
   ]);
 
   const renderAuthenticationPrompt = useCallback(
@@ -3131,11 +3212,70 @@ export const Mail = ({ isFromTo }: MailProps) => {
 
   useEffect(() => {
     setPublishedMailStateById({});
+    publishedMailStateApplyStatusRef.current = {
+      mailMessagesApplied: false,
+      combinedAliasInboxMessagesApplied: false,
+    };
   }, [user?.address, user?.name]);
 
   useEffect(() => {
+    if (!Object.keys(publishedMailStateById).length) {
+      publishedMailStateApplyStatusRef.current = {
+        mailMessagesApplied: false,
+        combinedAliasInboxMessagesApplied: false,
+      };
+      return;
+    }
+
+    const readIdSet = new Set<string>();
+    Object.entries(publishedMailStateById).forEach(([identifier, entry]) => {
+      if (!identifier || !entry?.read) return;
+      readIdSet.add(identifier);
+    });
+
+    const applyStatus = publishedMailStateApplyStatusRef.current;
+    if (!readIdSet.size) {
+      applyStatus.mailMessagesApplied = true;
+      applyStatus.combinedAliasInboxMessagesApplied = true;
+      return;
+    }
+
+    if (!applyStatus.mailMessagesApplied && mailMessages.length > 0) {
+      const updatedMailMessages = applyReadStateToMessages(
+        mailMessages,
+        readIdSet
+      );
+      applyStatus.mailMessagesApplied = true;
+      if (updatedMailMessages !== mailMessages) {
+        dispatch(upsertMessages(updatedMailMessages));
+      }
+    }
+
+    if (
+      !applyStatus.combinedAliasInboxMessagesApplied &&
+      Object.keys(combinedAliasInboxMessages).length > 0
+    ) {
+      const updatedCombinedAliasInboxMessages = applyReadStateToCombinedMap(
+        combinedAliasInboxMessages,
+        readIdSet
+      );
+      applyStatus.combinedAliasInboxMessagesApplied = true;
+      if (updatedCombinedAliasInboxMessages !== combinedAliasInboxMessages) {
+        setCombinedAliasInboxMessages(updatedCombinedAliasInboxMessages);
+      }
+    }
+  }, [
+    applyReadStateToCombinedMap,
+    applyReadStateToMessages,
+    combinedAliasInboxMessages,
+    dispatch,
+    mailMessages,
+    publishedMailStateById,
+  ]);
+
+  useEffect(() => {
     const identityKey = `${user?.name || ""}:${user?.address || ""}`;
-    if (!hasAuthenticatedIdentity || !identityKey || !mailMessages.length) {
+    if (!hasAuthenticatedIdentity || !identityKey) {
       hasPromptedForPublishedMailStateRef.current = null;
       return;
     }
@@ -3145,7 +3285,6 @@ export const Mail = ({ isFromTo }: MailProps) => {
   }, [
     hasAuthenticatedIdentity,
     loadPublishedMailStateFromQdn,
-    mailMessages.length,
     user?.address,
     user?.name,
   ]);
@@ -3316,6 +3455,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
 
   return (
     <MailContainer className="qmail-mail-page">
+      <LoadPublishedStateModal />
       <>
         {!isMobile && (
           <MailBody>
@@ -3645,6 +3785,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
                                   <GroupedMailboxList
                                     messages={inboxSearchResults}
                                     mailboxType="inbox"
+                                    showSelectAll
                                     openMessage={openMessage}
                                     openedMessageId={
                                       message?.id || message?.identifier
@@ -4072,6 +4213,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
                             <GroupedMailboxList
                               messages={inboxSearchResults}
                               mailboxType="inbox"
+                              showSelectAll
                               openMessage={openMessage}
                               openedMessageId={
                                 message?.id || message?.identifier

@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.2.0 - May 28, 2026
+
+- **Fixed:** Opening an inbox or alias message now marks it read automatically, so sender groups unbold once every message under them has been read (impact: users reading messages one by one instead of using bulk actions).
+- **Fixed:** QDN state prompt no longer flashes or remounts while mail data continues loading in the background (impact: users loading published mailbox state on slower connections).
+- **Added:** Inbox `Select all` control for the visible grouped message list (how to use: open Inbox, then use the new top checkbox to select or clear the currently shown messages).
+- **Changed:** Published QDN state loading now prompts as soon as the state is discovered in search and continues fetching in the background, so applying it no longer waits for the full download to finish (migration/notes: the prompt still lets you decline loading without changing your mailbox).
+- **Added:** `Always fetch and apply QDN state` preference in the right-side menu so Q-Mail can automatically load published state without prompting on this account (how to use: open the user menu, then enable the new checkbox).
+
 ## 3.1.2 - May 28, 2026
 
 - **Changed:** Merged PhilReact's upstream interface refresh and clear-notification action into Q-Mail's main branch (migration/notes: no action required).
