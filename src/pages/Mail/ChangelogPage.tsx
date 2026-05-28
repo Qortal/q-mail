@@ -12,6 +12,8 @@ const changelogEntries: ChangelogEntry[] = [
     version: "v3.2.0",
     date: "May 28, 2026",
     highlights: [
+      "Added a high-contrast top-of-mail loading banner with a prominent spinner and Fetching mail and state... text so users can clearly see when the inbox is still loading.",
+      "Added a checkbox to the initial QDN state prompt so you can turn on Always fetch and apply QDN state without opening the side menu.",
       "Opening an inbox or alias message now marks it read automatically, so sender groups unbold once every message under them has been read.",
       "Fixed the QDN state prompt so it no longer flashes or remounts while mail data keeps loading in the background.",
       "Added an Inbox Select all control for the visible grouped message list.",

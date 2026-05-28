@@ -2,6 +2,8 @@
 
 ## 3.2.0 - May 28, 2026
 
+- **Added:** High-contrast top-of-mail loading banner with a prominent spinner and `Fetching mail and state...` text so users can clearly see when the inbox is still loading (how to use: just wait for the banner to clear before assuming QDN state failed).
+- **Added:** Checkbox in the initial QDN state prompt to enable `Always fetch and apply QDN state` directly from the load dialog (how to use: check the box before proceeding if you want future loads to skip the prompt).
 - **Fixed:** Opening an inbox or alias message now marks it read automatically, so sender groups unbold once every message under them has been read (impact: users reading messages one by one instead of using bulk actions).
 - **Fixed:** QDN state prompt no longer flashes or remounts while mail data continues loading in the background (impact: users loading published mailbox state on slower connections).
 - **Added:** Inbox `Select all` control for the visible grouped message list (how to use: open Inbox, then use the new top checkbox to select or clear the currently shown messages).

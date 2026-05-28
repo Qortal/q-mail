@@ -1,15 +1,17 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import ConfirmationModal from "../components/common/ConfirmationModal";
 
 type ConfirmationModalContent = {
   open: boolean;
   title: string;
   message: string;
+  children?: ReactNode;
 };
 
 type UseConfirmationModalProps = {
   title: string;
   message: string;
+  children?: ReactNode;
 };
 
 const useConfirmationModal = (props: UseConfirmationModalProps) => {
@@ -19,12 +21,14 @@ const useConfirmationModal = (props: UseConfirmationModalProps) => {
     open: false,
     title: props.title,
     message: props.message,
+    children: props.children,
   });
 
   modalContentRef.current = {
     open: isModalOpen,
     title: props.title,
     message: props.message,
+    children: props.children,
   };
 
   const handleUserAction = useCallback((userConfirmed: boolean) => {
@@ -41,12 +45,13 @@ const useConfirmationModal = (props: UseConfirmationModalProps) => {
   }, []);
 
   const Modal = useCallback(() => {
-    const { open, title, message } = modalContentRef.current;
+    const { open, title, message, children } = modalContentRef.current;
     return (
       <ConfirmationModal
         open={open}
         title={title}
         message={message}
+        children={children}
         handleConfirm={() => handleUserAction(true)}
         handleCancel={() => handleUserAction(false)}
       />

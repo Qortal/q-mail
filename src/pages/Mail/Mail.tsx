@@ -26,8 +26,11 @@ import {
   Avatar,
   Box,
   Button,
+  Checkbox,
+  FormControlLabel,
   Typography,
   CircularProgress,
+  LinearProgress,
   useMediaQuery,
   ButtonBase,
 } from "@mui/material";
@@ -82,6 +85,7 @@ import {
 } from "../../utils/toBase64";
 import {
   readAutoApplyQdnState,
+  writeAutoApplyQdnState,
 } from "../../utils/qdnStatePreference";
 import { formatFullTimestamp } from "../../utils/time";
 import PublishIcon from "@mui/icons-material/Publish";
@@ -1092,10 +1096,13 @@ export const Mail = ({ isFromTo }: MailProps) => {
   >({});
   const [isLoadingCombinedAliasInbox, setIsLoadingCombinedAliasInbox] =
     useState(false);
+  const [isLoadingQdnState, setIsLoadingQdnState] = useState(false);
   const [aliasReplyLinks, setAliasReplyLinks] = useState<
     Record<string, string>
   >({});
   const hasPromptedForPublishedMailStateRef = useRef<string | null>(null);
+  const [rememberQdnStatePreferenceOnLoad, setRememberQdnStatePreferenceOnLoad] =
+    useState(false);
   const markMessagesAsReadRef = useRef<
     ((messages: any[]) => void | Promise<void>) | null
   >(null);
@@ -1141,6 +1148,24 @@ export const Mail = ({ isFromTo }: MailProps) => {
       title: "Load published QDN state?",
       message:
         "Q-Mail found a published mailbox state for this account. Keep fetching it in the background and apply it when the download finishes?",
+      children: (
+        <FormControlLabel
+          sx={{
+            alignItems: "flex-start",
+            marginLeft: "-9px",
+            marginTop: "4px",
+          }}
+          control={
+            <Checkbox
+              checked={rememberQdnStatePreferenceOnLoad}
+              onChange={(_, checked) => {
+                setRememberQdnStatePreferenceOnLoad(checked);
+              }}
+            />
+          }
+          label="Always fetch and apply QDN state"
+        />
+      ),
     });
 
   const userName = useMemo(() => {
@@ -2660,6 +2685,7 @@ export const Mail = ({ isFromTo }: MailProps) => {
     if (!user?.name) return;
     const qdnIdentity = user?.address || user?.name || "";
     const shouldAutoApplyQdnState = readAutoApplyQdnState(qdnIdentity);
+    setIsLoadingQdnState(true);
     try {
       const fetchPromise = qortalRequest({
         action: "FETCH_QDN_RESOURCE",
@@ -2700,6 +2726,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
         const shouldLoad = await showLoadPublishedStateModal();
         if (!shouldLoad) {
           return;
+        }
+
+        if (rememberQdnStatePreferenceOnLoad) {
+          writeAutoApplyQdnState(qdnIdentity, true);
         }
       }
 
@@ -2751,9 +2781,12 @@ export const Mail = ({ isFromTo }: MailProps) => {
       );
     } catch {
       // Ignore missing resources and permission errors.
+    } finally {
+      setIsLoadingQdnState(false);
     }
   }, [
     dispatch,
+    rememberQdnStatePreferenceOnLoad,
     showLoadPublishedStateModal,
     user?.name,
     user?.address,
@@ -3219,6 +3252,10 @@ export const Mail = ({ isFromTo }: MailProps) => {
   }, [user?.address, user?.name]);
 
   useEffect(() => {
+    setRememberQdnStatePreferenceOnLoad(false);
+  }, [user?.address, user?.name]);
+
+  useEffect(() => {
     if (!Object.keys(publishedMailStateById).length) {
       publishedMailStateApplyStatusRef.current = {
         mailMessagesApplied: false,
@@ -3452,10 +3489,139 @@ export const Mail = ({ isFromTo }: MailProps) => {
   }, [ownedSentNames, selectedSentInstanceName]);
 
   const shouldRenderAliasInboxMailbox = Boolean(activeAliasInboxName);
+  const isMailBootstrapLoading =
+    isLoading || isLoadingCombinedAliasInbox || isLoadingQdnState;
 
   return (
     <MailContainer className="qmail-mail-page">
       <LoadPublishedStateModal />
+      {isMailBootstrapLoading && (
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            borderBottom: "1px solid var(--qmail-warning-border, rgba(255, 171, 64, 0.95))",
+            background:
+              "linear-gradient(90deg, rgba(255, 171, 64, 0.24), rgba(255, 171, 64, 0.12) 55%, var(--qmail-shell-bg))",
+            boxShadow: "0 10px 24px rgba(0, 0, 0, 0.22)",
+            backdropFilter: "blur(10px)",
+            position: "sticky",
+            top: 0,
+            zIndex: 4,
+            flexShrink: 0,
+          }}
+          role="status"
+          aria-live="polite"
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "14px",
+              padding: {
+                xs: "12px 14px",
+                md: "14px 18px",
+              },
+            }}
+          >
+            <Box
+              sx={{
+                width: "42px",
+                height: "42px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "999px",
+                backgroundColor: "var(--qmail-shell-bg)",
+                border: "1px solid var(--qmail-warning-border, rgba(255, 171, 64, 0.95))",
+                boxShadow: "0 0 0 4px rgba(255, 171, 64, 0.12)",
+                flexShrink: 0,
+              }}
+            >
+              <CircularProgress
+                size={30}
+                thickness={4.5}
+                sx={{
+                  color: "var(--qmail-warning-border, rgba(255, 171, 64, 0.95))",
+                }}
+              />
+            </Box>
+            <Box
+              sx={{
+                minWidth: 0,
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                gap: "2px",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: {
+                    xs: "0.68rem",
+                    md: "0.72rem",
+                  },
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--qmail-warning-border, rgba(255, 171, 64, 0.95))",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Loading
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: {
+                    xs: "0.92rem",
+                    md: "0.98rem",
+                  },
+                  fontWeight: 800,
+                  color: "var(--qmail-thread-text)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Fetching mail and state...
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: {
+                    xs: "0.78rem",
+                    md: "0.82rem",
+                  },
+                  fontWeight: 500,
+                  color: "var(--qmail-thread-subtle-text)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: {
+                    xs: "none",
+                    sm: "block",
+                  },
+                }}
+              >
+                QDN state and inbox history are still syncing. This can take a
+                bit on larger mailboxes.
+              </Typography>
+            </Box>
+          </Box>
+          <LinearProgress
+            sx={{
+              height: "4px",
+              borderRadius: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.06)",
+              "& .MuiLinearProgress-bar": {
+                backgroundColor: "var(--qmail-warning-border, rgba(255, 171, 64, 0.95))",
+              },
+            }}
+          />
+        </Box>
+      )}
       <>
         {!isMobile && (
           <MailBody>
