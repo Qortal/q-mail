@@ -1,5 +1,5 @@
 /**
- * Local compose drafts (docs/apps/Q-Mail+.md → Data contract §12).
+ * Local compose drafts (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data contract §12).
  *
  * Storage key and shape are the original app's: `qmail_compose_drafts_<address>`
  * holds `{ [draftKey]: StoredComposeDraft }`, keyed `"<from>::<to>"` for a new

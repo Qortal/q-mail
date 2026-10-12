@@ -187,7 +187,7 @@ export async function openQortalLink(raw: string, deps: OpenLinkDeps): Promise<L
     return copyWithNote(target.link, "Hub opens this kind of Qortal link only from its own screens.", deps);
   }
   if (target.kind === "payment") {
-    return copyWithNote(target.link, "Q-Mail+ doesn't send QORT from links in mail. Check who it pays before you use it.", deps);
+    return copyWithNote(target.link, "Q-Mail doesn't send QORT from links in mail. Check who it pays before you use it.", deps);
   }
 
   const request = hubRequest(deps);

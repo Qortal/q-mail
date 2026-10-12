@@ -1,6 +1,6 @@
 /**
  * Names hiding invisible characters (impostors, e.g. a dev's name plus
- * U+2800) are struck through wherever Q-Mail+ shows them,
+ * U+2800) are struck through wherever Q-Mail shows them,
  * exactly as Qortal Hub does (NameText). Ordinary names are left alone.
  */
 import { beforeEach, describe, expect, it } from 'vitest'

@@ -8,11 +8,11 @@
  * reply stays the same size however long the conversation gets.
  *
  * Everything that reaches QDN keeps the shape the original Q-Mail reads
- * (docs/apps/Q-Mail+.md → Data contract §3a, §15, §16):
+ * (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data contract §3a, §15, §16):
  * - a forward's quote is Quill 1 markup: one `<blockquote>` per line, inline text only;
  * - `threadV2[].reference` keeps its `{ identifier, name, service }` shape;
  *   the original app skips entries without `data`, so it shows the reply on
- *   its own, and the Q-Mail+ reader fetches them (pages/Mail/earlierMessages.ts);
+ *   its own, and the reader fetches them (pages/Mail/earlierMessages.ts);
  * - `to` / `cc` are additive top-level fields the original app ignores (it
  *   reads `recipient`); Bcc names never appear in any JSON.
  */
@@ -170,7 +170,7 @@ export interface ThreadReference {
 
 export interface ThreadEntry {
   reference: ThreadReference;
-  /** Only in history written by the original app or Q-Mail+ 1.0.0. */
+  /** Only in history written by Q-Mail 3 or Q-Mail+ 1.0.0. */
   data?: any;
 }
 

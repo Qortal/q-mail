@@ -1,6 +1,6 @@
 /**
  * Inbox / sent / alias / group probes and index fetches used by Mail.tsx. The
- * queries are byte-for-byte the original app's (docs/apps/Q-Mail+.md → Data
+ * queries are byte-for-byte the original app's (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data
  * contract §3b, Qortal call inventory I4–I10); the only change is that every
  * search goes through `searchResources()` so identical searches in flight are
  * merged and results are cached for the session.

@@ -7,7 +7,7 @@
  * Stored per account in localStorage, `qmail_footer_<address>`:
  *   { default: string, byName: { "<name>": string }, inReplies: boolean }
  * and published, additively, as `settings.footer` in qmail_state_v1
- * (docs/apps/Q-Mail+.md → Data contract §10, §16). The footer itself only
+ * (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data contract §10, §16). The footer itself only
  * reaches other people inside the message body (`textContentV2`), as the
  * Quill 1 paragraphs built here, so the mail format does not change.
  */

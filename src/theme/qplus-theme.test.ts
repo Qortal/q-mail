@@ -6,7 +6,7 @@ import { CLASSIC_BOOT_BACKGROUND, THEME_STORAGE_KEY, themeConfig } from './qplus
 
 const modes: ColorMode[] = ['light', 'dark']
 
-describe('Q-Mail+ theme config', () => {
+describe('Q-Mail theme config', () => {
   it('builds every theme in both host modes', () => {
     for (const id of UI_THEME_IDS) {
       for (const mode of modes) {
@@ -32,6 +32,6 @@ describe('Q-Mail+ theme config', () => {
     const html = readFileSync(path.join(process.cwd(), 'index.html'), 'utf8')
     expect(html).toContain(`var STORAGE_KEY = '${THEME_STORAGE_KEY}';`)
     expect(html).toContain(`var HUB20 = { light: '${CLASSIC_BOOT_BACKGROUND.light}', dark: '${CLASSIC_BOOT_BACKGROUND.dark}' };`)
-    expect(html).toContain('<title>Q-Mail+</title>')
+    expect(html).toContain('<title>Q-Mail</title>')
   })
 })

@@ -1,15 +1,16 @@
 /**
  * The earlier messages of a conversation, read from a message's
- * `generalData.threadV2` (docs/apps/Q-Mail+.md → Data contract §3a).
+ * `generalData.threadV2` (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data contract §3a).
  *
  * An entry is one of two kinds:
- * - embedded: `{ reference, data }`, how the original Q-Mail and Q-Mail+
+ * - embedded: `{ reference, data }`, how Q-Mail 3 and Q-Mail+
  *   1.0.0 write replies. `data` is a copy the sender put in their own mail,
  *   so it is shown as quoted and not verified;
- * - a reference only: `{ reference }`, how Q-Mail+ writes replies from 1.0.1
- *   on, so a reply does not grow with the conversation. The message is
- *   fetched from QDN under the reference's name (its publisher) and
- *   decrypted, only when the reader opens "Show earlier", a page at a time.
+ * - a reference only: `{ reference }`, how Q-Mail 4 (and Q-Mail+ from
+ *   1.0.1) writes replies, so a reply does not grow with the conversation.
+ *   The message is fetched from QDN under the reference's name (its
+ *   publisher) and decrypted, only when the reader opens "Show earlier", a
+ *   page at a time.
  *
  * A message the user already opened comes from the decrypted-message cache
  * (`hashMapMailMessages`, read only: what lands there feeds the read state

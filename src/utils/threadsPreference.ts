@@ -1,5 +1,5 @@
 /**
- * Settings → Mail → "Show group threads": whether Q-Mail+ shows group
+ * Settings → Mail → "Show group threads": whether Q-Mail shows group
  * threads at all (the rail's Threads section, the bottom bar's Threads item,
  * groups as compose targets, thread drafts). Hidden, nothing about threads is
  * fetched: no per-group activity searches on load and no unread polling.

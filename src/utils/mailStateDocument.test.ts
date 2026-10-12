@@ -62,7 +62,7 @@ describe('qmail_state_v1 document', () => {
     })
   })
 
-  it('parses a document from the original app (no archived map) and from Q-Mail+', () => {
+  it('parses a document from Q-Mail 3 (no archived map) and from Q-Mail 4', () => {
     const original = {
       version: 1,
       updatedAt: 1,

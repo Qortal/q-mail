@@ -1,9 +1,9 @@
 /**
- * Q-Mail+ for the shared screenshot check (scripts/screens.mjs):
+ * Q-Mail for the screenshot check (e2e/screens.mjs):
  *
- *   scripts/screens.mjs Q-Mail+ [--only inbox,inbox-open] [--themes hub30] [--mode light]
+ *   node e2e/screens.mjs [--only inbox,inbox-open] [--themes hub30] [--mode light]
  *
- * Fixtures (docs/apps/Q-Mail+.md → Data contract, binding): a signed-in
+ * Fixtures (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data contract, binding): a signed-in
  * account "Tester GO" that also owns "bob+builder"; an inbox of 30
  * MAIL_PRIVATE rows from four senders (one with a "+", one non-ASCII), some
  * with a cached subject, some locked (DECRYPT_DATA throws); one message with
@@ -21,7 +21,7 @@
  * the reader (impostor-open) and the composer's suggestions (compose-names)
  * show the strike next to the real name.
  *
- * Reference-only history (1.0.1 replies): Simon James's message carries six
+ * Reference-only history (4.0 replies): Simon James's message carries six
  * threadV2 references and no copies (earlier-refs): one not sent to us (a
  * locked id), our own deleted sent message (the tombstone), one the node
  * can't fetch, and three that load, so "Show earlier" shows every state and
@@ -454,7 +454,7 @@ async function openGroup(page) {
 
 export default {
   name: NAME,
-  themeKey: 'qmailplus-ui-theme',
+  themeKey: 'qmail-ui-theme',
   dismiss: [],
 
   async setup({ browser }) {
@@ -786,7 +786,7 @@ export default {
         await page.waitForTimeout(300);
       },
     },
-    { key: 'whats-new', path: '/settings', overlay: true, after: async (page) => { await page.waitForSelector('text=Appearance', { timeout: 8000 }).catch(() => {}); await page.getByRole('button', { name: "What's new" }).first().click({ timeout: 4000 }); await page.waitForSelector('text=The first Q-Mail+ release', { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(300); } },
+    { key: 'whats-new', path: '/settings', overlay: true, after: async (page) => { await page.waitForSelector('text=Appearance', { timeout: 8000 }).catch(() => {}); await page.getByRole('button', { name: "What's new" }).first().click({ timeout: 4000 }); await page.waitForSelector('text=A redesign, first published as Q-Mail+', { timeout: 8000 }).catch(() => {}); await page.waitForTimeout(300); } },
     {
       // A row's menu: right click here; a long press on a phone opens the same (a sheet below 600 px).
       key: 'row-menu',

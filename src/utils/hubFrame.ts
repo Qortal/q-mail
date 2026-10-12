@@ -2,7 +2,7 @@
  * Hub's frame, not the device screen (docs/QORTAL.md → Hub & GO pitfalls 3).
  *
  * Hub and GO host the app in an iframe shorter than the screen: at 844×390
- * (a phone held sideways) Q-Mail+ gets a frame of 703×201 CSS px in Hub.
+ * (a phone held sideways) Q-Mail gets a frame of 703×201 CSS px in Hub.
  * `useAppViewport` sizes the app to that frame; this module says when the
  * frame is short, so the bars go compact, the floating button goes and the
  * reading pane takes the whole width. Adapted from Q-Share+'s hubFrame.ts

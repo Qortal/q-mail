@@ -16,7 +16,7 @@ interface SavedSubject {
   timestamp: number;
   subject: string;
   attachments: boolean;
-  /** Q-Mail+: the attachments' names, newline-separated, encrypted like the subject. */
+  /** Since Q-Mail 4: the attachments' names, newline-separated, encrypted like the subject. */
   attachmentNames?: string;
 }
 interface GlobalState {

@@ -180,7 +180,7 @@ export const fetchAndEvaluateMail = async (
           if (username) {
             const subjects = JSON.parse(localStorage.getItem(`qmail_persistance_${username}`) || '{}')
             const existing = subjects[messageIdentifier]
-            // Q-Mail+ also keeps the attachments' names (encrypted like the
+            // Q-Mail 4 also keeps the attachments' names (encrypted like the
             // subject, an extra field Q-Mail ignores) so list rows can show
             // them; an entry from before gets them the next time it decrypts.
             const names = attachmentNamesForCache(obj?.attachments)

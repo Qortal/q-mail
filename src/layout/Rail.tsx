@@ -474,7 +474,7 @@ function RailView({
       <Brand>
         <img src={theme.palette.mode === 'light' ? LogoLight : Logo} alt="" style={{ height: 32, width: 'auto' }} />
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography sx={{ fontWeight: 700, lineHeight: 1.1 }}>Q-Mail+</Typography>
+          <Typography sx={{ fontWeight: 700, lineHeight: 1.1 }}>Q-Mail</Typography>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
             v{version}
           </Typography>

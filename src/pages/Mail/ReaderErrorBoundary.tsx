@@ -17,7 +17,7 @@ export function ReaderErrorBoundary({ messageKey, children }: { messageKey: stri
       fallback={
         <ErrorState
           title={READER_ERROR_TITLE}
-          message="Something in it can't be displayed. Open another message, or reload Q-Mail+ if none will open."
+          message="Something in it can't be displayed. Open another message, or reload Q-Mail if none will open."
           onRetry={() => window.location.reload()}
         />
       }

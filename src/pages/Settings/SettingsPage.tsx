@@ -45,8 +45,8 @@ import { registerBackLayer } from '../../layout/backStack';
 
 export { SETTINGS_PATH };
 export const APP_VERSION: string = packageJson.version;
-const UPSTREAM_URL = 'https://github.com/Qortal/q-mail';
-const SOURCE_URL = 'https://github.com/SJQortal/Q-Apps-Plus';
+const SOURCE_URL = 'https://github.com/Qortal/q-mail';
+const PLUS_URL = 'https://github.com/SJQortal/Q-Apps-Plus';
 /**
  * The rating adapter is local-only (upstream never called Qortal), so a vote
  * here reached nobody. The control stays in the code, hidden, until a real
@@ -390,13 +390,13 @@ export function SettingsPage() {
             }
           />
           <Typography variant="body2" color="text.secondary">
-            When on, the published state is loaded on this device without asking first. When off, Q-Mail+ asks
+            When on, the published state is loaded on this device without asking first. When off, Q-Mail asks
             once per sign-in.
           </Typography>
         </Section>
 
         <Section title="About">
-          <Row label={`Q-Mail+ ${APP_VERSION}`} hint="Simon's + version of Q-Mail.">
+          <Row label={`Q-Mail ${APP_VERSION}`} hint="Encrypted mail between Qortal names. Version 4 was built as Q-Mail+ by Simon James.">
             <Button variant="outlined" onClick={() => setChangelogOpen(true)}>
               What's new
             </Button>
@@ -413,12 +413,12 @@ export function SettingsPage() {
             </Row>
           )}
           <Typography variant="body2" color="text.secondary">
-            Based on{' '}
-            <Link href={UPSTREAM_URL} target="_blank" rel="noreferrer">
-              Q-Mail by the Qortal team
-            </Link>
-            . Source:{' '}
+            Source:{' '}
             <Link href={SOURCE_URL} target="_blank" rel="noreferrer">
+              Qortal/q-mail
+            </Link>
+            . Built as Q-Mail+ in{' '}
+            <Link href={PLUS_URL} target="_blank" rel="noreferrer">
               SJQortal/Q-Apps-Plus
             </Link>
             .

@@ -10,7 +10,7 @@ export default tseslint.config(
       'dist',
       'node_modules',
       'e2e',
-      // The theme kit is a synced copy of shared/hub-theme (never edited here).
+      // The theme kit, copied in from SJQortal/Q-Apps-Plus (shared/hub-theme) and linted there.
       'src/hub-theme/**',
       // Vendored copy of @qortal/qapp-lib (tsconfig paths); upstream's code.
       'src/qapp-lib/**',
@@ -31,7 +31,7 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none' }],
       // eslint-plugin-react-hooks 7 ships the React Compiler's rules in
-      // "recommended". Q-Mail+ does not use the compiler, and the upstream code
+      // "recommended". Q-Mail does not use the compiler, and the upstream code
       // sets state in effects and reads refs during render in 90-odd places;
       // those are rewritten screen by screen in the redesign, not by a lint
       // sweep. Turn them on again when the last upstream screen is gone.

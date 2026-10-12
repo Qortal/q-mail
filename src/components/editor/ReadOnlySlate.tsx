@@ -47,7 +47,7 @@ const nodeText = (nodes: SlateNode[] | undefined): string =>
  * on click (DisplayHtml.useMessageLinkClick); web, mail and phone
  * links can't open in Hub, so they show as text with their target; anything
  * else (relative, same-origin, data:) is plain text, because it would load
- * another page, such as another Q-App, inside the Q-Mail+ frame.
+ * another page, such as another Q-App, inside the Q-Mail frame.
  */
 const renderLink = (href: string | undefined, children: React.ReactNode, text: string, key?: React.Key) => {
   const decision = linkPolicy(typeof href === 'string' ? href : '')

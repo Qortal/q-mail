@@ -162,7 +162,7 @@ import {
 import { useShortcutsAvailable } from "../../hooks/useKeyboardShortcuts";
 import { createOpenMessage, readingViewFor } from "./messageOpener";
 
-// Lazy boundaries (docs/apps/Q-Mail+.md → Bundle §5): the composer (Quill,
+// Lazy boundaries (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Bundle §5): the composer (Quill,
 // react-dropzone), the reader (dompurify), threads, aliases, sent, drafts and
 // the tour each load on first use. The composer and reader chunks are warmed
 // on idle after first paint (see the effect in Mail), so Compose and opening
@@ -865,7 +865,7 @@ export const Mail = ({ isFromTo, isHidden = false }: MailProps) => {
 
   useEffect(() => {
     const total = unreadCounts.total;
-    document.title = total > 0 ? `(${total}) Q-Mail+` : "Q-Mail+";
+    document.title = total > 0 ? `(${total}) Q-Mail` : "Q-Mail";
   }, [unreadCounts.total]);
   const composePriorityRecipientNames = useMemo(() => {
     const deduped = new Map<string, string>();

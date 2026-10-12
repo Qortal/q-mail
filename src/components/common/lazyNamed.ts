@@ -1,5 +1,5 @@
 /**
- * Code-splitting helpers (docs/apps/Q-Mail+.md → Bundle §5).
+ * Code-splitting helpers (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Bundle §5).
  *
  * `lazyNamed` is React.lazy for modules that use named exports, and
  * `preloadOnIdle` warms a chunk after first paint so the screen it belongs to

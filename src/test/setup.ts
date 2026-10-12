@@ -1,7 +1,7 @@
 /**
  * Test setup: runs before every test file (see vitest.config.ts).
  *
- * Q-Mail+ talks to Qortal through the global `qortalRequest` that Hub injects
+ * Q-Mail talks to Qortal through the global `qortalRequest` that Hub injects
  * and through relative `fetch('/arbitrary/…')` calls. Neither exists in
  * jsdom, so both are mocked here. Tests register answers per action or per
  * URL, and can assert which calls were made and how many. Nothing here ever

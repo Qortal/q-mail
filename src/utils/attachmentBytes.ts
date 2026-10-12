@@ -1,6 +1,6 @@
 /**
  * Decrypted bytes of a mail attachment, the way FileElement gets them
- * (docs/apps/Q-Mail+.md → Data contract §6): `FETCH_QDN_RESOURCE` as base64,
+ * (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data contract §6): `FETCH_QDN_RESOURCE` as base64,
  * then `DECRYPT_DATA { encryptedData }` with the user's own key.
  *
  * Used by the composer to re-attach a forwarded message's files. Identical

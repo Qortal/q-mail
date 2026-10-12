@@ -35,7 +35,7 @@ export default function ConsentModal() {
     <ResponsiveDialog
       open={open}
       onClose={handleClose}
-      title="Welcome to Q-Mail+"
+      title="Welcome to Q-Mail"
       describedBy="qmail-consent-description"
       maxWidth="xs"
       actions={

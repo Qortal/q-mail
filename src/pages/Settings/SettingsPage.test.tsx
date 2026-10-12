@@ -52,7 +52,7 @@ describe('SettingsPage', () => {
     for (const title of ['Account', 'Appearance', 'Mail', 'Sync', 'About']) {
       expect(screen.getByRole('heading', { name: title })).toBeTruthy()
     }
-    expect(screen.getByText(`Q-Mail+ ${APP_VERSION}`)).toBeTruthy()
+    expect(screen.getByText(`Q-Mail ${APP_VERSION}`)).toBeTruthy()
   })
 
   it('switches the theme and saves it under the app key', () => {

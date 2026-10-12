@@ -9,11 +9,12 @@
  *
  * Earlier messages come from generalData.threadV2 through
  * useEarlierMessages: embedded copies show at once, reference-only entries
- * (Q-Mail+ 1.0.1 replies) are fetched from QDN when "Show earlier" opens,
- * the newest EARLIER_PAGE_SIZE first, with "Show older" for the rest.
+ * (replies since Q-Mail 4, and Q-Mail+ 1.0.1) are fetched from QDN when
+ * "Show earlier" opens, the newest EARLIER_PAGE_SIZE first, with "Show
+ * older" for the rest.
  *
  * The header names the recipient ("to …") and, for mail written with Cc
- * names (Q-Mail+'s additive `cc`), a "cc …" line.
+ * names (the additive `cc` of Q-Mail 4), a "cc …" line.
  *
  * Props stay compatible with Mail.tsx (message, setReplyTo, setForwardInfo,
  * alias, onClose, setIsOpen); onReplyAll, onForward, onArchive and
@@ -198,7 +199,7 @@ export const ShowMessageV2 = ({
     }
   };
 
-  // The To of the send. Every copy of a Q-Mail+ send carries it in `to`
+  // The To of the send. Every copy of a Q-Mail 4 send carries it in `to`
   // (§17), while `recipient` names the copy's own target, a Cc or Bcc name
   // on those copies; mail from the original app has only `recipient`.
   // Strings only: a decrypted body can hold anything, and an object here
@@ -211,7 +212,7 @@ export const ShowMessageV2 = ({
         : typeof message?.to === "string" && message.to.trim()
           ? message.to
           : undefined;
-  // Cc names Q-Mail+ writes into every copy (data contract §17); Bcc never.
+  // Cc names Q-Mail 4 writes into every copy (data contract §17); Bcc never.
   const ccNames: string[] = Array.isArray(message?.cc)
     ? Array.from(new Set(message.cc.filter((name: unknown): name is string => typeof name === "string" && name.trim().length > 0)))
     : [];

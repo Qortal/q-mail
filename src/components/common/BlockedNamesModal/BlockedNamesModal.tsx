@@ -100,7 +100,7 @@ export const BlockedNamesModal: React.FC<PostModalProps> = ({ open, onClose }) =
       ) : unavailable === 'declined' ? (
         <EmptyState
           title="Access not granted"
-          hint="Allow Q-Mail+ to read the list in Hub to see it here."
+          hint="Allow Q-Mail to read the list in Hub to see it here."
           action={
             <Button variant="outlined" color="inherit" onClick={() => void getBlockedNames()} sx={{ minHeight: 44 }}>
               Try again

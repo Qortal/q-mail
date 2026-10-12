@@ -1,12 +1,12 @@
 /**
  * The published mailbox state: service DOCUMENT_PRIVATE, identifier
- * `qmail_state_v1`, encrypted to the owner (docs/apps/Q-Mail+.md → Data
+ * `qmail_state_v1`, encrypted to the owner (https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data
  * contract §10). The shape the original Q-Mail reads is binding:
  *
  *   { version: 1, updatedAt, ownerAddress, names: [...],
  *     messages: { "<id>": { read?: true, subject?: string, updatedAt?: number } } }
  *
- * Q-Mail+ adds two top-level keys, which the original app ignores (it only
+ * Q-Mail 4 adds two top-level keys, which Q-Mail 3 ignores (it only
  * reads `messages`): the map `archived: { "<id>": { at } }` and the object
  * `settings: { uiTheme, textSize, watchedAliases, aliasReplyLinks, footer? }`.
  * Per-entry extras are not allowed: the original's normaliser drops them on
@@ -37,7 +37,7 @@ export type MailStateTextSize = "small" | "medium" | "large";
 const TEXT_SIZES: readonly MailStateTextSize[] = ["small", "medium", "large"];
 
 /**
- * Additive (Q-Mail+ only): the device's appearance and alias lists at publish
+ * Additive (since Q-Mail 4): the device's appearance and alias lists at publish
  * time. Appearance is only ever applied on request (Settings → Sync →
  * Restore); the alias lists are unioned into the local ones on load; the
  * footer is applied on load only when the device has none.
@@ -57,9 +57,9 @@ export interface QMailPublishedStateDocument {
   ownerAddress: string;
   names: string[];
   messages: Record<string, QMailPublishedStateEntry>;
-  /** Additive (Q-Mail+ only). */
+  /** Additive (since Q-Mail 4). */
   archived?: ArchivedMap;
-  /** Additive (Q-Mail+ only). */
+  /** Additive (since Q-Mail 4). */
   settings?: QMailPublishedSettings;
 }
 
@@ -96,7 +96,7 @@ export const normalizeAliasReplyLinks = (
 };
 
 /**
- * Accepts any value and keeps only what Q-Mail+ wrote: a known theme id, one
+ * Accepts any value and keeps only what Q-Mail 4 writes: a known theme id, one
  * of the three text sizes, the two alias lists and a footer with text. Returns null when the
  * value is not an object (a document from the original app has no settings).
  */

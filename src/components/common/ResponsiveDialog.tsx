@@ -1,5 +1,5 @@
 /**
- * The one dialog frame for Q-Mail+ (docs/DESIGN.md → Mobile → Dialogs):
+ * The one dialog frame for Q-Mail (docs/DESIGN.md → Mobile → Dialogs):
  * a centred MUI Dialog on medium and desktop layouts, full-screen under
  * 600 px (or whenever `fullScreen` asks), with 44 px actions, the focus trap
  * left on and a labelled title. A full-screen sheet in a landscape frame gets

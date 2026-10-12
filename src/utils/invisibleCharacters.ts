@@ -4,7 +4,7 @@
  * Impostors register a developer's or a friend's name with an invisible
  * character added (most often U+2800 BRAILLE PATTERN BLANK), so the
  * name looks the same as the real one. Qortal Hub strikes such names through
- * in red wherever it shows them; Q-Mail+ does the same (NameText).
+ * in red wherever it shows them; Q-Mail does the same (NameText).
  *
  * `hasInvisibleCharacters` is copied exactly (same regex, same NFKC step)
  * from Qortal Hub's src/utils/hasInvisibleCharacters.ts, so both apps flag

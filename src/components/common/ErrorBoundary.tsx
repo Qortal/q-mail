@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error('Q-Mail+ could not show this screen:', error, info.componentStack);
+    console.error('Q-Mail could not show this screen:', error, info.componentStack);
   }
 
   componentDidUpdate(previous: Props, previousState: State): void {
@@ -54,7 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <Box sx={{ minHeight: '100%', bgcolor: 'background.default' }}>
           <ErrorState
-            message="This part of Q-Mail+ could not be shown. Reloading usually fixes it; your mail is safe on QDN."
+            message="This part of Q-Mail could not be shown. Reloading usually fixes it; your mail is safe on QDN."
             onRetry={this.reload}
           />
         </Box>

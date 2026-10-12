@@ -1,7 +1,7 @@
 /**
  * The primary inbox: the full index on load and the limit-20 poll. The Q-Blog
  * functions that shared this hook (getBlogPosts, getNewPosts, favourites,
- * subscriptions: docs/apps/Q-Mail+.md → Data contract §14) were never called
+ * subscriptions: https://github.com/SJQortal/Q-Apps-Plus/blob/main/docs/apps/Q-Mail%2B.md → Data contract §14) were never called
  * at runtime and are gone; the two mail functions below are unchanged.
  */
 import React from 'react'
