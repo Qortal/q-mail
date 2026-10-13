@@ -9,6 +9,24 @@ type ChangelogEntry = {
 
 const changelogEntries: ChangelogEntry[] = [
   {
+    version: "v4.0.0",
+    date: "October 12, 2026",
+    highlights: [
+      "A redesign, first published as Q-Mail+ by Simon James. It reads and writes the same mail as Q-Mail 3, so your mail shows up in both versions.",
+      "The Hub 3.0 layout with mailboxes, message list and message side by side, borders you can drag to set their widths, one pane at a time on phones, four themes and a full Settings page.",
+      "Made for phones and GO: 44 px targets, sheets, Send above the keyboard, Back and a swipe that close what is on top, and press-and-hold menus.",
+      "Replies stay small, on advice from the Qortal developers: a reply no longer quotes or copies earlier messages; it links to them, and Show earlier loads them from QDN back to the start of the conversation.",
+      "Read state that survives reloads, unread counts, Archive with Undo, Select all, exact dates, and search across all your mail, with message bodies on request.",
+      "Right-click a message, or press and hold it, for Reply, Forward, Mark read or unread, Archive and Select.",
+      "Reply all with a Cc row, Forward with attachments, Drafts, recipient suggestions with avatars and name checks, and a mail footer in Settings → Mail.",
+      "Attachments open in the app, PDFs in Hub's own reader; a message's files show in the list and open without opening the message; the composer shows attached files as tiles you can preview.",
+      "Names under Inbox fold away and can be hidden; group threads as list and pane, and hideable in Settings → Mail.",
+      "qortal:// links open through Hub, so group join links work; names with hidden characters, often used to imitate someone, are crossed out, as in Hub.",
+      "Faster: 6 searches on first load instead of about 25 (one search for all your names when you have many), messages on your node open in about half a second, and a first download of about 395 kB instead of 1,576 kB.",
+      "Quiet declines in Hub, safer message HTML, and a broken message fails in its own place instead of taking the app down.",
+    ],
+  },
+  {
     version: "v3.2.1",
     date: "May 28, 2026",
     highlights: [
@@ -143,10 +161,12 @@ export const ChangelogPage = () => {
       }}
     >
       <Typography
+        component="h2"
         sx={{
           fontSize: "1.5rem",
           fontWeight: 700,
           color: "var(--qmail-thread-text)",
+          m: 0,
         }}
       >
         Changelog
@@ -157,7 +177,9 @@ export const ChangelogPage = () => {
           sx={{
             border: "1px solid var(--qmail-shell-border)",
             borderRadius: "10px",
-            backgroundColor: "var(--qmail-shell-active)",
+            // A plain card: the dates' secondary text keeps 4.5:1 on it in every
+            // theme (on the old active-row tint it fell short in Hub 3.0 dark).
+            backgroundColor: "transparent",
             padding: "14px 16px",
             display: "flex",
             flexDirection: "column",
@@ -165,9 +187,11 @@ export const ChangelogPage = () => {
           }}
         >
           <Typography
+            component="h3"
             sx={{
               fontSize: "1rem",
               fontWeight: 700,
+              m: 0,
             }}
           >
             {entry.version}
@@ -175,7 +199,7 @@ export const ChangelogPage = () => {
           <Typography
             sx={{
               fontSize: "0.875rem",
-              color: "var(--qmail-message-meta)",
+              color: "text.secondary",
             }}
           >
             {entry.date}
