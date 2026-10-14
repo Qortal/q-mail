@@ -67,3 +67,5 @@ declare global {
   }
 }
 
+// Polyfill for browser environments that lack the `global` binding
+declare var global: typeof globalThis;
